@@ -1,0 +1,3341 @@
+// ============================================================================
+// EG_QuickWave_v1.82.mel
+// ============================================================================
+
+// -----------------------------------------------------------------------------
+// BOOTSTRAP (runs on source):
+// - Kill orphan EGQW58 scriptJobs BEFORE this file finishes sourcing.
+// - Mute orphan EGQW58 expressions to prevent infinite console spam during reload.
+// -----------------------------------------------------------------------------
+{
+    // 1) Kill orphan scriptJobs that reference EGQW58 callbacks.
+    string $egqw58__jobs[] = `scriptJob -lj`;
+    int $egqw58__i;
+    for ($egqw58__i=0; $egqw58__i<size($egqw58__jobs); $egqw58__i++)
+    {
+        string $egqw58__j = $egqw58__jobs[$egqw58__i];
+        if (!`gmatch $egqw58__j "*EGQW58_*"`) continue;
+
+        string $egqw58__parts[];
+        int $egqw58__n = `tokenize $egqw58__j ":" $egqw58__parts`;
+        if ($egqw58__n < 1) continue;
+        int $egqw58__id = (int)$egqw58__parts[0];
+        if ($egqw58__id < 1) continue;
+        if (!`scriptJob -ex $egqw58__id`) continue;
+        evalDeferred ("if (`scriptJob -ex " + $egqw58__id + "`) scriptJob -k " + $egqw58__id + ";");
+    }
+
+    // 2) Mute orphan expressions (they can spam errors while this file is still sourcing).
+    string $egqw58__expr[] = `ls "EGQW58_expr_*"`;
+    for ($egqw58__i=0; $egqw58__i<size($egqw58__expr); $egqw58__i++)
+    {
+        string $egqw58__e = $egqw58__expr[$egqw58__i];
+        if ($egqw58__e == "" || !`objExists $egqw58__e`) continue;
+        // nodeState 1 = HasNoEffect (stops evaluation)
+        catchQuiet ("setAttr \"" + $egqw58__e + ".nodeState\" 1;");
+    }
+}
+
+// Entry (stable name)
+global proc EG_QuickWave(){ EGQW58_UI(); }
+
+global string $EGQW58_VER = "1.82";
+// -----------------------------------------------------------------------------
+// Globals
+// -----------------------------------------------------------------------------
+global string $EGQW58_WIN = "EGQW58_WIN";
+global int    $EGQW58_PREVIEW_ON = 0;
+global int    $EGQW58_STOPPING = 0;
+global int    $EGQW58_IDLE_JOB = -1;
+global int    $EGQW58_TIME_JOB = -1;
+global int    $EGQW58_STOP_REQ = 0;
+global int    $EGQW58_BAKING = 0;
+
+// UI sync guards
+global int    $EGQW58_UI_LOADING = 0;     // prevents callbacks while building/loading UI
+global int    $EGQW58_UI_SYNC_LOCK = 0;   // prevents slider<->field recursion
+
+global string $EGQW58_CFG = "";              // network node name
+global string $EGQW58_SEL_SNAP[];            // selection restore
+
+// UI handles
+// Style Save buttons
+global int    $EGQW58_UI_MODE; // 0 Trans, 1 Rot, 2 Scale
+
+// Bake helpers
+
+// Preview rig storage
+global string $EGQW58_TGT[];         // targets (full path)
+global int    $EGQW58_TGT_IDX[];     // phase index per target
+global int    $EGQW58_TGT_N[];       // phase count per target (for Multi/Hierarchy)
+global int    $EGQW58_TGT_CID[];     // chain id per target (Multi roots)
+global string $EGQW58_CM[];          // composeMatrix nodes
+global string $EGQW58_CMT[];         // composeMatrix (translate only)
+global string $EGQW58_CMRS[];        // composeMatrix (rotate/scale)
+global string $EGQW58_BASET[];       // composeMatrix (base translate for pivot, avoids OPM feedback)
+global string $EGQW58_PIVSUM[];      // plusMinusAverage (translate+rotatePivot+rotatePivotTranslate)
+global string $EGQW58_PIVP[];        // pivot +T
+global string $EGQW58_PIVN[];        // pivot -T
+global string $EGQW58_PIVMD[];       // multiplyDivide for -T
+global string $EGQW58_PIVDC[];      // decomposeMatrix for pivot pos
+global string $EGQW58_PIVMM[];     // multMatrix for (origOPM * localTRS) pivot pos
+global string $EGQW58_MM[];          // multMatrix nodes
+global string $EGQW58_SET[];         // network nodes storing originals
+global string $EGQW58_EXPR[];        // expression nodes per target
+
+// -----------------------------------------------------------------------------
+// Helpers
+// -----------------------------------------------------------------------------
+global proc EGQW58__saveSelection()
+{
+    global string $EGQW58_SEL_SNAP[];
+    $EGQW58_SEL_SNAP = `ls -sl -l`;
+}
+global proc EGQW58__restoreSelection()
+{
+    global string $EGQW58_SEL_SNAP[];
+    if (size($EGQW58_SEL_SNAP) > 0) EGQW58__selectSafe($EGQW58_SEL_SNAP);
+}
+
+global proc EGQW58__selectSafe(string $items[])
+{
+    string $ok[];
+    int $i;
+    for ($i=0; $i<size($items); $i++)
+    {
+        string $it = $items[$i];
+        if ($it == "") continue;
+        if (`objExists $it`) $ok[size($ok)] = $it;
+    }
+    if (size($ok) > 0) select -r $ok;
+    else select -cl;
+}
+
+global proc int EGQW58__attrExists(string $node, string $a)
+{
+    if ($node == "" || !`objExists $node`) return 0;
+    return `attributeQuery -ex -node $node $a`;
+}
+
+global proc float EGQW58__dot3(float $ax, float $ay, float $az, float $bx, float $by, float $bz)
+{
+    return ($ax*$bx + $ay*$by + $az*$bz);
+}
+global proc float[] EGQW58__axisSignsFromRoot(string $root, string $obj)
+{
+    float $sg[3] = {1.0, 1.0, 1.0};
+    if ($root == "" || $obj == "") return $sg;
+    if (!`objExists $root` || !`objExists $obj`) return $sg;
+
+    float $mr[] = `xform -q -ws -m $root`;
+    float $mo[] = `xform -q -ws -m $obj`;
+    if (size($mr) != 16 || size($mo) != 16) return $sg;
+
+    // Maya xform matrix is row-major; basis vectors are rows 0/1/2.
+    float $rx0=$mr[0], $rx1=$mr[1], $rx2=$mr[2];
+    float $ry0=$mr[4], $ry1=$mr[5], $ry2=$mr[6];
+    float $rz0=$mr[8], $rz1=$mr[9], $rz2=$mr[10];
+
+    float $ox0=$mo[0], $ox1=$mo[1], $ox2=$mo[2];
+    float $oy0=$mo[4], $oy1=$mo[5], $oy2=$mo[6];
+    float $oz0=$mo[8], $oz1=$mo[9], $oz2=$mo[10];
+
+    float $drx = EGQW58__dot3($rx0,$rx1,$rx2,$ox0,$ox1,$ox2);
+    float $dry = EGQW58__dot3($ry0,$ry1,$ry2,$oy0,$oy1,$oy2);
+    float $drz = EGQW58__dot3($rz0,$rz1,$rz2,$oz0,$oz1,$oz2);
+
+    if ($drx < 0.0) $sg[0] = -1.0;
+    if ($dry < 0.0) $sg[1] = -1.0;
+    if ($drz < 0.0) $sg[2] = -1.0;
+    return $sg;
+}
+
+global proc EGQW58__setMatrixAttr(string $plug, float $m[])
+{
+    if ($plug == "") return;
+    if (size($m) != 16) return;
+
+    // Basic validation (node must exist)
+    string $tok[];
+    tokenize $plug "." $tok;
+    if (size($tok) < 2) return;
+    string $node = $tok[0];
+    if ($node == "" || !`objExists $node`) return;
+
+    // Skip locked/connected plugs (ex: offsetParentMatrix on driven controls)
+    int $lk = 0;
+    if (catch($lk = `getAttr -l $plug`)) return;
+    if ($lk) return;
+
+    string $src[] = `listConnections -s 1 -d 0 $plug`;
+    if (size($src) > 0) return;
+
+    string $cmd = ("setAttr -type \"matrix\" \"" + $plug + "\" "
+        + $m[0] + " " + $m[1] + " " + $m[2] + " " + $m[3] + " "
+        + $m[4] + " " + $m[5] + " " + $m[6] + " " + $m[7] + " "
+        + $m[8] + " " + $m[9] + " " + $m[10] + " " + $m[11] + " "
+        + $m[12] + " " + $m[13] + " " + $m[14] + " " + $m[15] + ";");
+    catchQuiet($cmd);
+}
+
+global proc string EGQW58__makeNode(string $type, string $name)
+{
+    // createNode can change selection; preserve it to avoid random "No selection" issues.
+    string $sel[] = `ls -sl -l`;
+
+    if (`objExists $name`) delete $name;
+    string $n = `createNode $type -n $name`;
+
+    EGQW58__selectSafe($sel);
+
+    return $n;
+}
+global proc EGQW58__deleteIfExists(string $n)
+{
+    if ($n != "" && `objExists $n`) delete $n;
+}
+
+// Delete helper: quiet per-node delete (avoids catchQuiet misuse on string arrays)
+global proc EGQW58__deleteNodesQuiet(string $nodes[])
+{
+    int $i;
+    for ($i=0; $i<size($nodes); $i++)
+    {
+        string $n = $nodes[$i];
+        if ($n == "") continue;
+        if (!`objExists $n`) continue;
+        catchQuiet(("delete \"" + $n + "\";"));
+    }
+}
+
+
+// Safe name (strip pipes/colons/spaces for temp node names)
+global proc string EGQW58__safeName(string $n)
+{
+    string $s = $n;
+    $s = `substituteAllString $s "|" "_"`;
+    $s = `substituteAllString $s ":" "_"`;
+    $s = `substituteAllString $s " " "_"`;
+    $s = `substituteAllString $s "\t" "_"`;
+    $s = `substituteAllString $s "\n" "_"`;
+    return $s;
+}
+
+// Key helper: never abort bake if a plug cannot be keyed (locked / constrained etc.)
+global proc EGQW58__setKeyQuiet(int $t, float $v, string $plug)
+{
+    if ($plug == "") return;
+
+    int $locked = 0;
+    if (catch($locked = `getAttr -l $plug`)) return;
+    if ($locked) return;
+
+    float $tf = (float)$t;
+    catchQuiet( ("setKeyframe -t " + $tf + " -v " + $v + " \"" + $plug + "\"" ) );
+}
+
+
+global proc EGQW58__setKeyQuietEx(int $t, float $v, string $node, string $attr, string $layer)
+{
+    if ($node == "" || $attr == "") return;
+
+    string $plug = ($node + "." + $attr);
+
+    int $locked = 0;
+    if (catch($locked = `getAttr -l $plug`)) return;
+    if ($locked) return;
+
+    float $tf = (float)$t;
+
+    // If an animLayer is selected/preferred, setKeyframe will key that layer.
+    catchQuiet( ("setKeyframe -t " + $tf + " -v " + $v + " \"" + $plug + "\"") );
+}
+
+
+
+global proc int EGQW58__plugLockedOrConnectedected(string $plug)
+{
+    // Only block locked/invalid plugs. (Do NOT block connected plugs.)
+    if ($plug == "") return 1;
+
+    int $locked = 0;
+    if (catch($locked = `getAttr -l $plug`)) return 1;
+    if ($locked) return 1;
+
+    return 0;
+}
+
+
+
+global proc float EGQW58__getFPS()
+{
+    string $u = `currentUnit -q -time`;
+    if ($u == "game") return 15.0;
+    if ($u == "film") return 24.0;
+    if ($u == "pal")  return 25.0;
+    if ($u == "ntsc") return 30.0;
+    if ($u == "show") return 48.0;
+    if ($u == "palf") return 50.0;
+    if ($u == "ntscf") return 60.0;
+    return 30.0;
+}
+
+// -----------------------------------------------------------------------------
+// Config node
+// -----------------------------------------------------------------------------
+global proc int EGQW58__ensureCfg()
+{
+    global string $EGQW58_CFG;
+    if ($EGQW58_CFG != "" && `objExists $EGQW58_CFG`) return 1;
+
+    int $newNode = 0;
+    if (`objExists "EGQW58_CFG"`) $EGQW58_CFG = "EGQW58_CFG";
+    else
+    {
+        // createNode selects the new node; preserve current selection.
+        string $selCFG[] = `ls -sl -l`;
+        $EGQW58_CFG = `createNode "network" -n "EGQW58_CFG"`;
+        $newNode = 1;
+        EGQW58__selectSafe($selCFG);
+    }
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "ax")) addAttr -ln "ax" -at "double" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "ay")) addAttr -ln "ay" -at "double" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "az")) addAttr -ln "az" -at "double" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "pow")) addAttr -ln "pow" -at "double" -dv 1 $EGQW58_CFG;
+
+    // per-mode power (mode button swaps the Power control)
+    if (!EGQW58__attrExists($EGQW58_CFG, "powT"))
+    {
+        addAttr -ln "powT" -at "double" -dv 1 $EGQW58_CFG;
+        if (EGQW58__attrExists($EGQW58_CFG, "pow")) setAttr ($EGQW58_CFG + ".powT") (`getAttr ($EGQW58_CFG + ".pow")`);
+    }
+    if (!EGQW58__attrExists($EGQW58_CFG, "powR"))
+    {
+        addAttr -ln "powR" -at "double" -dv 1 $EGQW58_CFG;
+        if (EGQW58__attrExists($EGQW58_CFG, "pow")) setAttr ($EGQW58_CFG + ".powR") (`getAttr ($EGQW58_CFG + ".pow")`);
+    }
+    if (!EGQW58__attrExists($EGQW58_CFG, "powS"))
+    {
+        addAttr -ln "powS" -at "double" -dv 1 $EGQW58_CFG;
+        if (EGQW58__attrExists($EGQW58_CFG, "pow")) setAttr ($EGQW58_CFG + ".powS") (`getAttr ($EGQW58_CFG + ".pow")`);
+    }
+
+    // per-channel amplitudes (XYZ are edited via mode buttons)
+    if (!EGQW58__attrExists($EGQW58_CFG, "tAx")) addAttr -ln "tAx" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "tAy")) addAttr -ln "tAy" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "tAz")) addAttr -ln "tAz" -at "double" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "rAx")) addAttr -ln "rAx" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "rAy")) addAttr -ln "rAy" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "rAz")) addAttr -ln "rAz" -at "double" -dv 1 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "sAx")) addAttr -ln "sAx" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "sAy")) addAttr -ln "sAy" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "sAz")) addAttr -ln "sAz" -at "double" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "speed")) addAttr -ln "speed" -at "double" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "offset")) addAttr -ln "offset" -at "double" -dv 8 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "falloff")) addAttr -ln "falloff" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "falloff2")) addAttr -ln "falloff2" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "parInf")) addAttr -ln "parInf" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "fallScaleA")) addAttr -ln "fallScaleA" -at "double" -dv 5 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "fallScaleB")) addAttr -ln "fallScaleB" -at "double" -dv 5 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "easeIn")) addAttr -ln "easeIn" -at "double" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "easeOut")) addAttr -ln "easeOut" -at "double" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "fps")) addAttr -ln "fps" -at "double" -dv 30 $EGQW58_CFG;
+
+    // longs
+    if (!EGQW58__attrExists($EGQW58_CFG, "reverse")) addAttr -ln "reverse" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "hier")) addAttr -ln "hier" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "multi")) addAttr -ln "multi" -at "long" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "stretch")) addAttr -ln "stretch" -at "long" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "playRange")) addAttr -ln "playRange" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "loop")) addAttr -ln "loop" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "layer")) addAttr -ln "layer" -at "long" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "start")) addAttr -ln "start" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "end")) addAttr -ln "end" -at "long" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "pbStart")) addAttr -ln "pbStart" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "pbEnd")) addAttr -ln "pbEnd" -at "long" -dv 0 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "n")) addAttr -ln "n" -at "long" -dv 1 $EGQW58_CFG;
+
+    // channels
+    if (!EGQW58__attrExists($EGQW58_CFG, "doT")) addAttr -ln "doT" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doTX")) addAttr -ln "doTX" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doTY")) addAttr -ln "doTY" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doTZ")) addAttr -ln "doTZ" -at "long" -dv 1 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "doR")) addAttr -ln "doR" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doRX")) addAttr -ln "doRX" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doRY")) addAttr -ln "doRY" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doRZ")) addAttr -ln "doRZ" -at "long" -dv 1 $EGQW58_CFG;
+
+    if (!EGQW58__attrExists($EGQW58_CFG, "doS")) addAttr -ln "doS" -at "long" -dv 0 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doSX")) addAttr -ln "doSX" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doSY")) addAttr -ln "doSY" -at "long" -dv 1 $EGQW58_CFG;
+    if (!EGQW58__attrExists($EGQW58_CFG, "doSZ")) addAttr -ln "doSZ" -at "long" -dv 1 $EGQW58_CFG;
+
+    // Restore last UI settings when the config node is freshly created (QuickNoise-style persistence).
+    if ($newNode)
+    {
+        float $pLegacy = 1.0;
+        if (`optionVar -ex "EGQW58_pow"`) $pLegacy = (`optionVar -q "EGQW58_pow"`);
+
+        if (`optionVar -ex "EGQW58_powT"`) setAttr ($EGQW58_CFG + ".powT") (`optionVar -q "EGQW58_powT"`);
+        else setAttr ($EGQW58_CFG + ".powT") $pLegacy;
+
+        if (`optionVar -ex "EGQW58_powR"`) setAttr ($EGQW58_CFG + ".powR") (`optionVar -q "EGQW58_powR"`);
+        else setAttr ($EGQW58_CFG + ".powR") $pLegacy;
+
+        if (`optionVar -ex "EGQW58_powS"`) setAttr ($EGQW58_CFG + ".powS") (`optionVar -q "EGQW58_powS"`);
+        else setAttr ($EGQW58_CFG + ".powS") $pLegacy;
+
+        // legacy (older versions read .pow)
+        if (`optionVar -ex "EGQW58_pow"`) setAttr ($EGQW58_CFG + ".pow") $pLegacy;
+        if (`optionVar -ex "EGQW58_speed"`)    setAttr ($EGQW58_CFG + ".speed")    (`optionVar -q "EGQW58_speed"`);
+        if (`optionVar -ex "EGQW58_offset"`)   setAttr ($EGQW58_CFG + ".offset")   (`optionVar -q "EGQW58_offset"`);
+        if (`optionVar -ex "EGQW58_falloff"`)  setAttr ($EGQW58_CFG + ".falloff")  (`optionVar -q "EGQW58_falloff"`);
+        if (`optionVar -ex "EGQW58_falloff2"`) setAttr ($EGQW58_CFG + ".falloff2") (`optionVar -q "EGQW58_falloff2"`);
+        if (`optionVar -ex "EGQW58_fallScaleA"`) setAttr ($EGQW58_CFG + ".fallScaleA") (`optionVar -q "EGQW58_fallScaleA"`);
+        if (`optionVar -ex "EGQW58_fallScaleB"`) setAttr ($EGQW58_CFG + ".fallScaleB") (`optionVar -q "EGQW58_fallScaleB"`);
+        if (`optionVar -ex "EGQW58_parInf"`) setAttr ($EGQW58_CFG + ".parInf") (`optionVar -q "EGQW58_parInf"`);
+        if (`optionVar -ex "EGQW58_easeIn"`)   setAttr ($EGQW58_CFG + ".easeIn")   (`optionVar -q "EGQW58_easeIn"`);
+        if (`optionVar -ex "EGQW58_easeOut"`)  setAttr ($EGQW58_CFG + ".easeOut")  (`optionVar -q "EGQW58_easeOut"`);
+
+        if (`optionVar -ex "EGQW58_doT"`)      setAttr ($EGQW58_CFG + ".doT")      (`optionVar -q "EGQW58_doT"`);
+        if (`optionVar -ex "EGQW58_doR"`)      setAttr ($EGQW58_CFG + ".doR")      (`optionVar -q "EGQW58_doR"`);
+        if (`optionVar -ex "EGQW58_doS"`)      setAttr ($EGQW58_CFG + ".doS")      (`optionVar -q "EGQW58_doS"`);
+
+        if (`optionVar -ex "EGQW58_reverse"`)  setAttr ($EGQW58_CFG + ".reverse")  (`optionVar -q "EGQW58_reverse"`);
+        setAttr ($EGQW58_CFG + ".stretch") 0;
+
+        if (`optionVar -ex "EGQW58_playRange"`) setAttr ($EGQW58_CFG + ".playRange") (`optionVar -q "EGQW58_playRange"`);
+        if (`optionVar -ex "EGQW58_loop"`)      setAttr ($EGQW58_CFG + ".loop")      (`optionVar -q "EGQW58_loop"`);
+        if (`optionVar -ex "EGQW58_layer"`)     setAttr ($EGQW58_CFG + ".layer")     (`optionVar -q "EGQW58_layer"`);
+    }
+
+    // v1.22 migration: default Falloff Scale A/B to 5 once.
+    if (!`optionVar -ex "EGQW58_mig122_fallScale"`)
+    {
+        optionVar -fv "EGQW58_fallScaleA" 5;
+        optionVar -fv "EGQW58_fallScaleB" 5;
+    optionVar -fv "EGQW58_parInf" 0;
+        if (`objExists $EGQW58_CFG`)
+        {
+            setAttr ($EGQW58_CFG + ".fallScaleA") 5;
+            setAttr ($EGQW58_CFG + ".fallScaleB") 5;
+        }
+        optionVar -iv "EGQW58_mig122_fallScale" 1;
+    }
+
+    return 1;
+}
+
+// -----------------------------------------------------------------------------
+// UI state helpers
+// -----------------------------------------------------------------------------
+global proc EGQW58__UI_RangeEnable()
+{
+    global string $EGQW58_CFG;
+    if (!`control -ex "EGQW58_CB_PLAYR"`) return;
+    int $on = `checkBox -q -v "EGQW58_CB_PLAYR"`;
+
+    if (`control -ex "EGQW58_IF_START"`) intField -e -en $on "EGQW58_IF_START";
+    if (`control -ex "EGQW58_IF_END"`)   intField -e -en $on "EGQW58_IF_END";
+
+    // When Play Range is OFF, mirror Maya playback range (QuickNoise behavior).
+    if (!$on)
+    {
+        int $pbS = (int)(`playbackOptions -q -min`);
+        int $pbE = (int)(`playbackOptions -q -max`);
+        if (`control -ex "EGQW58_IF_START"`) intField -e -v $pbS "EGQW58_IF_START";
+        if (`control -ex "EGQW58_IF_END"`)   intField -e -v $pbE "EGQW58_IF_END";
+
+        if ($EGQW58_CFG != "" && `objExists $EGQW58_CFG`)
+        {
+            setAttr ($EGQW58_CFG + ".pbStart") $pbS;
+            setAttr ($EGQW58_CFG + ".pbEnd") $pbE;
+        }
+    }
+}
+global proc EGQW58__UI_EnableAxisByMaster(string $master, string $x, string $y, string $z)
+{
+    if (!`control -ex $master`) return;
+    int $m = `checkBox -q -v $master`;
+    if (`control -ex $x`) checkBox -e -en $m $x;
+    if (`control -ex $y`) checkBox -e -en $m $y;
+    if (`control -ex $z`) checkBox -e -en $m $z;
+}
+global proc EGQW58__UI_HierChanged()
+{
+    global int $EGQW58_PREVIEW_ON;
+
+    if (!`control -ex "EGQW58_CB_HIER"`) return;
+    int $on = `checkBox -q -v "EGQW58_CB_HIER"`;
+    if (`control -ex "EGQW58_CB_MULTI"`) checkBox -e -en $on "EGQW58_CB_MULTI";
+
+    EGQW58__UI_ParamChanged();
+
+    if ($EGQW58_PREVIEW_ON)
+    {
+        EGQW58_StopPreview();
+        EGQW58_StartPreview();
+    }
+}
+
+global proc EGQW58__UI_MultiChanged()
+{
+    global int $EGQW58_PREVIEW_ON;
+
+    EGQW58__UI_ParamChanged();
+
+    // Apply Multi immediately while preview is running (rebuild targets/indices)
+    if ($EGQW58_PREVIEW_ON)
+    {
+        EGQW58_StopPreview();
+        EGQW58_StartPreview();
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Mode (Trans / Rot / Scale) : XYZ sliders show stored values for selected mode
+// -----------------------------------------------------------------------------
+global proc EGQW58__UI_SetMode(int $m)
+{
+    global int $EGQW58_UI_SYNC_LOCK;
+    int $prevLock = $EGQW58_UI_SYNC_LOCK;
+    $EGQW58_UI_SYNC_LOCK = 1;
+
+    global int $EGQW58_UI_MODE;
+    global string $EGQW58_CFG;
+
+    $EGQW58_UI_MODE = $m;
+    if (!EGQW58__ensureCfg())
+    {
+        $EGQW58_UI_SYNC_LOCK = $prevLock;
+        return;
+    }
+
+    float $x=1.0, $y=1.0, $z=1.0;
+    if ($m == 0) { $x = `getAttr ($EGQW58_CFG + ".tAx")`; $y = `getAttr ($EGQW58_CFG + ".tAy")`; $z = `getAttr ($EGQW58_CFG + ".tAz")`; }
+    else if ($m == 1) { $x = `getAttr ($EGQW58_CFG + ".rAx")`; $y = `getAttr ($EGQW58_CFG + ".rAy")`; $z = `getAttr ($EGQW58_CFG + ".rAz")`; }
+    else { $x = `getAttr ($EGQW58_CFG + ".sAx")`; $y = `getAttr ($EGQW58_CFG + ".sAy")`; $z = `getAttr ($EGQW58_CFG + ".sAz")`; }
+
+    if (`control -ex "EGQW58_FF_AX"`) floatField -e -v $x "EGQW58_FF_AX";
+    if (`control -ex "EGQW58_FF_AY"`) floatField -e -v $y "EGQW58_FF_AY";
+    if (`control -ex "EGQW58_FF_AZ"`) floatField -e -v $z "EGQW58_FF_AZ";
+    if (`control -ex "EGQW58_SL_AX"`) floatSlider -e -v $x "EGQW58_SL_AX";
+    if (`control -ex "EGQW58_SL_AY"`) floatSlider -e -v $y "EGQW58_SL_AY";
+    if (`control -ex "EGQW58_SL_AZ"`) floatSlider -e -v $z "EGQW58_SL_AZ";
+    // swap Power per mode (Trans/Rot/Scale)
+    float $p = 1.0;
+    if ($m == 0) $p = `getAttr ($EGQW58_CFG + ".powT")`;
+    else if ($m == 1) $p = `getAttr ($EGQW58_CFG + ".powR")`;
+    else $p = `getAttr ($EGQW58_CFG + ".powS")`;
+    if (`control -ex "EGQW58_FF_POW"`) floatField -e -v $p "EGQW58_FF_POW";
+    if (`control -ex "EGQW58_SL_POW"`) floatSlider -e -v $p "EGQW58_SL_POW";
+    $EGQW58_UI_SYNC_LOCK = $prevLock;
+    EGQW58__UI_UpdateModeButtons();
+}
+
+global proc EGQW58__UI_UpdateModeButtons()
+{
+    global int $EGQW58_UI_MODE;
+
+    // subtle highlight (similar spirit to QuickNoise)
+    float $nr = 0.22; float $ng = 0.22; float $nb = 0.22; // normal
+    float $ar = 0.30; float $ag = 0.30; float $ab = 0.40; // active
+
+    if (`control -ex "EGQW58_BTN_MODE_TR"`) button -e -bgc $nr $ng $nb "EGQW58_BTN_MODE_TR";
+    if (`control -ex "EGQW58_BTN_MODE_RT"`) button -e -bgc $nr $ng $nb "EGQW58_BTN_MODE_RT";
+    if (`control -ex "EGQW58_BTN_MODE_SC"`) button -e -bgc $nr $ng $nb "EGQW58_BTN_MODE_SC";
+
+    if ($EGQW58_UI_MODE == 0) { if (`control -ex "EGQW58_BTN_MODE_TR"`) button -e -bgc $ar $ag $ab "EGQW58_BTN_MODE_TR"; }
+    else if ($EGQW58_UI_MODE == 1) { if (`control -ex "EGQW58_BTN_MODE_RT"`) button -e -bgc $ar $ag $ab "EGQW58_BTN_MODE_RT"; }
+    else { if (`control -ex "EGQW58_BTN_MODE_SC"`) button -e -bgc $ar $ag $ab "EGQW58_BTN_MODE_SC"; }
+}
+
+global proc EGQW58__UI_LoadFromCfg()
+{
+    global int $EGQW58_UI_LOADING;
+    global int $EGQW58_UI_SYNC_LOCK;
+
+    $EGQW58_UI_LOADING = 1;
+    int $prevLock = $EGQW58_UI_SYNC_LOCK;
+    $EGQW58_UI_SYNC_LOCK = 1;
+
+    global string $EGQW58_CFG;
+    global int $EGQW58_UI_MODE;
+
+    if (!EGQW58__ensureCfg())
+    {
+        $EGQW58_UI_SYNC_LOCK = $prevLock;
+        $EGQW58_UI_LOADING = 0;
+        return;
+    }
+
+    // numeric params
+    float $pw = `getAttr ($EGQW58_CFG + ".powR")`;
+    float $sp = `getAttr ($EGQW58_CFG + ".speed")`;
+    float $of = `getAttr ($EGQW58_CFG + ".offset")`;
+    float $fal = `getAttr ($EGQW58_CFG + ".falloff")`;
+    float $fal2 = `getAttr ($EGQW58_CFG + ".falloff2")`;
+    float $parInf = 0.0; if (EGQW58__attrExists($EGQW58_CFG, "parInf")) $parInf = `getAttr ($EGQW58_CFG + ".parInf")`;
+    float $ein = `getAttr ($EGQW58_CFG + ".easeIn")`;
+    float $eout = `getAttr ($EGQW58_CFG + ".easeOut")`;
+
+    if (`control -ex "EGQW58_FF_POW"`) floatField -e -v $pw "EGQW58_FF_POW";
+    if (`control -ex "EGQW58_SL_POW"`) floatSlider -e -v $pw "EGQW58_SL_POW";
+    if (`control -ex "EGQW58_FF_SPEED"`) floatField -e -v $sp "EGQW58_FF_SPEED";
+    if (`control -ex "EGQW58_SL_SPEED"`) {
+        float $sv = $sp; if ($sv > 5.0) $sv = 5.0; if ($sv < -5.0) $sv = -5.0;
+        floatSlider -e -v $sv "EGQW58_SL_SPEED";
+    }
+    // Phase(offset): field allows up to 50, slider shows up to 30
+    if ($of < 0.0) $of = 0.0;
+    if ($of > 50.0) $of = 50.0;
+    if (`control -ex "EGQW58_FF_OFFSET"`) floatField -e -v $of "EGQW58_FF_OFFSET";
+    if (`control -ex "EGQW58_SL_OFFSET"`) {
+        float $sv2 = $of; if ($sv2 > 30.0) $sv2 = 30.0;
+        floatSlider -e -v $sv2 "EGQW58_SL_OFFSET";
+    }
+    if (`control -ex "EGQW58_FF_FAL"`) floatField -e -v $fal "EGQW58_FF_FAL";
+    if (`control -ex "EGQW58_SL_FAL"`) floatSlider -e -v $fal "EGQW58_SL_FAL";
+    if (`control -ex "EGQW58_FF_FAL2"`) floatField -e -v $fal2 "EGQW58_FF_FAL2";
+    float $fsA = `getAttr ($EGQW58_CFG + ".fallScaleA")`;
+    float $fsB = `getAttr ($EGQW58_CFG + ".fallScaleB")`;
+    if (`control -ex "EGQW58_FF_FALS"`) floatField -e -v $fsA "EGQW58_FF_FALS";
+    if (`control -ex "EGQW58_FF_FAL2S"`) floatField -e -v $fsB "EGQW58_FF_FAL2S";
+    if (`control -ex "EGQW58_SL_FAL2"`) floatSlider -e -v $fal2 "EGQW58_SL_FAL2";
+    if (`control -ex "EGQW58_FF_PINF"`) floatField -e -v $parInf "EGQW58_FF_PINF";
+    if (`control -ex "EGQW58_SL_PINF"`) floatSlider -e -v $parInf "EGQW58_SL_PINF";
+    if (`control -ex "EGQW58_FF_EIN"`) intField -e -v ((int)$ein) "EGQW58_FF_EIN";
+    if (`control -ex "EGQW58_FF_EOUT"`) intField -e -v ((int)$eout) "EGQW58_FF_EOUT";
+
+    // toggles
+    if (`control -ex "EGQW58_CB_REV"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".reverse")`) "EGQW58_CB_REV";
+    if (`control -ex "EGQW58_CB_HIER"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".hier")`) "EGQW58_CB_HIER";
+    if (`control -ex "EGQW58_CB_MULTI"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".multi")`) "EGQW58_CB_MULTI";
+
+    if (`control -ex "EGQW58_CB_PLAYR"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".playRange")`) "EGQW58_CB_PLAYR";
+    if (`control -ex "EGQW58_CB_LOOP"`)  checkBox -e -v (`getAttr ($EGQW58_CFG + ".loop")`) "EGQW58_CB_LOOP";
+    if (`control -ex "EGQW58_CB_LAYER"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".layer")`) "EGQW58_CB_LAYER";
+
+    // channels
+    if (`control -ex "EGQW58_CB_TR"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".doT")`) "EGQW58_CB_TR";
+    if (`control -ex "EGQW58_CB_RT"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".doR")`) "EGQW58_CB_RT";
+    if (`control -ex "EGQW58_CB_SC"`) checkBox -e -v (`getAttr ($EGQW58_CFG + ".doS")`) "EGQW58_CB_SC";
+
+    // start/end
+    int $t0 = `getAttr ($EGQW58_CFG + ".start")`;
+    int $t1 = `getAttr ($EGQW58_CFG + ".end")`;
+    if (`control -ex "EGQW58_IF_START"`) intField -e -v $t0 "EGQW58_IF_START";
+    if (`control -ex "EGQW58_IF_END"`)   intField -e -v $t1 "EGQW58_IF_END";
+
+    // default mode: Rot (preserve stored XYZ values by reading from cfg via SetMode)
+    $EGQW58_UI_MODE = 1;
+    EGQW58__UI_SetMode($EGQW58_UI_MODE);
+
+    $EGQW58_UI_SYNC_LOCK = $prevLock;
+    $EGQW58_UI_LOADING = 0;
+
+    EGQW58__UI_RangeEnable();
+    EGQW58__UI_HierChanged();
+    EGQW58__UI_StyleUpdateButtons();
+}
+
+global proc EGQW58__UI_ModeTrans(){
+    if (`control -ex "EGQW58_CB_TR"`) checkBox -e -v 1 "EGQW58_CB_TR";
+    EGQW58__UI_SetMode(0);
+    EGQW58__UI_ParamChanged();
+}
+global proc EGQW58__UI_ModeRot(){
+    if (`control -ex "EGQW58_CB_RT"`) checkBox -e -v 1 "EGQW58_CB_RT";
+    EGQW58__UI_SetMode(1);
+    EGQW58__UI_ParamChanged();
+}
+global proc EGQW58__UI_ModeScale(){
+    if (`control -ex "EGQW58_CB_SC"`) checkBox -e -v 1 "EGQW58_CB_SC";
+    EGQW58__UI_SetMode(2);
+    EGQW58__UI_ParamChanged();
+}
+
+// -----------------------------------------------------------------------------
+// Param sync (single entry point)
+// -----------------------------------------------------------------------------
+global proc EGQW58__UI_ParamChanged()
+{
+    global int $EGQW58_UI_LOADING;
+    if ($EGQW58_UI_LOADING) return;
+
+    global string $EGQW58_CFG;
+    global int $EGQW58_UI_MODE;
+
+    if (!EGQW58__ensureCfg()) return;
+
+    // XYZ (current mode only)
+    float $x = 1.0; if (`control -ex "EGQW58_FF_AX"`) $x = `floatField -q -v "EGQW58_FF_AX"`;
+    float $y = 1.0; if (`control -ex "EGQW58_FF_AY"`) $y = `floatField -q -v "EGQW58_FF_AY"`;
+    float $z = 1.0; if (`control -ex "EGQW58_FF_AZ"`) $z = `floatField -q -v "EGQW58_FF_AZ"`;
+    if ($EGQW58_UI_MODE == 0) { setAttr ($EGQW58_CFG + ".tAx") $x; setAttr ($EGQW58_CFG + ".tAy") $y; setAttr ($EGQW58_CFG + ".tAz") $z; }
+    else if ($EGQW58_UI_MODE == 1) { setAttr ($EGQW58_CFG + ".rAx") $x; setAttr ($EGQW58_CFG + ".rAy") $y; setAttr ($EGQW58_CFG + ".rAz") $z; }
+    else { setAttr ($EGQW58_CFG + ".sAx") $x; setAttr ($EGQW58_CFG + ".sAy") $y; setAttr ($EGQW58_CFG + ".sAz") $z; }
+
+    // keep legacy ax/ay/az mirrored to UI (debug/back-compat)
+    setAttr ($EGQW58_CFG + ".ax") $x;
+    setAttr ($EGQW58_CFG + ".ay") $y;
+    setAttr ($EGQW58_CFG + ".az") $z;
+
+    float $pw = 1.0; if (`control -ex "EGQW58_FF_POW"`) $pw = `floatField -q -v "EGQW58_FF_POW"`;
+    float $sp = 1.0; if (`control -ex "EGQW58_FF_SPEED"`) $sp = `floatField -q -v "EGQW58_FF_SPEED"`;
+    float $of = 0.0; if (`control -ex "EGQW58_FF_OFFSET"`) $of = `floatField -q -v "EGQW58_FF_OFFSET"`;
+    float $fal = 0.0; if (`control -ex "EGQW58_FF_FAL"`) $fal = `floatField -q -v "EGQW58_FF_FAL"`;
+    float $fal2 = 0.0; if (`control -ex "EGQW58_FF_FAL2"`) $fal2 = `floatField -q -v "EGQW58_FF_FAL2"`;
+    float $parInf = 0.0; if (`control -ex "EGQW58_FF_PINF"`) $parInf = `floatField -q -v "EGQW58_FF_PINF"`;
+    if ($parInf < 0.0) $parInf = 0.0; if ($parInf > 10.0) $parInf = 10.0;
+    if (`control -ex "EGQW58_FF_PINF"`) floatField -e -v $parInf "EGQW58_FF_PINF";
+    if (`control -ex "EGQW58_SL_PINF"`) floatSlider -e -v $parInf "EGQW58_SL_PINF";
+    float $fsA = 5.0; if (`control -ex "EGQW58_FF_FALS"`) $fsA = `floatField -q -v "EGQW58_FF_FALS"`;
+    float $fsB = 5.0; if (`control -ex "EGQW58_FF_FAL2S"`) $fsB = `floatField -q -v "EGQW58_FF_FAL2S"`;
+    if ($fsA < 0.0) $fsA = 0.0; if ($fsA > 10.0) $fsA = 10.0;
+    if ($fsB < 0.0) $fsB = 0.0; if ($fsB > 10.0) $fsB = 10.0;
+    if (`control -ex "EGQW58_FF_FALS"`) floatField -e -v $fsA "EGQW58_FF_FALS";
+    if (`control -ex "EGQW58_FF_FAL2S"`) floatField -e -v $fsB "EGQW58_FF_FAL2S";
+    float $ein = 0.0; if (`control -ex "EGQW58_FF_EIN"`) $ein = (float)(`intField -q -v "EGQW58_FF_EIN"`);
+    float $eout = 0.0; if (`control -ex "EGQW58_FF_EOUT"`) $eout = (float)(`intField -q -v "EGQW58_FF_EOUT"`);
+
+    int $rv = 0; if (`control -ex "EGQW58_CB_REV"`) $rv = `checkBox -q -v "EGQW58_CB_REV"`;
+    int $hi = 0; if (`control -ex "EGQW58_CB_HIER"`) $hi = `checkBox -q -v "EGQW58_CB_HIER"`;
+    int $mu = 0; if (`control -ex "EGQW58_CB_MULTI"`) $mu = `checkBox -q -v "EGQW58_CB_MULTI"`;
+
+    int $pr = 0; if (`control -ex "EGQW58_CB_PLAYR"`) $pr = `checkBox -q -v "EGQW58_CB_PLAYR"`;
+    int $lp = 0; if (`control -ex "EGQW58_CB_LOOP"`)  $lp = `checkBox -q -v "EGQW58_CB_LOOP"`;
+    int $ly = 0; if (`control -ex "EGQW58_CB_LAYER"`) $ly = `checkBox -q -v "EGQW58_CB_LAYER"`;
+
+    int $st = `playbackOptions -q -min`;
+    int $en = `playbackOptions -q -max`;
+    if (`control -ex "EGQW58_IF_START"`) $st = `intField -q -v "EGQW58_IF_START"`;
+    if (`control -ex "EGQW58_IF_END"`)   $en = `intField -q -v "EGQW58_IF_END"`;
+
+    int $doT = 0; if (`control -ex "EGQW58_CB_TR"`) $doT = `checkBox -q -v "EGQW58_CB_TR"`;
+    int $doR = 1; if (`control -ex "EGQW58_CB_RT"`) $doR = `checkBox -q -v "EGQW58_CB_RT"`;
+    int $doS = 0; if (`control -ex "EGQW58_CB_SC"`) $doS = `checkBox -q -v "EGQW58_CB_SC"`;
+
+    // per-mode power (Power control is mode-aware)
+    if ($EGQW58_UI_MODE == 0) setAttr ($EGQW58_CFG + ".powT") $pw;
+    else if ($EGQW58_UI_MODE == 1) setAttr ($EGQW58_CFG + ".powR") $pw;
+    else setAttr ($EGQW58_CFG + ".powS") $pw;
+
+    // legacy mirror
+    setAttr ($EGQW58_CFG + ".pow") $pw;
+    setAttr ($EGQW58_CFG + ".speed") $sp;
+    setAttr ($EGQW58_CFG + ".offset") $of;
+    setAttr ($EGQW58_CFG + ".falloff") $fal;
+    setAttr ($EGQW58_CFG + ".falloff2") $fal2;
+    if (EGQW58__attrExists($EGQW58_CFG, "parInf")) setAttr ($EGQW58_CFG + ".parInf") $parInf;
+    setAttr ($EGQW58_CFG + ".easeIn") $ein;
+    setAttr ($EGQW58_CFG + ".easeOut") $eout;
+
+    setAttr ($EGQW58_CFG + ".reverse") $rv;
+    setAttr ($EGQW58_CFG + ".hier") $hi;
+    setAttr ($EGQW58_CFG + ".multi") $mu;
+    setAttr ($EGQW58_CFG + ".stretch") 0;
+
+    setAttr ($EGQW58_CFG + ".playRange") $pr;
+    setAttr ($EGQW58_CFG + ".loop") $lp;
+    setAttr ($EGQW58_CFG + ".layer") $ly;
+    setAttr ($EGQW58_CFG + ".start") $st;
+    setAttr ($EGQW58_CFG + ".end") $en;
+
+    setAttr ($EGQW58_CFG + ".doT") $doT;
+    setAttr ($EGQW58_CFG + ".doR") $doR;
+    setAttr ($EGQW58_CFG + ".doS") $doS;
+
+    // Persist UI settings (QuickNoise-style) so they survive new scenes.
+    float $pT = `getAttr ($EGQW58_CFG + ".powT")`;
+    float $pR = `getAttr ($EGQW58_CFG + ".powR")`;
+    float $pS = `getAttr ($EGQW58_CFG + ".powS")`;
+    optionVar -fv "EGQW58_powT" $pT;
+    optionVar -fv "EGQW58_powR" $pR;
+    optionVar -fv "EGQW58_powS" $pS;
+    // legacy fallback
+    optionVar -fv "EGQW58_pow" $pw;
+    optionVar -fv "EGQW58_speed" $sp;
+    optionVar -fv "EGQW58_offset" $of;
+    optionVar -fv "EGQW58_falloff" $fal;
+    optionVar -fv "EGQW58_falloff2" $fal2;
+    optionVar -fv "EGQW58_fallScaleA" $fsA;
+    optionVar -fv "EGQW58_fallScaleB" $fsB;
+    optionVar -fv "EGQW58_parInf" $parInf;
+    optionVar -iv "EGQW58_easeIn" ((int)$ein);
+    optionVar -iv "EGQW58_easeOut" ((int)$eout);
+    optionVar -iv "EGQW58_doT" $doT;
+    optionVar -iv "EGQW58_doR" $doR;
+    optionVar -iv "EGQW58_doS" $doS;
+    optionVar -iv "EGQW58_reverse" $rv;
+        optionVar -iv "EGQW58_playRange" $pr;
+    optionVar -iv "EGQW58_loop" $lp;
+    optionVar -iv "EGQW58_layer" $ly;
+    EGQW58__UI_RangeEnable();
+}
+
+// slider/field sync
+global proc EGQW58__UI_SliderToField(string $which)
+{
+    global int $EGQW58_UI_SYNC_LOCK;
+    global int $EGQW58_UI_LOADING;
+
+    int $prevLock = $EGQW58_UI_SYNC_LOCK;
+
+    if ($prevLock) return;
+    $EGQW58_UI_SYNC_LOCK = 1;
+
+    float $v = 0.0;
+    if ($which == "ax" && `control -ex "EGQW58_SL_AX"`) $v = `floatSlider -q -v "EGQW58_SL_AX"`;
+    else if ($which == "ay" && `control -ex "EGQW58_SL_AY"`) $v = `floatSlider -q -v "EGQW58_SL_AY"`;
+    else if ($which == "az" && `control -ex "EGQW58_SL_AZ"`) $v = `floatSlider -q -v "EGQW58_SL_AZ"`;
+    else if ($which == "pow" && `control -ex "EGQW58_SL_POW"`) $v = `floatSlider -q -v "EGQW58_SL_POW"`;
+    else if ($which == "speed" && `control -ex "EGQW58_SL_SPEED"`) $v = `floatSlider -q -v "EGQW58_SL_SPEED"`;
+    else if ($which == "offset" && `control -ex "EGQW58_SL_OFFSET"`) $v = `floatSlider -q -v "EGQW58_SL_OFFSET"`;
+    else if ($which == "falloff" && `control -ex "EGQW58_SL_FAL"`) $v = `floatSlider -q -v "EGQW58_SL_FAL"`;
+    else if ($which == "falloff2" && `control -ex "EGQW58_SL_FAL2"`) $v = `floatSlider -q -v "EGQW58_SL_FAL2"`;
+    else if ($which == "parInf" && `control -ex "EGQW58_SL_PINF"`) $v = `floatSlider -q -v "EGQW58_SL_PINF"`;
+
+    if ($which == "ax" && `control -ex "EGQW58_FF_AX"`) floatField -e -v $v "EGQW58_FF_AX";
+    else if ($which == "ay" && `control -ex "EGQW58_FF_AY"`) floatField -e -v $v "EGQW58_FF_AY";
+    else if ($which == "az" && `control -ex "EGQW58_FF_AZ"`) floatField -e -v $v "EGQW58_FF_AZ";
+    else if ($which == "pow" && `control -ex "EGQW58_FF_POW"`) floatField -e -v $v "EGQW58_FF_POW";
+    else if ($which == "speed" && `control -ex "EGQW58_FF_SPEED"`) floatField -e -v $v "EGQW58_FF_SPEED";
+    else if ($which == "offset" && `control -ex "EGQW58_FF_OFFSET"`) floatField -e -v $v "EGQW58_FF_OFFSET";
+    else if ($which == "falloff" && `control -ex "EGQW58_FF_FAL"`) floatField -e -v $v "EGQW58_FF_FAL";
+    else if ($which == "falloff2" && `control -ex "EGQW58_FF_FAL2"`) floatField -e -v $v "EGQW58_FF_FAL2";
+    else if ($which == "parInf" && `control -ex "EGQW58_FF_PINF"`) floatField -e -v $v "EGQW58_FF_PINF";
+
+    $EGQW58_UI_SYNC_LOCK = $prevLock;
+    if (!$EGQW58_UI_LOADING) EGQW58__UI_ParamChanged();
+
+}
+global proc EGQW58__UI_FieldToSlider(string $which)
+{
+    global int $EGQW58_UI_SYNC_LOCK;
+    global int $EGQW58_UI_LOADING;
+
+    int $prevLock = $EGQW58_UI_SYNC_LOCK;
+
+    if ($prevLock) return;
+    $EGQW58_UI_SYNC_LOCK = 1;
+
+    float $v = 0.0;
+    if ($which == "ax" && `control -ex "EGQW58_FF_AX"`) $v = `floatField -q -v "EGQW58_FF_AX"`;
+    else if ($which == "ay" && `control -ex "EGQW58_FF_AY"`) $v = `floatField -q -v "EGQW58_FF_AY"`;
+    else if ($which == "az" && `control -ex "EGQW58_FF_AZ"`) $v = `floatField -q -v "EGQW58_FF_AZ"`;
+    else if ($which == "pow" && `control -ex "EGQW58_FF_POW"`) $v = `floatField -q -v "EGQW58_FF_POW"`;
+    else if ($which == "speed" && `control -ex "EGQW58_FF_SPEED"`) $v = `floatField -q -v "EGQW58_FF_SPEED"`;
+
+    // clamp speed to [-100,100] (field), slider shows [-5,5]
+    if ($which == "speed") {
+        if ($v > 100.0) $v = 100.0;
+        if ($v < -100.0) $v = -100.0;
+        if (`control -ex "EGQW58_FF_SPEED"`) floatField -e -v $v "EGQW58_FF_SPEED";
+    }
+    else if ($which == "offset" && `control -ex "EGQW58_FF_OFFSET"`) $v = `floatField -q -v "EGQW58_FF_OFFSET"`;
+
+    // Phase(offset): field allows [0,50], slider shows [0,30]
+    if ($which == "offset") {
+        if ($v < 0.0) $v = 0.0;
+        if ($v > 50.0) $v = 50.0;
+        if (`control -ex "EGQW58_FF_OFFSET"`) floatField -e -v $v "EGQW58_FF_OFFSET";
+    }
+    else if ($which == "falloff" && `control -ex "EGQW58_FF_FAL"`) $v = `floatField -q -v "EGQW58_FF_FAL"`;
+    else if ($which == "falloff2" && `control -ex "EGQW58_FF_FAL2"`) $v = `floatField -q -v "EGQW58_FF_FAL2"`;
+    else if ($which == "parInf" && `control -ex "EGQW58_FF_PINF"`) $v = `floatField -q -v "EGQW58_FF_PINF"`;
+
+    if ($which == "ax" && `control -ex "EGQW58_SL_AX"`) floatSlider -e -v $v "EGQW58_SL_AX";
+    else if ($which == "ay" && `control -ex "EGQW58_SL_AY"`) floatSlider -e -v $v "EGQW58_SL_AY";
+    else if ($which == "az" && `control -ex "EGQW58_SL_AZ"`) floatSlider -e -v $v "EGQW58_SL_AZ";
+    else if ($which == "pow" && `control -ex "EGQW58_SL_POW"`) floatSlider -e -v $v "EGQW58_SL_POW";
+    else if ($which == "speed" && `control -ex "EGQW58_SL_SPEED"`) {
+        float $sv = $v;
+        if ($sv > 5.0) $sv = 5.0;
+        if ($sv < -5.0) $sv = -5.0;
+        floatSlider -e -v $sv "EGQW58_SL_SPEED";
+    }
+    else if ($which == "offset" && `control -ex "EGQW58_SL_OFFSET"`) {
+        float $sv2 = $v;
+        if ($sv2 > 30.0) $sv2 = 30.0;
+        if ($sv2 < 0.0) $sv2 = 0.0;
+        floatSlider -e -v $sv2 "EGQW58_SL_OFFSET";
+    }
+    else if ($which == "falloff" && `control -ex "EGQW58_SL_FAL"`) floatSlider -e -v $v "EGQW58_SL_FAL";
+    else if ($which == "falloff2" && `control -ex "EGQW58_SL_FAL2"`) floatSlider -e -v $v "EGQW58_SL_FAL2";
+    else if ($which == "parInf" && `control -ex "EGQW58_SL_PINF"`) floatSlider -e -v $v "EGQW58_SL_PINF";
+
+    $EGQW58_UI_SYNC_LOCK = $prevLock;
+    if (!$EGQW58_UI_LOADING) EGQW58__UI_ParamChanged();
+
+}
+
+// wrappers (callbacks without escaped quotes)
+global proc EGQW58__UI_AxSlider(){ EGQW58__UI_SliderToField("ax"); }
+global proc EGQW58__UI_AySlider(){ EGQW58__UI_SliderToField("ay"); }
+global proc EGQW58__UI_AzSlider(){ EGQW58__UI_SliderToField("az"); }
+global proc EGQW58__UI_PowSlider(){ EGQW58__UI_SliderToField("pow"); }
+global proc EGQW58__UI_SpeedSlider(){ EGQW58__UI_SliderToField("speed"); }
+global proc EGQW58__UI_OffsetSlider(){ EGQW58__UI_SliderToField("offset"); }
+global proc EGQW58__UI_FalloffSlider(){ EGQW58__UI_SliderToField("falloff"); }
+global proc EGQW58__UI_Falloff2Slider(){ EGQW58__UI_SliderToField("falloff2"); }
+global proc EGQW58__UI_ParInfSlider(){ EGQW58__UI_SliderToField("parInf"); }
+
+global proc EGQW58__UI_AxField(){ EGQW58__UI_FieldToSlider("ax"); }
+global proc EGQW58__UI_AyField(){ EGQW58__UI_FieldToSlider("ay"); }
+global proc EGQW58__UI_AzField(){ EGQW58__UI_FieldToSlider("az"); }
+global proc EGQW58__UI_PowField(){ EGQW58__UI_FieldToSlider("pow"); }
+global proc EGQW58__UI_SpeedField(){ EGQW58__UI_FieldToSlider("speed"); }
+global proc EGQW58__UI_OffsetField(){ EGQW58__UI_FieldToSlider("offset"); }
+global proc EGQW58__UI_FalloffField(){ EGQW58__UI_FieldToSlider("falloff"); }
+global proc EGQW58__UI_Falloff2Field(){ EGQW58__UI_FieldToSlider("falloff2"); }
+global proc EGQW58__UI_ParInfField(){ EGQW58__UI_FieldToSlider("parInf"); }
+global proc EGQW58__UI_FallScaleAField(){
+    global int $EGQW58_UI_SYNC_LOCK;
+    if ($EGQW58_UI_SYNC_LOCK) return;
+    if (!`control -ex "EGQW58_FF_FALS"`) return;
+    float $v = `floatField -q -v "EGQW58_FF_FALS"`;
+    if ($v < 0.1) $v = 0.1; if ($v > 10.0) $v = 10.0;
+    floatField -e -v $v "EGQW58_FF_FALS";
+    EGQW58__UI_ParamChanged();
+}
+global proc EGQW58__UI_FallScaleBField(){
+    global int $EGQW58_UI_SYNC_LOCK;
+    if ($EGQW58_UI_SYNC_LOCK) return;
+    if (!`control -ex "EGQW58_FF_FAL2S"`) return;
+    float $v = `floatField -q -v "EGQW58_FF_FAL2S"`;
+    if ($v < 0.1) $v = 0.1; if ($v > 10.0) $v = 10.0;
+    floatField -e -v $v "EGQW58_FF_FAL2S";
+    EGQW58__UI_ParamChanged();
+}
+
+// -----------------------------------------------------------------------------
+// Style Save (Params + Timing presets)
+// - Click: load if saved, else save
+// - Shift+Click: save/overwrite
+// - Ctrl+Click: clear slot
+// - Reset: clears all slots; if already empty, resets all Params/Options/Range
+// -----------------------------------------------------------------------------
+global proc string EGQW58__StyleKey(int $slot)
+{
+    if ($slot == 1) return "EGQW58_style1";
+    if ($slot == 2) return "EGQW58_style2";
+    return "EGQW58_style3";
+}
+
+global proc int EGQW58__StyleHasKey(string $k)
+{
+    if ($k == "") return 0;
+    if (!`optionVar -ex $k`) return 0;
+    string $v = `optionVar -q $k`;
+    if ($v == "") return 0;
+    return 1;
+}
+
+global proc int EGQW58__StyleAny()
+{
+    if (EGQW58__StyleHasKey("EGQW58_style1")) return 1;
+    if (EGQW58__StyleHasKey("EGQW58_style2")) return 1;
+    if (EGQW58__StyleHasKey("EGQW58_style3")) return 1;
+    return 0;
+}
+
+global proc EGQW58__UI_StyleUpdateButtons()
+{
+    float $cOffR = 0.25; float $cOffG = 0.25; float $cOffB = 0.25;
+    float $cOnR  = 0.28; float $cOnG  = 0.35; float $cOnB  = 0.28;
+
+    if (`control -ex "EGQW58_BTN_STYLE1"`)
+    {
+        if (EGQW58__StyleHasKey("EGQW58_style1")) button -e -bgc $cOnR $cOnG $cOnB "EGQW58_BTN_STYLE1";
+        else button -e -bgc $cOffR $cOffG $cOffB "EGQW58_BTN_STYLE1";
+    }
+    if (`control -ex "EGQW58_BTN_STYLE2"`)
+    {
+        if (EGQW58__StyleHasKey("EGQW58_style2")) button -e -bgc $cOnR $cOnG $cOnB "EGQW58_BTN_STYLE2";
+        else button -e -bgc $cOffR $cOffG $cOffB "EGQW58_BTN_STYLE2";
+    }
+    if (`control -ex "EGQW58_BTN_STYLE3"`)
+    {
+        if (EGQW58__StyleHasKey("EGQW58_style3")) button -e -bgc $cOnR $cOnG $cOnB "EGQW58_BTN_STYLE3";
+        else button -e -bgc $cOffR $cOffG $cOffB "EGQW58_BTN_STYLE3";
+    }
+}
+
+global proc EGQW58__StyleSave(int $slot)
+{
+    if (!EGQW58__ensureCfg()) return;
+    string $k = EGQW58__StyleKey($slot);
+
+    int $doT = `getAttr ("EGQW58_CFG.doT")`;
+    int $doR = `getAttr ("EGQW58_CFG.doR")`;
+    int $doS = `getAttr ("EGQW58_CFG.doS")`;
+
+    float $tAx = `getAttr ("EGQW58_CFG.tAx")`;
+    float $tAy = `getAttr ("EGQW58_CFG.tAy")`;
+    float $tAz = `getAttr ("EGQW58_CFG.tAz")`;
+    float $rAx = `getAttr ("EGQW58_CFG.rAx")`;
+    float $rAy = `getAttr ("EGQW58_CFG.rAy")`;
+    float $rAz = `getAttr ("EGQW58_CFG.rAz")`;
+    float $sAx = `getAttr ("EGQW58_CFG.sAx")`;
+    float $sAy = `getAttr ("EGQW58_CFG.sAy")`;
+    float $sAz = `getAttr ("EGQW58_CFG.sAz")`;
+
+    float $pT = `getAttr ("EGQW58_CFG.powT")`;
+    float $pR = `getAttr ("EGQW58_CFG.powR")`;
+    float $pS = `getAttr ("EGQW58_CFG.powS")`;
+
+    float $sp = `getAttr ("EGQW58_CFG.speed")`;
+    float $of = `getAttr ("EGQW58_CFG.offset")`;
+    float $fa = `getAttr ("EGQW58_CFG.falloff")`;
+    float $fb = `getAttr ("EGQW58_CFG.falloff2")`;
+
+    float $fsA = `getAttr ("EGQW58_CFG.fallScaleA")`;
+    float $fsB = `getAttr ("EGQW58_CFG.fallScaleB")`;
+
+    float $ein = `getAttr ("EGQW58_CFG.easeIn")`;
+    float $eout= `getAttr ("EGQW58_CFG.easeOut")`;
+
+    int $rv = `getAttr ("EGQW58_CFG.reverse")`;
+    int $hi = `getAttr ("EGQW58_CFG.hier")`;
+    int $mu = `getAttr ("EGQW58_CFG.multi")`;
+    int $stch = `getAttr ("EGQW58_CFG.stretch")`;
+
+    int $pr = `getAttr ("EGQW58_CFG.playRange")`;
+    int $lp = `getAttr ("EGQW58_CFG.loop")`;
+    int $ly = `getAttr ("EGQW58_CFG.layer")`;
+    int $st = `getAttr ("EGQW58_CFG.start")`;
+    int $en = `getAttr ("EGQW58_CFG.end")`;
+
+    string $data = "";
+    $data += ($doT + "|" + $doR + "|" + $doS + "|");
+    $data += ($tAx + "|" + $tAy + "|" + $tAz + "|");
+    $data += ($rAx + "|" + $rAy + "|" + $rAz + "|");
+    $data += ($sAx + "|" + $sAy + "|" + $sAz + "|");
+    $data += ($pT + "|" + $pR + "|" + $pS + "|");
+    $data += ($sp + "|" + $of + "|" + $fa + "|" + $fb + "|");
+    $data += ($ein + "|" + $eout + "|");
+    $data += ($rv + "|" + $hi + "|" + $mu + "|" + $stch + "|");
+    $data += ($pr + "|" + $lp + "|" + $ly + "|" + $st + "|" + $en);
+    $data += ("|" + $fsA + "|" + $fsB);
+
+    optionVar -sv $k $data;
+    EGQW58__UI_StyleUpdateButtons();
+}
+
+global proc EGQW58__StyleClear(int $slot)
+{
+    string $k = EGQW58__StyleKey($slot);
+    if ($k != "") optionVar -sv $k "";
+    EGQW58__UI_StyleUpdateButtons();
+}
+
+global proc EGQW58__StyleLoad(int $slot)
+{
+    if (!EGQW58__ensureCfg()) return;
+    string $k = EGQW58__StyleKey($slot);
+    if (!EGQW58__StyleHasKey($k)) return;
+
+    string $data = `optionVar -q $k`;
+    string $tok[];
+    tokenize $data "|" $tok;
+    if (size($tok) < 19) return;
+
+    int $doT = (int)$tok[0];
+    int $doR = (int)$tok[1];
+    int $doS = (int)$tok[2];
+
+    float $tAx = (float)$tok[3];
+    float $tAy = (float)$tok[4];
+    float $tAz = (float)$tok[5];
+    float $rAx = (float)$tok[6];
+    float $rAy = (float)$tok[7];
+    float $rAz = (float)$tok[8];
+    float $sAx = (float)$tok[9];
+    float $sAy = (float)$tok[10];
+    float $sAz = (float)$tok[11];
+
+    float $pT = (float)$tok[12];
+    float $pR = (float)$tok[13];
+    float $pS = (float)$tok[14];
+
+    float $sp = (float)$tok[15];
+    float $of = (float)$tok[16];
+    float $fa = (float)$tok[17];
+    float $fb = (float)$tok[18];
+
+    float $ein = 0.0;
+    float $eout= 0.0;
+    int $rv = `getAttr ("EGQW58_CFG.reverse")`;
+    int $hi = `getAttr ("EGQW58_CFG.hier")`;
+    int $mu = `getAttr ("EGQW58_CFG.multi")`;
+    int $stch = `getAttr ("EGQW58_CFG.stretch")`;
+    int $pr = `getAttr ("EGQW58_CFG.playRange")`;
+    int $lp = `getAttr ("EGQW58_CFG.loop")`;
+    int $ly = `getAttr ("EGQW58_CFG.layer")`;
+    int $st = `getAttr ("EGQW58_CFG.start")`;
+    int $en = `getAttr ("EGQW58_CFG.end")`;
+
+    // optional extras (v0.99+)
+    if (size($tok) >= 21) { $ein = (float)$tok[19]; $eout = (float)$tok[20]; }
+    if (size($tok) >= 25) { $rv=(int)$tok[21]; $hi=(int)$tok[22]; $mu=(int)$tok[23]; $stch=(int)$tok[24]; }
+    if (size($tok) >= 30) { $pr=(int)$tok[25]; $lp=(int)$tok[26]; $ly=(int)$tok[27]; $st=(int)$tok[28]; $en=(int)$tok[29]; }
+
+    float $fsA = 5.0;
+    float $fsB = 5.0;
+    if (size($tok) >= 32) { $fsA = (float)$tok[30]; $fsB = (float)$tok[31]; }
+    if ($fsA < 0.0) $fsA = 0.0; if ($fsA > 10.0) $fsA = 10.0;
+    if ($fsB < 0.0) $fsB = 0.0; if ($fsB > 10.0) $fsB = 10.0;
+
+    // apply to cfg
+    setAttr ("EGQW58_CFG.doT") $doT;
+    setAttr ("EGQW58_CFG.doR") $doR;
+    setAttr ("EGQW58_CFG.doS") $doS;
+
+    setAttr ("EGQW58_CFG.tAx") $tAx; setAttr ("EGQW58_CFG.tAy") $tAy; setAttr ("EGQW58_CFG.tAz") $tAz;
+    setAttr ("EGQW58_CFG.rAx") $rAx; setAttr ("EGQW58_CFG.rAy") $rAy; setAttr ("EGQW58_CFG.rAz") $rAz;
+    setAttr ("EGQW58_CFG.sAx") $sAx; setAttr ("EGQW58_CFG.sAy") $sAy; setAttr ("EGQW58_CFG.sAz") $sAz;
+
+    setAttr ("EGQW58_CFG.powT") $pT;
+    setAttr ("EGQW58_CFG.powR") $pR;
+    setAttr ("EGQW58_CFG.powS") $pS;
+
+    setAttr ("EGQW58_CFG.speed") $sp;
+    setAttr ("EGQW58_CFG.offset") $of;
+    setAttr ("EGQW58_CFG.falloff") $fa;
+    setAttr ("EGQW58_CFG.falloff2") $fb;
+    setAttr ("EGQW58_CFG.fallScaleA") $fsA;
+    setAttr ("EGQW58_CFG.fallScaleB") $fsB;
+    setAttr ("EGQW58_CFG.easeIn") $ein;
+    setAttr ("EGQW58_CFG.easeOut") $eout;
+    setAttr ("EGQW58_CFG.reverse") $rv;
+    setAttr ("EGQW58_CFG.hier") $hi;
+    setAttr ("EGQW58_CFG.multi") $mu;
+    setAttr ("EGQW58_CFG.stretch") 0;
+    setAttr ("EGQW58_CFG.playRange") $pr;
+    setAttr ("EGQW58_CFG.loop") $lp;
+    setAttr ("EGQW58_CFG.layer") $ly;
+    setAttr ("EGQW58_CFG.start") $st;
+    setAttr ("EGQW58_CFG.end") $en;
+
+    // persist like ParamChanged
+    optionVar -fv "EGQW58_powT" $pT;
+    optionVar -fv "EGQW58_powR" $pR;
+    optionVar -fv "EGQW58_powS" $pS;
+    optionVar -fv "EGQW58_speed" $sp;
+    optionVar -fv "EGQW58_offset" $of;
+    optionVar -fv "EGQW58_falloff" $fa;
+    optionVar -fv "EGQW58_falloff2" $fb;
+    optionVar -fv "EGQW58_fallScaleA" $fsA;
+    optionVar -fv "EGQW58_fallScaleB" $fsB;
+    optionVar -iv "EGQW58_doT" $doT;
+    optionVar -iv "EGQW58_doR" $doR;
+    optionVar -iv "EGQW58_doS" $doS;
+
+    // refresh UI (keep current mode)
+    global int $EGQW58_UI_MODE;
+    int $m = $EGQW58_UI_MODE;
+    EGQW58__UI_LoadFromCfg();
+    EGQW58__UI_SetMode($m);
+    EGQW58__UI_ParamChanged();
+}
+
+global proc EGQW58__UI_StyleSlot(int $slot)
+{
+    int $mod = `getModifiers`;
+
+    // getModifiers bitmask (common Maya convention):
+    // 1 = Shift, 4 = Ctrl (and combinations)
+    int $isShift = ($mod % 2);                 // 1 when shift is held
+    int $isCtrl  = (((int)($mod/4)) % 2);      // 1 when ctrl is held
+
+    // Ctrl: clear slot
+    if ($isCtrl)
+    {
+        EGQW58__StyleClear($slot);
+        return;
+    }
+
+    string $k = EGQW58__StyleKey($slot);
+    int $has = EGQW58__StyleHasKey($k);
+
+    // Shift: save/overwrite
+    if ($isShift)
+    {
+        EGQW58__StyleSave($slot);
+        return;
+    }
+
+    // default: load if exists else save
+    if ($has) EGQW58__StyleLoad($slot);
+    else EGQW58__StyleSave($slot);
+}
+
+global proc EGQW58__UI_ResetAll()
+{
+    if (!EGQW58__ensureCfg()) return;
+
+    // Defaults (as requested):
+    // Trans/Scale XYZ: 0,0,0 / Rot XYZ: 0,0,1
+    setAttr ("EGQW58_CFG.tAx") 0; setAttr ("EGQW58_CFG.tAy") 0; setAttr ("EGQW58_CFG.tAz") 0;
+    setAttr ("EGQW58_CFG.sAx") 0; setAttr ("EGQW58_CFG.sAy") 0; setAttr ("EGQW58_CFG.sAz") 0;
+    setAttr ("EGQW58_CFG.rAx") 0; setAttr ("EGQW58_CFG.rAy") 0; setAttr ("EGQW58_CFG.rAz") 1;
+
+    setAttr ("EGQW58_CFG.powT") 1;
+    setAttr ("EGQW58_CFG.powR") 1;
+    setAttr ("EGQW58_CFG.powS") 1;
+
+    setAttr ("EGQW58_CFG.speed") 1;
+    setAttr ("EGQW58_CFG.offset") 8;
+    setAttr ("EGQW58_CFG.falloff") 0;
+    setAttr ("EGQW58_CFG.falloff2") 0;
+    setAttr ("EGQW58_CFG.fallScaleA") 5;
+    setAttr ("EGQW58_CFG.fallScaleB") 5;
+    setAttr ("EGQW58_CFG.easeIn") 0;
+    setAttr ("EGQW58_CFG.easeOut") 0;
+
+    setAttr ("EGQW58_CFG.reverse") 0;
+    setAttr ("EGQW58_CFG.hier") 0;
+    setAttr ("EGQW58_CFG.multi") 0;
+    setAttr ("EGQW58_CFG.stretch") 0;
+
+    setAttr ("EGQW58_CFG.playRange") 0;
+    setAttr ("EGQW58_CFG.loop") 1;
+    setAttr ("EGQW58_CFG.layer") 0;
+
+    int $pb0 = `playbackOptions -q -min`;
+    int $pb1 = `playbackOptions -q -max`;
+    setAttr ("EGQW58_CFG.start") $pb0;
+    setAttr ("EGQW58_CFG.end") $pb1;
+    setAttr ("EGQW58_CFG.pbStart") $pb0;
+    setAttr ("EGQW58_CFG.pbEnd") $pb1;
+
+    setAttr ("EGQW58_CFG.doT") 0;
+    setAttr ("EGQW58_CFG.doR") 1;
+    setAttr ("EGQW58_CFG.doS") 0;
+
+    // optionVars (persist)
+    optionVar -fv "EGQW58_powT" 1;
+    optionVar -fv "EGQW58_powR" 1;
+    optionVar -fv "EGQW58_powS" 1;
+    optionVar -fv "EGQW58_pow" 1;
+    optionVar -fv "EGQW58_speed" 1;
+    optionVar -fv "EGQW58_offset" 8;
+    optionVar -fv "EGQW58_falloff" 0;
+    optionVar -fv "EGQW58_falloff2" 0;
+    optionVar -fv "EGQW58_fallScaleA" 5;
+    optionVar -fv "EGQW58_fallScaleB" 5;
+    optionVar -iv "EGQW58_easeIn" 0;
+    optionVar -iv "EGQW58_easeOut" 0;
+    optionVar -iv "EGQW58_doT" 0;
+    optionVar -iv "EGQW58_doR" 1;
+    optionVar -iv "EGQW58_doS" 0;
+    optionVar -iv "EGQW58_reverse" 0;
+    optionVar -iv "EGQW58_stretch" 0;
+    optionVar -iv "EGQW58_playRange" 0;
+    optionVar -iv "EGQW58_loop" 1;
+    optionVar -iv "EGQW58_layer" 0;
+
+    EGQW58__UI_LoadFromCfg();
+    EGQW58__UI_ParamChanged();
+}
+
+global proc EGQW58__UI_StyleReset()
+{
+    // Clear Style Save slots (1/2/3) only.
+    optionVar -sv "EGQW58_style1" "";
+    optionVar -sv "EGQW58_style2" "";
+    optionVar -sv "EGQW58_style3" "";
+    EGQW58__UI_StyleUpdateButtons();
+}
+
+// -----------------------------------------------------------------------------
+// Target collection (Hierarchy / Multi)
+// -----------------------------------------------------------------------------
+global proc int EGQW58__isJoint(string $t)
+{
+    return `attributeQuery -ex -node $t "jointOrient"`;
+}
+global proc int EGQW58__hasShapeType(string $t, string $shapeType)
+{
+    string $sh[] = `listRelatives -s -f $t`;
+    int $i;
+    for ($i=0; $i<size($sh); $i++)
+    {
+        if (`nodeType $sh[$i]` == $shapeType) return 1;
+    }
+    return 0;
+}
+
+// ---- Typed hierarchy helpers (skips intermediate groups, keeps order) ----
+global proc int EGQW58__nodeClass(string $n)
+{
+    if ($n == "" || !`objExists $n`) return 0;
+    if (`nodeType $n` == "joint") return 1;
+    if (EGQW58__hasShapeType($n, "nurbsCurve")) return 2;
+    if (EGQW58__hasShapeType($n, "mesh")) return 3;
+    return 0;
+}
+
+global proc int EGQW58__hasInArray(string $a, string $arr[])
+{
+    int $i;
+    for ($i=0; $i<size($arr); $i++) if ($arr[$i] == $a) return 1;
+    return 0;
+}
+
+global proc string[] EGQW58__nearestTypedDescendants(string $start, int $mode)
+{
+    string $hits[];
+    if ($start == "" || !`objExists $start`) return $hits;
+    if ($mode < 1) return $hits;
+
+    string $cur[];
+    $cur[0] = $start;
+
+    int $found = 0;
+    while (size($cur) > 0 && !$found)
+    {
+        string $next[];
+        int $i;
+        for ($i=0; $i<size($cur); $i++)
+        {
+            string $n = $cur[$i];
+            if ($n == "" || !`objExists $n`) continue;
+
+            string $kids[] = `listRelatives -c -f $n`;
+            int $k;
+            for ($k=0; $k<size($kids); $k++)
+            {
+                string $c = $kids[$k];
+                if ($c == "" || !`objExists $c`) continue;
+                string $nt = `nodeType $c`;
+                if ($nt != "transform" && $nt != "joint") continue;
+
+                int $cls = EGQW58__nodeClass($c);
+                if ($cls == $mode)
+                {
+                    if (!EGQW58__hasInArray($c, $hits)) $hits[size($hits)] = $c;
+                    $found = 1;
+                }
+                else
+                {
+                    $next[size($next)] = $c;
+                }
+            }
+        }
+
+        if ($found) break;
+        $cur = $next;
+    }
+
+    return $hits;
+}
+
+global proc string[] EGQW58__expandHierarchyTyped(string $root)
+{
+    string $out[];
+    if ($root == "" || !`objExists $root`) return $out;
+
+    $out[0] = $root;
+
+    int $mode = EGQW58__nodeClass($root); // 1 joint, 2 curve, 3 mesh, 0 other
+
+    // Fallback: unknown type -> include all transforms (legacy behavior)
+    if ($mode < 1)
+    {
+        string $desc[] = `listRelatives -ad -type "transform" -f $root`;
+        int $i;
+        for ($i=0; $i<size($desc); $i++) $out[size($out)] = $desc[$i];
+        return $out;
+    }
+
+    // BFS over "typed" graph:
+    // - Keeps order root -> descendants
+    // - Skips intermediate groups (finds nearest same-typed nodes per branch)
+    string $queue[];
+    $queue[0] = $root;
+
+    int $q = 0;
+    while ($q < size($queue))
+    {
+        string $n = $queue[$q];
+        $q++;
+
+        // List direct children (transforms / joints)
+        string $kidsAll[] = `listRelatives -c -f $n`;
+        int $k;
+        for ($k=0; $k<size($kidsAll); $k++)
+        {
+            string $c = $kidsAll[$k];
+            if ($c == "" || !`objExists $c`) continue;
+
+            string $nt = `nodeType $c`;
+            if ($nt != "transform" && $nt != "joint") continue;
+
+            int $cm = EGQW58__nodeClass($c);
+            if ($cm == $mode)
+            {
+                if (!EGQW58__hasInArray($c, $out))
+                {
+                    $out[size($out)] = $c;
+                    $queue[size($queue)] = $c;
+                }
+            }
+            else
+            {
+                // Search down this branch until we find the nearest typed nodes.
+                string $near[] = EGQW58__nearestTypedDescendants($c, $mode);
+                int $j;
+                for ($j=0; $j<size($near); $j++)
+                {
+                    string $h = $near[$j];
+                    if ($h == "" || !`objExists $h`) continue;
+                    if (!EGQW58__hasInArray($h, $out))
+                    {
+                        $out[size($out)] = $h;
+                        $queue[size($queue)] = $h;
+                    }
+                }
+            }
+        }
+    }
+
+    return $out;
+}
+
+global proc int EGQW58__collectTargetsAndIndices()
+{
+    global string $EGQW58_TGT[];
+    global int    $EGQW58_TGT_IDX[];
+    global int    $EGQW58_TGT_N[];
+    global int    $EGQW58_TGT_CID[];
+    $EGQW58_TGT = {};
+    $EGQW58_TGT_IDX = {};
+    $EGQW58_TGT_N = {};
+    $EGQW58_TGT_CID = {};
+
+    string $roots[];
+    string $sel[] = `ls -sl -l`;
+    int $si;
+    for ($si=0; $si<size($sel); $si++)
+    {
+        string $n = $sel[$si];
+        if ($n == "" || !`objExists $n`) continue;
+        string $t = $n;
+        string $nt = `nodeType $t`;
+        if ($nt != "transform" && $nt != "joint")
+        {
+            string $par[] = `listRelatives -p -f $t`;
+            if (size($par) > 0) { $t = $par[0]; $nt = `nodeType $t`; }
+        }
+        if ($nt != "transform" && $nt != "joint") continue;
+        int $dup = 0;
+        int $k;
+        for ($k=0; $k<size($roots); $k++) if ($roots[$k] == $t) { $dup = 1; break; }
+        if (!$dup) $roots[size($roots)] = $t;
+    }
+    if (size($roots) < 1) return 0;
+
+    int $hier = 0;
+    if (`control -ex "EGQW58_CB_HIER"`) $hier = `checkBox -q -v "EGQW58_CB_HIER"`;
+
+    int $multi = 0;
+    if ($hier && (`control -ex "EGQW58_CB_MULTI"`)) $multi = `checkBox -q -v "EGQW58_CB_MULTI"`;
+
+    // Filter roots: if multiple selected objects are in the same hierarchy,
+    // remove any root that is a descendant of another selected root.
+    // This prevents overlaps/duplicates in Hierarchy+Multi workflows (eg. finger segments).
+    if ($hier && size($roots) > 1)
+    {
+        string $flt[];
+        int $ri;
+        for ($ri=0; $ri<size($roots); $ri++)
+        {
+            string $r = $roots[$ri];
+            int $isChild = 0;
+
+            int $rj;
+            for ($rj=0; $rj<size($roots); $rj++)
+            {
+                if ($rj == $ri) continue;
+
+                string $p = $r;
+                while (1)
+                {
+                    string $par[] = `listRelatives -p -f $p`;
+                    if (size($par) < 1) break;
+                    $p = $par[0];
+                    if ($p == $roots[$rj]) { $isChild = 1; break; }
+                }
+                if ($isChild) break;
+            }
+
+            if (!$isChild) $flt[size($flt)] = $r;
+        }
+
+        if (size($flt) > 0) $roots = $flt;
+    }
+
+    if (!$hier)
+    {
+        int $n0 = size($roots);
+        if ($n0 < 1) $n0 = 1;
+        int $i;
+        for ($i=0; $i<size($roots); $i++)
+        {
+            $EGQW58_TGT[size($EGQW58_TGT)] = $roots[$i];
+            $EGQW58_TGT_IDX[size($EGQW58_TGT_IDX)] = $i;
+            $EGQW58_TGT_N[size($EGQW58_TGT_N)] = $n0;
+            $EGQW58_TGT_CID[size($EGQW58_TGT_CID)] = 0;
+        }
+        return size($roots);
+    }
+    int $phaseCount = 0;
+
+    // Hierarchy expansion:
+    // - Multi OFF : per-root chain indices/length (Falloff is per-chain), but all chains share phase (cid=0).
+    // - Multi ON  : per-root chain indices/length AND unique cid per root (different phase per chain).
+    int $maxLen = 1;
+    int $ri;
+    for ($ri=0; $ri<size($roots); $ri++)
+    {
+        string $exp[] = EGQW58__expandHierarchyTyped($roots[$ri]);
+        int $nChain = size($exp);
+        if ($nChain < 1) continue;
+        if ($nChain > $maxLen) $maxLen = $nChain;
+
+        // Chain id: always keep per-root id even when Multi is OFF.
+        // Multi flag is applied later (phase offset is disabled when Multi is OFF).
+        int $cid = $ri;
+
+        int $j;
+        for ($j=0; $j<$nChain; $j++)
+        {
+            $EGQW58_TGT[size($EGQW58_TGT)] = $exp[$j];
+            $EGQW58_TGT_IDX[size($EGQW58_TGT_IDX)] = $j;
+            $EGQW58_TGT_N[size($EGQW58_TGT_N)] = $nChain;
+            $EGQW58_TGT_CID[size($EGQW58_TGT_CID)] = $cid;
+        }
+    }
+
+    $phaseCount = $maxLen;
+    if ($phaseCount < 1) $phaseCount = 1;
+    return $phaseCount;
+}
+
+// -----------------------------------------------------------------------------
+// Preview rig (OPM overlay) storage node
+// -----------------------------------------------------------------------------
+global proc string EGQW58__ensureSetNode(int $i)
+{
+    string $n = ("EGQW58_SET_" + $i);
+    if (`objExists $n`) return $n;
+
+    string $set = `createNode "network" -n $n`;
+    if (!EGQW58__attrExists($set, "origOPM")) addAttr -ln "origOPM" -at "matrix" $set;
+    if (!EGQW58__attrExists($set, "origSrc")) addAttr -ln "origSrc" -dt "string" $set;
+    if (!EGQW58__attrExists($set, "origLock")) addAttr -ln "origLock" -at "long" -dv 0 $set;
+
+    return $set;
+}
+
+global proc EGQW58__attachOPM(int $idx, string $obj, string $cm, string $mm, string $set)
+{
+    global string $EGQW58_CMT[];
+    global string $EGQW58_CMRS[];
+    global string $EGQW58_BASET[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVP[];
+    global string $EGQW58_PIVN[];
+    global string $EGQW58_PIVMD[];
+    global string $EGQW58_PIVDC[];
+    global string $EGQW58_PIVMM[];
+
+    string $plug = ($obj + ".offsetParentMatrix");
+    if (!EGQW58__attrExists($obj, "offsetParentMatrix")) return;
+
+    // ensure rig arrays have slots
+    while (size($EGQW58_CMT) <= $idx) $EGQW58_CMT[size($EGQW58_CMT)] = "";
+    while (size($EGQW58_CMRS) <= $idx) $EGQW58_CMRS[size($EGQW58_CMRS)] = "";
+    while (size($EGQW58_BASET) <= $idx) $EGQW58_BASET[size($EGQW58_BASET)] = "";
+    while (size($EGQW58_PIVSUM) <= $idx) $EGQW58_PIVSUM[size($EGQW58_PIVSUM)] = "";
+    while (size($EGQW58_PIVP) <= $idx) $EGQW58_PIVP[size($EGQW58_PIVP)] = "";
+    while (size($EGQW58_PIVN) <= $idx) $EGQW58_PIVN[size($EGQW58_PIVN)] = "";
+    while (size($EGQW58_PIVMD) <= $idx) $EGQW58_PIVMD[size($EGQW58_PIVMD)] = "";
+    while (size($EGQW58_PIVDC) <= $idx) $EGQW58_PIVDC[size($EGQW58_PIVDC)] = "";
+    while (size($EGQW58_PIVMM) <= $idx) $EGQW58_PIVMM[size($EGQW58_PIVMM)] = "";
+
+    // build helper matrices:
+    // - translate wave matrix (T only)
+    // - rotate/scale wave matrix (RS only)
+    // - pivot sandwich to prevent "orbit" when using offsetParentMatrix:
+    //     origOPM * T(wave) * T(pos) * RS(wave) * T(-pos)
+    string $cmt  = EGQW58__makeNode("composeMatrix", ("EGQW58_CMT_" + $idx));
+    string $cmrs = EGQW58__makeNode("composeMatrix", ("EGQW58_CMRS_" + $idx));
+    string $pivp = EGQW58__makeNode("composeMatrix", ("EGQW58_PIVP_" + $idx));
+    string $pivn = EGQW58__makeNode("composeMatrix", ("EGQW58_PIVN_" + $idx));
+    string $md   = EGQW58__makeNode("multiplyDivide", ("EGQW58_PIVMD_" + $idx));
+    string $dc   = EGQW58__makeNode("decomposeMatrix", ("EGQW58_PIVDC_" + $idx));
+    string $pivmm = EGQW58__makeNode("multMatrix", ("EGQW58_PIVMM_" + $idx));
+
+    // connect wave channels from the "driver" composeMatrix ($cm) into our split matrices
+    connectAttr -f ($cm + ".inputTranslateX") ($cmt + ".inputTranslateX");
+    connectAttr -f ($cm + ".inputTranslateY") ($cmt + ".inputTranslateY");
+    connectAttr -f ($cm + ".inputTranslateZ") ($cmt + ".inputTranslateZ");
+
+    connectAttr -f ($cm + ".inputRotateX") ($cmrs + ".inputRotateX");
+    connectAttr -f ($cm + ".inputRotateY") ($cmrs + ".inputRotateY");
+    connectAttr -f ($cm + ".inputRotateZ") ($cmrs + ".inputRotateZ");
+    connectAttr -f ($cm + ".inputScaleX") ($cmrs + ".inputScaleX");
+    connectAttr -f ($cm + ".inputScaleY") ($cmrs + ".inputScaleY");
+    connectAttr -f ($cm + ".inputScaleZ") ($cmrs + ".inputScaleZ");
+
+    // pivot matrices driven by BASE pivot position in parent space.
+    // Use (translate + rotatePivot + rotatePivotTranslate) so controls with non-zero pivots
+    // do NOT "orbit" around world 0 when rotation is applied via offsetParentMatrix.
+    string $pivSum = EGQW58__makeNode("plusMinusAverage", ("EGQW58_PIVSUM_" + $idx));
+    setAttr ($pivSum + ".operation") 1; // sum
+
+    // input3D[0] = translate
+    connectAttr -f ($obj + ".translate") ($pivSum + ".input3D[0]");
+    // input3D[1] = rotatePivot
+    if (EGQW58__attrExists($obj, "rotatePivot")) connectAttr -f ($obj + ".rotatePivot") ($pivSum + ".input3D[1]");
+    // input3D[2] = rotatePivotTranslate
+    if (EGQW58__attrExists($obj, "rotatePivotTranslate")) connectAttr -f ($obj + ".rotatePivotTranslate") ($pivSum + ".input3D[2]");
+
+    string $baseT = EGQW58__makeNode("composeMatrix", ("EGQW58_BASET_" + $idx));
+    connectAttr -f ($pivSum + ".output3D") ($baseT + ".inputTranslate");
+
+    // IMPORTANT: Do NOT read "$obj.matrix" here. It includes offsetParentMatrix and causes a DG feedback loop.
+    connectAttr -f ($baseT + ".outputMatrix") ($pivmm + ".matrixIn[1]");
+    connectAttr -f ($pivmm + ".matrixSum") ($dc + ".inputMatrix");
+
+    connectAttr -f ($dc + ".outputTranslateX") ($pivp + ".inputTranslateX");
+    connectAttr -f ($dc + ".outputTranslateY") ($pivp + ".inputTranslateY");
+    connectAttr -f ($dc + ".outputTranslateZ") ($pivp + ".inputTranslateZ");
+
+    setAttr ($md + ".input2X") -1;
+    setAttr ($md + ".input2Y") -1;
+    setAttr ($md + ".input2Z") -1;
+    connectAttr -f ($dc + ".outputTranslateX") ($md + ".input1X");
+    connectAttr -f ($dc + ".outputTranslateY") ($md + ".input1Y");
+    connectAttr -f ($dc + ".outputTranslateZ") ($md + ".input1Z");
+    connectAttr -f ($md + ".outputX") ($pivn + ".inputTranslateX");
+    connectAttr -f ($md + ".outputY") ($pivn + ".inputTranslateY");
+    connectAttr -f ($md + ".outputZ") ($pivn + ".inputTranslateZ");
+
+    // store for deletion
+    $EGQW58_CMT[$idx] = $cmt;
+    $EGQW58_CMRS[$idx] = $cmrs;
+    $EGQW58_BASET[$idx] = $baseT;
+    $EGQW58_PIVSUM[$idx] = $pivSum;
+    $EGQW58_PIVP[$idx] = $pivp;
+    $EGQW58_PIVN[$idx] = $pivn;
+    $EGQW58_PIVMD[$idx] = $md;
+    $EGQW58_PIVDC[$idx] = $dc;
+    $EGQW58_PIVMM[$idx] = $pivmm;
+
+    // preserve original opm state
+    string $srcPlug = "";
+    string $src[] = `listConnections -s 1 -d 0 -p 1 $plug`;
+    if (size($src) > 0) $srcPlug = $src[0];
+
+    float $m[] = `getAttr $plug`;
+    int $lk = `getAttr -l $plug`;
+
+    EGQW58__setMatrixAttr(($set + ".origOPM"), $m);
+    setAttr -type "string" ($set + ".origSrc") $srcPlug;
+    setAttr ($set + ".origLock") $lk;
+
+    if ($lk) setAttr -l 0 $plug;
+
+    if ($srcPlug != "" && `isConnected $srcPlug $plug`) disconnectAttr $srcPlug $plug;
+
+    // mm.matrixIn[0] = original opm
+    if ($srcPlug != "")
+        connectAttr -f $srcPlug ($mm + ".matrixIn[0]");
+    else
+        EGQW58__setMatrixAttr(($mm + ".matrixIn[0]"), $m);
+    // pivmm.matrixIn[0] = original opm (for pivot position)
+    if ($srcPlug != "")
+        connectAttr -f $srcPlug ($pivmm + ".matrixIn[0]");
+    else
+        EGQW58__setMatrixAttr(($pivmm + ".matrixIn[0]"), $m);
+
+    // mm.matrixIn[1..4] = wave + pivot sandwich
+    connectAttr -f ($cmt + ".outputMatrix")  ($mm + ".matrixIn[1]");
+    connectAttr -f ($pivp + ".outputMatrix") ($mm + ".matrixIn[2]");
+    connectAttr -f ($cmrs + ".outputMatrix") ($mm + ".matrixIn[3]");
+    connectAttr -f ($pivn + ".outputMatrix") ($mm + ".matrixIn[4]");
+
+    connectAttr -f ($mm + ".matrixSum") $plug;
+}
+
+global proc EGQW58__restoreOPM(string $obj, string $mm, string $set)
+{
+    if ($obj == "" || $mm == "" || $set == "") return;
+    if (!`objExists $obj` || !`objExists $mm` || !`objExists $set`) return;
+    string $plug = ($obj + ".offsetParentMatrix");
+    if (!EGQW58__attrExists($obj, "offsetParentMatrix")) return;
+
+    if (`isConnected ($mm + ".matrixSum") $plug`) disconnectAttr ($mm + ".matrixSum") $plug;
+
+    string $srcPlug = `getAttr ($set + ".origSrc")`;
+
+    if ($srcPlug != "")
+    {
+        if (`isConnected $srcPlug ($mm + ".matrixIn[0]")`) disconnectAttr $srcPlug ($mm + ".matrixIn[0]");
+        if (!`isConnected $srcPlug $plug`) connectAttr -f $srcPlug $plug;
+    }
+    else
+    {
+        float $m[] = `getAttr ($set + ".origOPM")`;
+        if (size($m) == 16) EGQW58__setMatrixAttr($plug, $m);
+    }
+
+    int $lk = `getAttr ($set + ".origLock")`;
+    if ($lk) setAttr -l 1 $plug;
+}
+
+// -----------------------------------------------------------------------------
+// Expression per target (reads EGQW58_CFG every frame)
+// -----------------------------------------------------------------------------
+global proc string EGQW58__buildExprForCM(string $cm)
+{
+    string $e = "";
+    $e += ("float $pi = 3.141592653589793;\n");
+    $e += ("float $t0 = (float)EGQW58_CFG.start;\n");
+    $e += ("float $t1 = (float)EGQW58_CFG.end;\n");
+    $e += ("if ((int)EGQW58_CFG.playRange < 1) { $t0 = (float)EGQW58_CFG.pbStart; $t1 = (float)EGQW58_CFG.pbEnd; }\n");
+    $e += ("float $len = $t1 - $t0; if ($len < 1.0) $len = 1.0;\n");
+
+    $e += ("float $fps = EGQW58_CFG.fps; if ($fps < 1.0) $fps = 30.0;\n");
+    $e += ("float $spd = EGQW58_CFG.speed;\n");
+    $e += ("float $ofs = EGQW58_CFG.offset;\n");
+    $e += ("int $rev = (int)EGQW58_CFG.reverse;\n");
+    $e += ("int $loop = (int)EGQW58_CFG.loop;\n");
+    $e += ("float $ein = EGQW58_CFG.easeIn;\n");
+    $e += ("float $eout = EGQW58_CFG.easeOut;\n");
+    // Per-target chain length (fixes Multi/Hierarchy falloff behaving across unrelated roots)
+    $e += ("int $n = (int)" + $cm + ".egqwN; if ($n < 1) $n = 1;\n");
+    $e += ("int $cid = (int)" + $cm + ".egqwCID; if ($cid < 0) $cid = 0;\n");
+    // Axis sign alignment (mirrored controls)
+    $e += ("float $sgX = (float)" + $cm + ".egqwSgX;\n");
+    $e += ("float $sgY = (float)" + $cm + ".egqwSgY;\n");
+    $e += ("float $sgZ = (float)" + $cm + ".egqwSgZ;\n");
+    
+    $e += ("float $powT = EGQW58_CFG.powT;\n");
+    $e += ("float $powR = EGQW58_CFG.powR;\n");
+    $e += ("float $powS = EGQW58_CFG.powS;\n");
+
+    $e += ("float $tAx = EGQW58_CFG.tAx * $powT;\n");
+    $e += ("float $tAy = EGQW58_CFG.tAy * $powT;\n");
+    $e += ("float $tAz = EGQW58_CFG.tAz * $powT;\n");
+    $e += ("float $rAx = EGQW58_CFG.rAx * $powR;\n");
+    $e += ("float $rAy = EGQW58_CFG.rAy * $powR;\n");
+    $e += ("float $rAz = EGQW58_CFG.rAz * $powR;\n");
+    $e += ("float $sAx = EGQW58_CFG.sAx * $powS * 0.1;\n");
+    $e += ("float $sAy = EGQW58_CFG.sAy * $powS * 0.1;\n");
+    $e += ("float $sAz = EGQW58_CFG.sAz * $powS * 0.1;\n");
+
+    $e += ("float $fal = EGQW58_CFG.falloff;\n");
+    $e += ("float $fal2 = EGQW58_CFG.falloff2;\n");
+    $e += ("float $fsA = EGQW58_CFG.fallScaleA;\n");
+    $e += ("float $fsB = EGQW58_CFG.fallScaleB;\n");
+    $e += ("if ($fsA < 0.0) $fsA = 0.0; if ($fsA > 10.0) $fsA = 10.0;\n");
+    $e += ("if ($fsB < 0.0) $fsB = 0.0; if ($fsB > 10.0) $fsB = 10.0;\n");
+    $e += ("float $phRange = ($ofs/10.0) * (2.0*$pi);\n");
+    $e += ("float $chOff = ((float)$cid) * 2.399963; if ((int)EGQW58_CFG.multi < 1) $chOff = 0.0;\n");
+
+    $e += ("int $i = (int)" + $cm + ".egqwIdx;\n");
+    $e += ("int $ie = $i; if ($rev > 0 && $n > 1) $ie = ($n-1) - $i;\n");
+    $e += ("float $t = (frame - $t0);\n");
+    $e += ("float $u = $t; float $env = 0.0;\n");
+
+    $e += ("if ($loop > 0) {\n");
+$e += ("  if ($t >= 0.0 && $t <= $len) { $env = 1.0; $u = $t; } else { $env = 0.0; }\n");
+$e += ("} else {\n");
+$e += ("  if ($t >= 0.0 && $t <= $len) { $env = 1.0; $u = $t; } else { $env = 0.0; }\n");
+$e += ("}\n");
+
+$e += ("if ($env > 0.0) {\n");
+    $e += ("  if ($ein > 0.0001) {\n");
+    $e += ("    float $r = $u / $ein; if ($r < 0.0) $r = 0.0; if ($r > 1.0) $r = 1.0; $env *= $r;\n");
+    $e += ("  }\n");
+    $e += ("  if ($eout > 0.0001) {\n");
+    $e += ("    float $r2 = ($len - $u) / $eout; if ($r2 < 0.0) $r2 = 0.0; if ($r2 > 1.0) $r2 = 1.0; $env *= $r2;\n");
+    $e += ("  }\n");
+    $e += ("}\n");
+
+        
+        
+$e += ("float $pN = 0.0; if ($n > 1) $pN = ($ie/($n-1.0));\n");
+$e += ("float $parInf = EGQW58_CFG.parInf; if ($parInf < 0.0) $parInf = 0.0; if ($parInf > 10.0) $parInf = 10.0;\n");
+$e += ("float $pMul = 1.0 + ($parInf * $pN);\n");
+$e += ("// Falloff (A/B): positional pinning across the chain (matches Bake)\n");
+$e += ("float $strA = $fal; if ($strA < 0.0) $strA = 0.0; $strA = $strA / ($strA + 0.5); if ($strA > 1.0) $strA = 1.0;\n");
+$e += ("float $strB = $fal2; if ($strB < 0.0) $strB = 0.0; $strB = $strB / ($strB + 0.5); if ($strB > 1.0) $strB = 1.0;\n");
+$e += ("float $scA = $fsA; if ($scA < 0.0) $scA = 0.0; if ($scA > 10.0) $scA = 10.0;\n");
+$e += ("float $scB = $fsB; if ($scB < 0.0) $scB = 0.0; if ($scB > 10.0) $scB = 10.0;\n");
+$e += ("float $pinA = 0.0; float $pinB = 0.0;\n");
+$e += ("if ($n > 1) {\n");
+$e += ("  if ($strA > 0.000001 && $scA > 0.000001) {\n");
+$e += ("    float $reachA = ($n-1.0) * ($scA/10.0); if ($reachA < 1.0) $reachA = 1.0;\n");
+$e += ("    float $xA = ((float)$ie) / $reachA; if ($xA < 0.0) $xA = 0.0; if ($xA > 1.0) $xA = 1.0;\n");
+$e += ("    float $sA = ($xA*$xA*(3.0 - 2.0*$xA));\n");
+$e += ("    float $fadeA = 1.0 - $sA;\n");
+$e += ("    $pinA = $fadeA * $strA;\n");
+$e += ("  }\n");
+$e += ("  if ($strB > 0.000001 && $scB > 0.000001) {\n");
+$e += ("    float $reachB = ($n-1.0) * ($scB/10.0); if ($reachB < 1.0) $reachB = 1.0;\n");
+$e += ("    float $dB = (float)(($n-1) - $ie);\n");
+$e += ("    float $xB = $dB / $reachB; if ($xB < 0.0) $xB = 0.0; if ($xB > 1.0) $xB = 1.0;\n");
+$e += ("    float $sB = ($xB*$xB*(3.0 - 2.0*$xB));\n");
+$e += ("    float $fadeB = 1.0 - $sB;\n");
+$e += ("    $pinB = $fadeB * $strB;\n");
+$e += ("  }\n");
+$e += ("}\n");
+$e += ("float $pin = $pinA; if ($pinB > $pin) $pin = $pinB;\n");
+$e += ("float $amp = 1.0 - $pin; if ($amp < 0.0) $amp = 0.0; if ($amp > 1.0) $amp = 1.0;\n");
+$e += ("float $phTime = 0.0;\n");
+$e += ("if ($loop > 0) {\n");
+$e += ("  float $spdA = $spd; if ($spdA < 0.0) $spdA = -$spdA;\n");
+$e += ("  float $dur = $len / $fps;\n");
+$e += ("  float $cycF = ($spdA * 2.0) * $dur;\n");
+$e += ("  int $cyc = (int)floor($cycF + 0.5);\n");
+$e += ("  if ($cyc < 1) $cyc = 1;\n");
+$e += ("  float $phT = (2.0*$pi*(float)$cyc) * ($u / $len);\n");
+$e += ("  if ($spd < 0.0) $phT *= -1.0;\n");
+$e += ("  $phT += (-0.5*$pi);\n");
+$e += ("  $phTime = $phT;\n");
+$e += ("} else {\n");
+$e += ("  float $sec = $u / $fps;\n");
+$e += ("  $phTime = $sec * (4.0*$pi*$spd);\n");
+$e += ("}\n");
+$e += ("float $ph = $phTime + ($pN * $phRange) + $chOff;\n");
+$e += ("float $w = sin($ph) * $env * $amp;\n");
+$e += ("float $wT = sin($ph + $chOff) * $env * $amp;\n");
+$e += ("float $wPrev = 0.0;\n");
+$e += ("if ($i > 0 && $n > 1) {\n");
+$e += ("  int $iP = $i - 1;\n");
+$e += ("  int $ieP = $iP; if ($rev > 0 && $n > 1) $ieP = ($n-1) - $iP;\n");
+$e += ("  float $pNP = ($ieP/($n-1.0));\n");
+$e += ("  float $pinAP = 0.0; float $pinBP = 0.0;\n");
+$e += ("  if ($strA > 0.000001 && $scA > 0.000001) {\n");
+$e += ("    float $reachAP = ($n-1.0) * ($scA/10.0); if ($reachAP < 1.0) $reachAP = 1.0;\n");
+$e += ("    float $xAP = ((float)$ieP) / $reachAP; if ($xAP < 0.0) $xAP = 0.0; if ($xAP > 1.0) $xAP = 1.0;\n");
+$e += ("    float $sAP = ($xAP*$xAP*(3.0 - 2.0*$xAP));\n");
+$e += ("    float $fadeAP = 1.0 - $sAP;\n");
+$e += ("    $pinAP = $fadeAP * $strA;\n");
+$e += ("  }\n");
+$e += ("  if ($strB > 0.000001 && $scB > 0.000001) {\n");
+$e += ("    float $reachBP = ($n-1.0) * ($scB/10.0); if ($reachBP < 1.0) $reachBP = 1.0;\n");
+$e += ("    float $dBP = (float)(($n-1) - $ieP);\n");
+$e += ("    float $xBP = $dBP / $reachBP; if ($xBP < 0.0) $xBP = 0.0; if ($xBP > 1.0) $xBP = 1.0;\n");
+$e += ("    float $sBP = ($xBP*$xBP*(3.0 - 2.0*$xBP));\n");
+$e += ("    float $fadeBP = 1.0 - $sBP;\n");
+$e += ("    $pinBP = $fadeBP * $strB;\n");
+$e += ("  }\n");
+$e += ("  float $pinP = $pinAP; if ($pinBP > $pinP) $pinP = $pinBP;\n");
+$e += ("  float $ampP = 1.0 - $pinP; if ($ampP < 0.0) $ampP = 0.0; if ($ampP > 1.0) $ampP = 1.0;\n");
+$e += ("  float $phP = $phTime + ($pNP * $phRange) + $chOff;\n");
+$e += ("  $wPrev = sin($phP) * $env * $ampP;\n");
+$e += ("}\n");
+$e += ("float $wR = $w - $wPrev;\n");
+
+$e += ("float $tx=0.0, $ty=0.0, $tz=0.0;\n");
+    $e += ("if (EGQW58_CFG.doT > 0.5) {\n");
+    $e += ("  $tx = $wT * $tAx * $sgX * $pMul; $ty = $wT * $tAy * $sgY * $pMul; $tz = $wT * $tAz * $sgZ * $pMul;\n");
+    $e += ("}\n");
+
+    $e += ("float $rx=0.0, $ry=0.0, $rz=0.0;\n");
+    $e += ("if (EGQW58_CFG.doR > 0.5) {\n");
+    $e += ("  $rx = $wR * $rAx * $sgX * $pMul; $ry = $wR * $rAy * $sgY * $pMul; $rz = $wR * $rAz * $sgZ * $pMul;\n");
+    $e += ("}\n");
+
+    $e += ("float $sx=1.0, $sy=1.0, $sz=1.0;\n");
+    $e += ("if (EGQW58_CFG.doS > 0.5) {\n");
+    $e += ("  float $eps = 0.05;\n");
+    $e += ("  float $spx = 1.0 + ($wPrev * $sAx);\n");
+    $e += ("  if (abs($spx) < $eps) { if ($spx < 0.0) $spx = -$eps; else $spx = $eps; }\n");
+    $e += ("  float $spy = 1.0 + ($wPrev * $sAy);\n");
+    $e += ("  if (abs($spy) < $eps) { if ($spy < 0.0) $spy = -$eps; else $spy = $eps; }\n");
+    $e += ("  float $spz = 1.0 + ($wPrev * $sAz);\n");
+    $e += ("  if (abs($spz) < $eps) { if ($spz < 0.0) $spz = -$eps; else $spz = $eps; }\n");
+    $e += ("  $sx = (1.0 + ($w * $sAx)) / $spx;\n");
+    $e += ("  $sy = (1.0 + ($w * $sAy)) / $spy;\n");
+    $e += ("  $sz = (1.0 + ($w * $sAz)) / $spz;\n");
+    $e += ("}\n");
+
+    $e += ($cm + ".inputTranslateX = $tx;\n");
+    $e += ($cm + ".inputTranslateY = $ty;\n");
+    $e += ($cm + ".inputTranslateZ = $tz;\n");
+    $e += ($cm + ".inputRotateX = $rx;\n");
+    $e += ($cm + ".inputRotateY = $ry;\n");
+    $e += ($cm + ".inputRotateZ = $rz;\n");
+    $e += ($cm + ".inputScaleX = $sx;\n");
+    $e += ($cm + ".inputScaleY = $sy;\n");
+    $e += ($cm + ".inputScaleZ = $sz;\n");
+
+    return $e;
+}
+
+global proc EGQW58__deleteExpressions()
+{
+    global string $EGQW58_EXPR[];
+    int $i;
+    for ($i=0; $i<size($EGQW58_EXPR); $i++)
+    {
+        if ($EGQW58_EXPR[$i] != "" && `objExists $EGQW58_EXPR[$i]`) delete $EGQW58_EXPR[$i];
+    }
+    $EGQW58_EXPR = {};
+}
+
+// -----------------------------------------------------------------------------
+// Idle job (sync with Maya stop)
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Cleanup orphan preview overlay in the scene (prevents infinite error spam)
+// - Restores offsetParentMatrix using EGQW58_SET_* stored data, then deletes rig nodes.
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Orphan scriptJob cleanup (safe on reload / drag&drop)
+// -----------------------------------------------------------------------------
+global proc EGQW58__cleanupOrphanJobs()
+{
+    // Kills leftover scriptJobs that reference QuickWave callbacks.
+    // This prevents console spam / infinite errors after drag&drop reload.
+
+    string $jobs[] = `scriptJob -lj`;
+    int $i;
+    for ($i=0; $i<size($jobs); $i++)
+    {
+        string $j = $jobs[$i];
+
+        if (`gmatch $j "*EGQW58__onIdle*"` ||
+            `gmatch $j "*EGQW58__onTimeChanged*"` ||
+            `gmatch $j "*EGQW58_StopPreview*"` ||
+            `gmatch $j "*EGQW58_TogglePreview*"` ||
+            `gmatch $j "*EGQW58_StartPreview*"`)
+        {
+            string $parts[];
+            int $n = `tokenize $j ":" $parts`;
+            if ($n > 0)
+            {
+                int $id = (int)$parts[0];
+                if ($id > 0 && `scriptJob -ex $id`)
+                {
+                    // Defer the kill to avoid: "A scriptJob cannot be killed while it is running."
+                    evalDeferred ("if (`scriptJob -ex " + $id + "`) scriptJob -k " + $id + ";");
+                }
+            }
+        }
+    }
+}
+global proc EGQW58__cleanupSceneOverlay()
+{
+    // Restore any connected OPM from EGQW58_MM_* using EGQW58_SET_* (same index).
+    string $mms[] = `ls "EGQW58_MM_*"`;
+    int $i;
+    for ($i=0; $i<size($mms); $i++)
+    {
+        string $mm = $mms[$i];
+        if ($mm == "" || !`objExists $mm`) continue;
+
+        // Find connected object plug
+        string $dstPlugs[] = `listConnections -s 0 -d 1 -p 1 ($mm + ".matrixSum")`;
+        if (size($dstPlugs) < 1) continue;
+
+        string $dst = $dstPlugs[0]; // expected: <obj>.offsetParentMatrix
+        string $tok[];
+        tokenize $dst "." $tok;
+        if (size($tok) < 2) continue;
+        string $obj = $tok[0];
+        string $plug = ($obj + ".offsetParentMatrix");
+        if (!`objExists $plug`) continue;
+
+        // Extract index
+        string $idStr = `match "[0-9]+$" $mm`;
+        int $idx = -1;
+        if ($idStr != "") $idx = (int)$idStr;
+
+        // Disconnect our rig
+        if (`isConnected ($mm + ".matrixSum") $plug`) disconnectAttr ($mm + ".matrixSum") $plug;
+
+        // Restore original state if we have stored set node
+        if ($idx >= 0)
+        {
+            string $set = ("EGQW58_SET_" + $idx);
+            if (`objExists $set`)
+            {
+                // Unlock to restore
+                catchQuiet(("setAttr -l 0 \"" + $plug + "\";"));
+
+                float $m[] = `getAttr ($set + ".origOPM")`;
+                EGQW58__setMatrixAttr($plug, $m);
+
+                string $src = `getAttr ($set + ".origSrc")`;
+                if ($src != "" && `objExists $src`)
+                {
+                    // ensure no existing incoming
+                    string $srcNow[] = `listConnections -s 1 -d 0 -p 1 $plug`;
+                    if (size($srcNow) > 0) catchQuiet(("disconnectAttr \"" + $srcNow[0] + "\" \"" + $plug + "\";"));
+                    catchQuiet(("connectAttr -f \"" + $src + "\" \"" + $plug + "\";"));
+                }
+
+                int $lk = `getAttr ($set + ".origLock")`;
+                if ($lk) catchQuiet(("setAttr -l 1 \"" + $plug + "\";"));
+            }
+        }
+    }
+
+    // Delete rig nodes created by QuickWave
+    string $n[];
+    $n = `ls "EGQW58_expr_*"`;  if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_CM_*"`;    if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_CMT_*"`;   if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_CMRS_*"`;  if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_BASET_*"`;  if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_PIVP_*"`;  if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_PIVN_*"`;  if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_PIVMD_*"`; if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_PIVMM_*"`; if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_MM_*"`;    if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+    $n = `ls "EGQW58_SET_*"`;   if (size($n)>0) EGQW58__deleteNodesQuiet($n);
+}
+
+global proc EGQW58__killIdleJob()
+{
+    global int $EGQW58_IDLE_JOB;
+
+    int $id = $EGQW58_IDLE_JOB;
+    $EGQW58_IDLE_JOB = -1;
+
+    if ($id < 0) return;
+    if (!`scriptJob -ex $id`) return;
+
+    // If called from inside the same scriptJob (idle callback), Maya can throw:
+    // "A scriptJob cannot be killed while it is running."
+    // Defer the kill to avoid: "A scriptJob cannot be killed while it is running."
+    evalDeferred ("if (`scriptJob -ex " + $id + "`) scriptJob -k " + $id + ";");
+}
+
+// -----------------------------------------------------------------------------
+// TimeChanged job (single job preview driver)
+// - Updates all composeMatrix inputs once per frame.
+// -----------------------------------------------------------------------------
+global proc EGQW58__killTimeJob()
+{
+    global int $EGQW58_TIME_JOB;
+
+    int $id = $EGQW58_TIME_JOB;
+    $EGQW58_TIME_JOB = -1;
+
+    if ($id < 0) return;
+    if (!`scriptJob -ex $id`) return;
+
+    // Defer the kill to avoid: "A scriptJob cannot be killed while it is running."
+    evalDeferred ("if (`scriptJob -ex " + $id + "`) scriptJob -k " + $id + ";");
+}
+
+global proc EGQW58__previewUpdateAtFrame(int $fr)
+{
+    global string $EGQW58_CFG;
+    global string $EGQW58_CM[];
+
+    if ($EGQW58_CFG == "" || !`objExists $EGQW58_CFG`) return;
+
+    float $t0 = `getAttr ($EGQW58_CFG + ".start")`;
+    float $t1 = `getAttr ($EGQW58_CFG + ".end")`;
+
+    // If Play Range is OFF, use current playback range.
+    if (`getAttr ($EGQW58_CFG + ".playRange")` < 1)
+    {
+        $t0 = (float)(`playbackOptions -q -min`);
+        $t1 = (float)(`playbackOptions -q -max`);
+    }
+
+    float $len = $t1 - $t0;
+    if ($len < 1.0) $len = 1.0;
+
+    float $fps = `getAttr ($EGQW58_CFG + ".fps")`;
+    if ($fps < 1.0) $fps = 30.0;
+
+    float $spd   = `getAttr ($EGQW58_CFG + ".speed")`;
+    float $ofs   = `getAttr ($EGQW58_CFG + ".offset")`;
+    int   $rev   = `getAttr ($EGQW58_CFG + ".reverse")`;
+    int   $loop  = `getAttr ($EGQW58_CFG + ".loop")`;
+    float $ein   = `getAttr ($EGQW58_CFG + ".easeIn")`;
+    float $eout  = `getAttr ($EGQW58_CFG + ".easeOut")`;
+    float $fal   = `getAttr ($EGQW58_CFG + ".falloff")`;
+    float $fal2  = `getAttr ($EGQW58_CFG + ".falloff2")`;
+    float $fsA   = `getAttr ($EGQW58_CFG + ".fallScaleA")`;
+    float $fsB   = `getAttr ($EGQW58_CFG + ".fallScaleB")`;
+
+    float $parInfPrev = 0.0; if (EGQW58__attrExists($EGQW58_CFG, "parInf")) $parInfPrev = `getAttr ($EGQW58_CFG + ".parInf")`;
+    if ($parInfPrev < 0.0) $parInfPrev = 0.0; if ($parInfPrev > 10.0) $parInfPrev = 10.0;
+
+    float $tAx = `getAttr ($EGQW58_CFG + ".tAx")` * `getAttr ($EGQW58_CFG + ".powT")`;
+    float $tAy = `getAttr ($EGQW58_CFG + ".tAy")` * `getAttr ($EGQW58_CFG + ".powT")`;
+    float $tAz = `getAttr ($EGQW58_CFG + ".tAz")` * `getAttr ($EGQW58_CFG + ".powT")`;
+
+    float $rAx = `getAttr ($EGQW58_CFG + ".rAx")` * `getAttr ($EGQW58_CFG + ".powR")`;
+    float $rAy = `getAttr ($EGQW58_CFG + ".rAy")` * `getAttr ($EGQW58_CFG + ".powR")`;
+    float $rAz = `getAttr ($EGQW58_CFG + ".rAz")` * `getAttr ($EGQW58_CFG + ".powR")`;
+
+    float $sAx = `getAttr ($EGQW58_CFG + ".sAx")` * `getAttr ($EGQW58_CFG + ".powS")`;
+    float $sAy = `getAttr ($EGQW58_CFG + ".sAy")` * `getAttr ($EGQW58_CFG + ".powS")`;
+    float $sAz = `getAttr ($EGQW58_CFG + ".sAz")` * `getAttr ($EGQW58_CFG + ".powS")`;
+    $sAx *= 0.1; $sAy *= 0.1; $sAz *= 0.1;
+
+    int $doT = (`getAttr ($EGQW58_CFG + ".doT")` > 0.5);
+    int $doR = (`getAttr ($EGQW58_CFG + ".doR")` > 0.5);
+    int $doS = (`getAttr ($EGQW58_CFG + ".doS")` > 0.5);
+
+    // Disable undo recording for per-frame preview updates.
+    int $undoWas = `undoInfo -q -state`;
+    catchQuiet("undoInfo -stateWithoutFlush 0;");
+
+    int $i;
+    for ($i=0; $i<size($EGQW58_CM); $i++)
+    {
+        string $cm = $EGQW58_CM[$i];
+        if ($cm == "" || !`objExists $cm`) continue;
+
+        int $idx = `getAttr ($cm + ".egqwIdx")`;
+        int $n   = `getAttr ($cm + ".egqwN")`;
+        if ($n < 1) $n = 1;
+
+        int $cid = 0;
+        if (`objExists ($cm + ".egqwCID")`) $cid = `getAttr ($cm + ".egqwCID")`;
+
+        // Axis sign alignment (mirrored controls)
+        float $sgX = 1.0, $sgY = 1.0, $sgZ = 1.0;
+        if (`objExists ($cm + ".egqwSgX")`) $sgX = `getAttr ($cm + ".egqwSgX")`;
+        if (`objExists ($cm + ".egqwSgY")`) $sgY = `getAttr ($cm + ".egqwSgY")`;
+        if (`objExists ($cm + ".egqwSgZ")`) $sgZ = `getAttr ($cm + ".egqwSgZ")`;
+        float $w = EGQW58__waveW($fr, $idx, $n, $t0, $len, $fps, $spd, $ofs, $fal, $fal2, $fsA, $fsB, $rev, $loop, $ein, $eout, $cid);
+
+        float $wT = $w;
+        if ($doT && $cid != 0) $wT = EGQW58__waveW($fr, $idx, $n, $t0, $len, $fps, $spd, $ofs, $fal, $fal2, $fsA, $fsB, $rev, $loop, $ein, $eout, ($cid*2));
+
+        // De-cumulative Rot/Scale: make world wave per index, not compounded by hierarchy.
+        float $wPrev = 0.0;
+        if ($idx > 0) $wPrev = EGQW58__waveW($fr, ($idx-1), $n, $t0, $len, $fps, $spd, $ofs, $fal, $fal2, $fsA, $fsB, $rev, $loop, $ein, $eout, $cid);
+        float $wR = ($w - $wPrev);
+
+        int $ie = $idx; if ($rev > 0 && $n > 1) $ie = ($n-1) - $idx;
+        float $pN = 0.0; if ($n > 1) $pN = ($ie/($n-1.0));
+        float $pMul = 1.0 + ($parInfPrev * $pN);
+
+        float $tx=0.0, $ty=0.0, $tz=0.0;
+        float $rx=0.0, $ry=0.0, $rz=0.0;
+        float $sx=1.0, $sy=1.0, $sz=1.0;
+
+
+        if ($doT)
+        {
+            $tx = $wT * $tAx * $sgX * $pMul; $ty = $wT * $tAy * $sgY * $pMul; $tz = $wT * $tAz * $sgZ * $pMul;
+        }
+
+        if ($doR)
+        {
+            $rx = $wR * $rAx * $sgX * $pMul; $ry = $wR * $rAy * $sgY * $pMul; $rz = $wR * $rAz * $sgZ * $pMul;
+        }
+
+        if ($doS)
+        {
+            float $spx = 1.0 + ($wPrev * $sAx); if (abs($spx) < 0.05) { if ($spx < 0.0) $spx = -0.05; else $spx = 0.05; }
+            float $spy = 1.0 + ($wPrev * $sAy); if (abs($spy) < 0.05) { if ($spy < 0.0) $spy = -0.05; else $spy = 0.05; }
+            float $spz = 1.0 + ($wPrev * $sAz); if (abs($spz) < 0.05) { if ($spz < 0.0) $spz = -0.05; else $spz = 0.05; }
+            $sx = (1.0 + ($w * $sAx)) / $spx;
+            $sy = (1.0 + ($w * $sAy)) / $spy;
+            $sz = (1.0 + ($w * $sAz)) / $spz;
+        }
+
+        catchQuiet(("setAttr -type \"double3\" \"" + $cm + ".inputTranslate\" " + $tx + " " + $ty + " " + $tz + ";"));
+        catchQuiet(("setAttr -type \"double3\" \"" + $cm + ".inputRotate\" " + $rx + " " + $ry + " " + $rz + ";"));
+        catchQuiet(("setAttr -type \"double3\" \"" + $cm + ".inputScale\" " + $sx + " " + $sy + " " + $sz + ";"));
+    }
+
+    catchQuiet(("undoInfo -stateWithoutFlush " + $undoWas + ";"));
+}
+
+global proc EGQW58__onTimeChanged()
+{
+    global int $EGQW58_PREVIEW_ON;
+    global int $EGQW58_STOPPING;
+
+    if (!$EGQW58_PREVIEW_ON) return;
+    if ($EGQW58_STOPPING) return;
+
+    float $t = `currentTime -q`;
+    int $fr = (int)floor($t + 0.5);
+    EGQW58__previewUpdateAtFrame($fr);
+}
+
+global proc EGQW58__onIdle()
+{
+    global int $EGQW58_PREVIEW_ON;
+    global int $EGQW58_STOPPING;
+    global int $EGQW58_STOP_REQ;
+
+    if (!$EGQW58_PREVIEW_ON) return;
+    if ($EGQW58_STOPPING) return;
+    if ($EGQW58_STOP_REQ) return;
+
+    int $st = `play -q -state`;
+    if (!$st)
+    {
+        // Prevent piling deferred Stop calls
+        $EGQW58_STOP_REQ = 1;
+
+        // Defer to avoid recursive scriptJob issues
+        evalDeferred "EGQW58_StopPreview();";
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Preview start/stop
+// -----------------------------------------------------------------------------
+global proc EGQW58__clearRigArrays()
+{
+    global string $EGQW58_TGT[];
+    global int    $EGQW58_TGT_IDX[];
+    global int    $EGQW58_TGT_N[];
+    global int    $EGQW58_TGT_CID[];
+    global string $EGQW58_CM[];
+    global string $EGQW58_CMT[];
+    global string $EGQW58_CMRS[];
+    global string $EGQW58_BASET[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVP[];
+    global string $EGQW58_PIVN[];
+    global string $EGQW58_PIVMD[];
+    global string $EGQW58_PIVDC[];
+    global string $EGQW58_PIVMM[];
+    global string $EGQW58_MM[];
+    global string $EGQW58_SET[];
+    global string $EGQW58_EXPR[];
+
+    $EGQW58_TGT = {};
+    $EGQW58_TGT_IDX = {};
+    $EGQW58_TGT_N = {};
+    $EGQW58_TGT_CID = {};
+    $EGQW58_CM = {};
+    $EGQW58_CMT = {};
+    $EGQW58_CMRS = {};
+    $EGQW58_BASET = {};
+    $EGQW58_PIVSUM = {};
+    $EGQW58_PIVSUM = {};
+    $EGQW58_PIVP = {};
+    $EGQW58_PIVN = {};
+    $EGQW58_PIVMD = {};
+    $EGQW58_PIVDC = {};
+    $EGQW58_PIVMM = {};
+    $EGQW58_MM = {};
+    $EGQW58_SET = {};
+    $EGQW58_EXPR = {};
+}
+
+global proc EGQW58_StartPreview()
+{
+    global int $EGQW58_PREVIEW_ON;
+    global int $EGQW58_STOP_REQ;
+    global int $EGQW58_STOPPING;
+    global string $EGQW58_CFG;
+    global string $EGQW58_TGT[];
+    global int    $EGQW58_TGT_IDX[];
+	global int    $EGQW58_TGT_N[];
+    global int    $EGQW58_TGT_CID[];
+    global string $EGQW58_CM[];
+    global string $EGQW58_CMT[];
+    global string $EGQW58_CMRS[];
+    global string $EGQW58_BASET[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVP[];
+    global string $EGQW58_PIVN[];
+    global string $EGQW58_PIVMD[];
+    global string $EGQW58_PIVDC[];
+    global string $EGQW58_PIVMM[];
+    global string $EGQW58_MM[];
+    global string $EGQW58_SET[];
+    global string $EGQW58_EXPR[];
+    global string $EGQW58_WIN;
+
+    if ($EGQW58_PREVIEW_ON) return;
+
+    $EGQW58_STOP_REQ = 0;
+    $EGQW58_STOPPING = 0;
+
+    EGQW58__saveSelection();
+
+    EGQW58__ensureCfg();
+    EGQW58__UI_ParamChanged();
+
+    int $pb0 = `playbackOptions -q -min`;
+    int $pb1 = `playbackOptions -q -max`;
+    setAttr ($EGQW58_CFG + ".pbStart") $pb0;
+    setAttr ($EGQW58_CFG + ".pbEnd") $pb1;
+
+    float $fps = EGQW58__getFPS();
+    setAttr ($EGQW58_CFG + ".fps") $fps;
+
+    int $phaseCount = EGQW58__collectTargetsAndIndices();
+    if (size($EGQW58_TGT) < 1)
+    {
+        warning("[EG Quick Wave] No selection.");
+        EGQW58__restoreSelection();
+        return;
+    }
+    if ($phaseCount < 1) $phaseCount = 1;
+    setAttr ($EGQW58_CFG + ".n") $phaseCount;
+    $EGQW58_CM = {};
+    $EGQW58_CMT = {};
+    $EGQW58_CMRS = {};
+    $EGQW58_BASET = {};
+    $EGQW58_PIVP = {};
+    $EGQW58_PIVN = {};
+    $EGQW58_PIVMD = {};
+    $EGQW58_PIVDC = {};
+    $EGQW58_PIVMM = {};
+    $EGQW58_MM = {};
+    $EGQW58_SET = {};
+    $EGQW58_EXPR = {};
+
+    int $i;
+    int $valid = 0;
+
+    // Build chain root lookup by cid (used for axis sign alignment on mirrored rigs)
+    int $maxCid = 0;
+    for ($i=0; $i<size($EGQW58_TGT_CID); $i++) if ($EGQW58_TGT_CID[$i] > $maxCid) $maxCid = $EGQW58_TGT_CID[$i];
+    string $rootByCid[];
+    $rootByCid[$maxCid] = "";
+    int $ri;
+    for ($ri=0; $ri<size($rootByCid); $ri++) $rootByCid[$ri] = "";
+    for ($i=0; $i<size($EGQW58_TGT); $i++)
+    {
+        int $cidTmp = 0;
+        int $idxTmp = 0;
+        if ($i < size($EGQW58_TGT_CID)) $cidTmp = $EGQW58_TGT_CID[$i];
+        if ($i < size($EGQW58_TGT_IDX)) $idxTmp = $EGQW58_TGT_IDX[$i];
+        if ($idxTmp == 0)
+        {
+            if ($cidTmp >= 0 && $cidTmp < size($rootByCid)) $rootByCid[$cidTmp] = $EGQW58_TGT[$i];
+        }
+    }
+
+    for ($i=0; $i<size($EGQW58_TGT); $i++)
+    {
+        string $obj = $EGQW58_TGT[$i];
+        if ($obj == "" || !`objExists $obj`) continue;
+        if (!EGQW58__attrExists($obj, "offsetParentMatrix")) continue;
+
+        string $cm = EGQW58__makeNode("composeMatrix", ("EGQW58_CM_" + $i));
+        string $mm = EGQW58__makeNode("multMatrix", ("EGQW58_MM_" + $i));
+        string $set = EGQW58__ensureSetNode($i);
+
+        if (!EGQW58__attrExists($cm, "egqwIdx")) addAttr -ln "egqwIdx" -at "long" -dv 0 $cm;
+        setAttr ($cm + ".egqwIdx") $EGQW58_TGT_IDX[$i];
+
+        if (!EGQW58__attrExists($cm, "egqwN")) addAttr -ln "egqwN" -at "long" -dv 1 $cm;
+        int $nn = 1;
+        if ($i < size($EGQW58_TGT_N)) $nn = $EGQW58_TGT_N[$i];
+        if ($nn < 1) $nn = 1;
+        setAttr ($cm + ".egqwN") $nn;
+
+        if (!EGQW58__attrExists($cm, "egqwCID")) addAttr -ln "egqwCID" -at "long" -dv 0 $cm;
+        int $cid = 0;
+        if ($i < size($EGQW58_TGT_CID)) $cid = $EGQW58_TGT_CID[$i];
+        setAttr ($cm + ".egqwCID") $cid;
+
+        if (!EGQW58__attrExists($cm, "egqwIsJoint")) addAttr -ln "egqwIsJoint" -at "long" -dv 0 $cm;
+        int $isJ = 0; if (`nodeType $obj` == "joint") $isJ = 1;
+        setAttr ($cm + ".egqwIsJoint") $isJ;
+
+        // Axis sign alignment per chain-root (fixes mirrored controls: X/Z behave like Y)
+        if (!EGQW58__attrExists($cm, "egqwSgX")) addAttr -ln "egqwSgX" -at "double" -dv 1 $cm;
+        if (!EGQW58__attrExists($cm, "egqwSgY")) addAttr -ln "egqwSgY" -at "double" -dv 1 $cm;
+        if (!EGQW58__attrExists($cm, "egqwSgZ")) addAttr -ln "egqwSgZ" -at "double" -dv 1 $cm;
+
+        string $rootObj = $obj;
+        if ($cid >= 0 && $cid < size($rootByCid) && $rootByCid[$cid] != "" && $rootByCid[$cid] != "0") $rootObj = $rootByCid[$cid];
+        float $sg[] = EGQW58__axisSignsFromRoot($rootObj, $obj);
+        if (size($sg) >= 3)
+        {
+            setAttr ($cm + ".egqwSgX") $sg[0];
+            setAttr ($cm + ".egqwSgY") $sg[1];
+            setAttr ($cm + ".egqwSgZ") $sg[2];
+        }
+        EGQW58__attachOPM($i, $obj, $cm, $mm, $set);
+
+        // DG-driven preview: expression updates the driver composeMatrix each evaluation.
+        string $expTxt = EGQW58__buildExprForCM($cm);
+        string $expName = ("EGQW58_expr_" + $i);
+        if (`objExists $expName`) delete $expName;
+        string $expNode = `expression -s $expTxt -o "" -ae 1 -uc "all" -n $expName`;
+
+        // Store rig nodes by index so StopPreview restores correctly.
+        while (size($EGQW58_CM) <= $i)  $EGQW58_CM[size($EGQW58_CM)] = "";
+        while (size($EGQW58_MM) <= $i)  $EGQW58_MM[size($EGQW58_MM)] = "";
+        while (size($EGQW58_SET) <= $i) $EGQW58_SET[size($EGQW58_SET)] = "";
+        while (size($EGQW58_EXPR) <= $i) $EGQW58_EXPR[size($EGQW58_EXPR)] = "";
+
+        $EGQW58_CM[$i]  = $cm;
+        $EGQW58_MM[$i]  = $mm;
+        $EGQW58_SET[$i] = $set;
+        $EGQW58_EXPR[$i] = $expNode;
+
+        $valid++;
+    }
+
+    if ($valid < 1)
+    {
+        warning("[EG Quick Wave] No valid targets.");
+        EGQW58__deleteExpressions();
+        EGQW58__clearRigArrays();
+        EGQW58__restoreSelection();
+        return;
+    }
+    // DG-driven preview uses expressions; we only keep a light idle watcher.
+    EGQW58__killTimeJob();
+    EGQW58__killIdleJob();
+    // Parent the job to our UI window so it auto-dies when the UI is closed.
+    if (`window -ex $EGQW58_WIN`)
+        $EGQW58_IDLE_JOB = `scriptJob -parent $EGQW58_WIN -e "idle" "EGQW58__onIdle();"`;
+    else
+        $EGQW58_IDLE_JOB = `scriptJob -e "idle" "EGQW58__onIdle();"`;
+
+    $EGQW58_PREVIEW_ON = 1;
+    if (`control -ex "EGQW58_BTN_PREVIEW"`) button -e -l "Stop" "EGQW58_BTN_PREVIEW";
+
+    if (!`play -q -state`) play -state 1;
+
+    EGQW58__restoreSelection();
+}
+
+global proc EGQW58_StopPreview()
+{
+    global int $EGQW58_PREVIEW_ON;
+    global int $EGQW58_STOPPING;
+    global int $EGQW58_STOP_REQ;
+    global string $EGQW58_TGT[];
+    global string $EGQW58_MM[];
+    global string $EGQW58_CM[];
+    global string $EGQW58_CMT[];
+    global string $EGQW58_CMRS[];
+    global string $EGQW58_BASET[];
+    global string $EGQW58_PIVSUM[];
+    global string $EGQW58_PIVP[];
+    global string $EGQW58_PIVN[];
+    global string $EGQW58_PIVMD[];
+    global string $EGQW58_PIVDC[];
+    global string $EGQW58_PIVMM[];
+    global string $EGQW58_SET[];
+
+    if ($EGQW58_STOPPING) return;
+    $EGQW58_STOPPING = 1;
+
+    // Clear pending stop request (idle job might have queued it)
+    $EGQW58_STOP_REQ = 0;
+
+    // Flip first to prevent re-entry from idle job
+    $EGQW58_PREVIEW_ON = 0;
+
+    // Kill jobs ASAP to avoid repeated callbacks
+    EGQW58__killIdleJob();
+    EGQW58__killTimeJob();
+
+    EGQW58__saveSelection();
+
+    // Everything below must be robust: any error here can cause "infinite error" spam.
+    if (`play -q -state`) play -state 0;
+    EGQW58__deleteExpressions();
+
+    int $i;
+    for ($i=0; $i<size($EGQW58_TGT); $i++)
+    {
+        string $obj = $EGQW58_TGT[$i];
+        string $mm  = "";
+        string $cm  = "";
+        string $set = "";
+
+        if ($i < size($EGQW58_MM)) $mm = $EGQW58_MM[$i];
+        if ($i < size($EGQW58_CM)) $cm = $EGQW58_CM[$i];
+        if ($i < size($EGQW58_SET)) $set = $EGQW58_SET[$i];
+
+        string $cmt = "";
+        string $cmrs = "";
+        string $baseT = "";
+        string $pivsum = "";
+        string $pivp = "";
+        string $pivn = "";
+        string $pivmd = "";
+        string $pivdc = "";
+        if ($i < size($EGQW58_CMT)) $cmt = $EGQW58_CMT[$i];
+        if ($i < size($EGQW58_CMRS)) $cmrs = $EGQW58_CMRS[$i];
+        if ($i < size($EGQW58_BASET)) $baseT = $EGQW58_BASET[$i];
+        if ($i < size($EGQW58_PIVSUM)) $pivsum = $EGQW58_PIVSUM[$i];
+        if ($i < size($EGQW58_PIVP)) $pivp = $EGQW58_PIVP[$i];
+        if ($i < size($EGQW58_PIVN)) $pivn = $EGQW58_PIVN[$i];
+        if ($i < size($EGQW58_PIVMD)) $pivmd = $EGQW58_PIVMD[$i];
+        if ($i < size($EGQW58_PIVDC)) $pivdc = $EGQW58_PIVDC[$i];
+        string $pivmm = "";
+        if ($i < size($EGQW58_PIVMM)) $pivmm = $EGQW58_PIVMM[$i];
+
+        // Restore OPM if possible
+        if ($obj != "" && $mm != "" && $set != "" && `objExists $obj`)
+            EGQW58__restoreOPM($obj, $mm, $set);
+
+        EGQW58__deleteIfExists($cmt);
+        EGQW58__deleteIfExists($cmrs);
+        EGQW58__deleteIfExists($baseT);
+        EGQW58__deleteIfExists($pivsum);
+        EGQW58__deleteIfExists($pivp);
+        EGQW58__deleteIfExists($pivn);
+        EGQW58__deleteIfExists($pivdc);
+        EGQW58__deleteIfExists($pivmd);
+        EGQW58__deleteIfExists($pivmm);
+
+        EGQW58__deleteIfExists($cm);
+        EGQW58__deleteIfExists($mm);
+        EGQW58__deleteIfExists($set);
+    }
+
+    EGQW58__clearRigArrays();
+
+    if ("EGQW58_BTN_PREVIEW" != "" && `control -ex "EGQW58_BTN_PREVIEW"`) button -e -l "Preview" "EGQW58_BTN_PREVIEW";
+
+    EGQW58__restoreSelection();
+
+    $EGQW58_STOPPING = 0;
+}
+
+global proc EGQW58_TogglePreview()
+{
+    global int $EGQW58_PREVIEW_ON;
+    if ($EGQW58_PREVIEW_ON) EGQW58_StopPreview();
+    else EGQW58_StartPreview();
+}
+
+// -----------------------------------------------------------------------------
+// Bake helpers
+// -----------------------------------------------------------------------------
+global proc string EGQW58__nextBakeLayerName()
+{
+    int $i = 1;
+    while (1)
+    {
+        string $nm = ("EG_Wave_" + $i);
+        if (!`objExists $nm`) return $nm;
+        $i++;
+        if ($i > 9999) return ("EG_Wave_" + (rand(9999) + 1));
+    }
+}
+
+global proc float EGQW58__waveW(int $frame, int $idx, int $n, float $t0, float $len, float $fps, float $speed, float $phase, float $falloff, float $falloff2, float $fallScaleA, float $fallScaleB, int $reverse, int $loop, float $ein, float $eout, int $cid)
+{
+    int $ie = $idx;
+    if ($reverse > 0 && $n > 1) $ie = ($n-1) - $idx;
+
+    float $pN = 0.0;
+    if ($n > 1) $pN = ($ie/($n-1.0));
+
+    float $t = (($frame - $t0));
+
+    float $u = $t;
+    float $env = 0.0;
+
+    if ($loop > 0)
+    {
+        if ($t >= 0.0 && $t <= $len) { $env = 1.0; $u = $t; }
+        else { $env = 0.0; }
+    }
+    else
+    {
+        if ($t >= 0.0 && $t <= $len) { $env = 1.0; $u = $t; }
+        else { $env = 0.0; }
+    }
+
+    if ($env > 0.0)
+    {
+        if ($ein > 0.0001)
+        {
+            float $r = $u / $ein;
+            if ($r < 0.0) $r = 0.0;
+            if ($r > 1.0) $r = 1.0;
+            $env *= $r;
+        }
+        if ($eout > 0.0001)
+        {
+            float $r2 = ($len - $u) / $eout;
+            if ($r2 < 0.0) $r2 = 0.0;
+            if ($r2 > 1.0) $r2 = 1.0;
+            $env *= $r2;
+        }
+    }
+
+    float $pi = 3.141592653589793;
+    float $sec = $u / $fps;
+    float $phRange = ($phase/10.0) * (2.0*$pi);    // ---------------------------------------------------------------------
+    // Falloff (A/B): positional pinning across the chain (NOT time ease)
+    // - Amount (0~10) is pin strength
+    // - Scale  (0~10) is reach ratio across the chain
+    // ---------------------------------------------------------------------
+    float $strA = $falloff; if ($strA < 0.0) $strA = 0.0; $strA = $strA / ($strA + 0.5); if ($strA > 1.0) $strA = 1.0;
+    float $strB = $falloff2; if ($strB < 0.0) $strB = 0.0; $strB = $strB / ($strB + 0.5); if ($strB > 1.0) $strB = 1.0;
+
+    float $scA = $fallScaleA; if ($scA < 0.0) $scA = 0.0; if ($scA > 10.0) $scA = 10.0;
+    float $scB = $fallScaleB; if ($scB < 0.0) $scB = 0.0; if ($scB > 10.0) $scB = 10.0;
+
+    float $pinA = 0.0;
+    float $pinB = 0.0;
+    if ($n > 1)
+    {
+        if ($strA > 0.000001 && $scA > 0.000001)
+        {
+            float $reachA = (($n-1.0) * ($scA/10.0)); if ($reachA < 1.0) $reachA = 1.0;
+            float $xA = ((float)$ie) / $reachA; if ($xA < 0.0) $xA = 0.0; if ($xA > 1.0) $xA = 1.0;
+            float $sA = ($xA*$xA*(3.0 - 2.0*$xA));
+            float $fadeA = 1.0 - $sA;
+            $pinA = $fadeA * $strA;
+        }
+
+        if ($strB > 0.000001 && $scB > 0.000001)
+        {
+            float $reachB = (($n-1.0) * ($scB/10.0)); if ($reachB < 1.0) $reachB = 1.0;
+            float $dB = (float)(($n-1) - $ie);
+            float $xB = $dB / $reachB; if ($xB < 0.0) $xB = 0.0; if ($xB > 1.0) $xB = 1.0;
+            float $sB = ($xB*$xB*(3.0 - 2.0*$xB));
+            float $fadeB = 1.0 - $sB;
+            $pinB = $fadeB * $strB;
+        }
+    }
+
+    float $pin = $pinA;
+    if ($pinB > $pin) $pin = $pinB;
+
+    float $amp = 1.0 - $pin;
+    if ($amp < 0.0) $amp = 0.0;
+    if ($amp > 1.0) $amp = 1.0;
+
+    float $ph = 0.0;
+    if ($loop > 0)
+    {
+        float $spdA = $speed; if ($spdA < 0.0) $spdA = -$spdA;
+        float $dur = $len / $fps;
+        float $cycF = ($spdA * 2.0) * $dur;
+        int $cyc = (int)floor($cycF + 0.5);
+        if ($cyc < 1) $cyc = 1;
+        float $phT = (2.0*$pi*(float)$cyc) * ($u / $len);
+        if ($speed < 0.0) $phT *= -1.0;
+        // Loop seam should be "flat" to avoid stutter when the timeline wraps
+        $phT += (-0.5*$pi);
+        $ph = $phT + ($pN * $phRange);
+    }
+    else
+    {
+                $ph = $sec * (4.0*$pi*$speed) + ($pN * $phRange);
+    }
+
+    float $chOff = (float)$cid * 2.399963;
+    $ph += $chOff;
+
+    float $w = sin($ph) * $env * $amp;
+
+    return $w;
+}
+
+// --- replaced in v1.71 -------------------------------------------------------
+
+global proc int EGQW58__plugLockedOrConnected(string $plug)
+{
+    if ($plug == "" || !`objExists $plug`) return 1;
+    int $lk = 0; if (catch($lk = `getAttr -l $plug`)) return 1;
+    if ($lk) return 1;
+
+    // Skip incoming connections that are NOT animation (constraints, expressions, etc.)
+    // Allow animation graph connections (animCurves / animBlend / unitConversion / pairBlend).
+    string $srcPlugs[] = `listConnections -s 1 -d 0 -p 1 $plug`;
+    if (size($srcPlugs) > 0)
+    {
+        string $tok[];
+        tokenize $srcPlugs[0] "." $tok;
+        string $srcNode = "";
+        if (size($tok) > 0) $srcNode = $tok[0];
+
+        string $nt = "";
+        if ($srcNode != "" && `objExists $srcNode`) $nt = `nodeType $srcNode`;
+
+        int $ok = 0;
+        if (`gmatch $nt "animCurve*"` || `gmatch $nt "animBlendNode*"` || $nt == "pairBlend" || $nt == "unitConversion")
+            $ok = 1;
+
+        if (!$ok) return 1;
+    }
+
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Bake helpers (proxy+constraint)
+// - We avoid fragile matrix->Euler decomposition by using Maya constraints and
+//   bakeResults. This is far more reliable on joints and complex rigs.
+// -----------------------------------------------------------------------------
+global proc string EGQW58__bk_makeProxy(string $src, int $idx)
+{
+    if ($src == "" || !`objExists $src`) return "";
+    string $safe = EGQW58__safeName($src);
+    string $nm = ("EGQW58_BK_PRX_" + $safe + "_" + $idx);
+    if (`objExists $nm`) catchQuiet(("delete \"" + $nm + "\";"));
+
+    string $p = `createNode transform -n $nm`;
+    if ($p == "" || $p == "0" || !`objExists $p`) return "";
+
+    // Parent proxy under the same parent as source, so channel values are in the same space.
+    string $par[] = `listRelatives -p -f $src`;
+    if (size($par) > 0 && $par[0] != "")
+        catchQuiet(("parent \"" + $p + "\" \"" + $par[0] + "\";"));
+
+    if (`attributeExists "rotateOrder" $src` && `attributeExists "rotateOrder" $p`)
+        setAttr ($p + ".rotateOrder") `getAttr ($src + ".rotateOrder")`;
+
+    // Match base offsetParentMatrix (pre-preview) so proxy curves transfer correctly
+    if (`attributeExists "offsetParentMatrix" $src` && `attributeExists "offsetParentMatrix" $p`)
+    {
+        global string $EGQW58_SET[];
+        string $set = "";
+        if ($idx >= 0 && $idx < size($EGQW58_SET)) $set = $EGQW58_SET[$idx];
+
+        string $opmPlug = ($p + ".offsetParentMatrix");
+        catchQuiet(("setAttr -l 0 \"" + $opmPlug + "\";"));
+
+        // If original OPM was connected, use the same source for the proxy.
+        // This is critical for rigs that position controls via offsetParentMatrix.
+        string $origSrc = "";
+        if ($set != "" && `objExists $set` && `attributeQuery -ex -node $set "origSrc"`)
+            $origSrc = `getAttr ($set + ".origSrc")`;
+
+        if ($origSrc != "")
+        {
+            // Remove any incoming first (safety)
+            string $srcNow[] = `listConnections -s 1 -d 0 -p 1 $opmPlug`;
+            if (size($srcNow) > 0) catchQuiet(("disconnectAttr \"" + $srcNow[0] + "\" \"" + $opmPlug + "\";"));
+            catchQuiet(("connectAttr -f \"" + $origSrc + "\" \"" + $opmPlug + "\";"));
+        }
+        else
+        {
+            float $bm[];
+            if ($set != "" && `objExists $set` && `attributeQuery -ex -node $set "origOPM"`)
+                $bm = `getAttr ($set + ".origOPM")`;
+            else
+                $bm = `getAttr ($src + ".offsetParentMatrix")`;
+
+            if (size($bm) == 16) EGQW58__setMatrixAttr($opmPlug, $bm);
+        }
+
+    }
+
+    // Match pivots (important for correct TRS transfer)
+    if (`attributeExists "rotatePivot" $src` && `attributeExists "rotatePivot" $p`)
+    {
+        float $rp[] = `getAttr ($src + ".rotatePivot")`;
+        if (size($rp) >= 3) setAttr ($p + ".rotatePivot") $rp[0] $rp[1] $rp[2];
+    }
+    if (`attributeExists "scalePivot" $src` && `attributeExists "scalePivot" $p`)
+    {
+        float $sp[] = `getAttr ($src + ".scalePivot")`;
+        if (size($sp) >= 3) setAttr ($p + ".scalePivot") $sp[0] $sp[1] $sp[2];
+    }
+    if (`attributeExists "rotatePivotTranslate" $src` && `attributeExists "rotatePivotTranslate" $p`)
+    {
+        float $rpt[] = `getAttr ($src + ".rotatePivotTranslate")`;
+        if (size($rpt) >= 3) setAttr ($p + ".rotatePivotTranslate") $rpt[0] $rpt[1] $rpt[2];
+    }
+    if (`attributeExists "scalePivotTranslate" $src` && `attributeExists "scalePivotTranslate" $p`)
+    {
+        float $spt[] = `getAttr ($src + ".scalePivotTranslate")`;
+        if (size($spt) >= 3) setAttr ($p + ".scalePivotTranslate") $spt[0] $spt[1] $spt[2];
+    }
+
+    return $p;
+}
+
+global proc EGQW58__bk_deleteList(string $n[])
+{
+    int $i;
+    for ($i=0; $i<size($n); $i++)
+    {
+        if ($n[$i] == "" || $n[$i] == "0") continue;
+        if (`objExists $n[$i]`) catchQuiet(("delete \"" + $n[$i] + "\";"));
+    }
+}
+
+global proc EGQW58_Bake()
+{
+    global int $EGQW58_PREVIEW_ON;
+    global int $EGQW58_STOP_REQ;
+    global string $EGQW58_TGT[];
+    global string $EGQW58_SET[];
+    global int $EGQW58_BAKING;
+
+    if ($EGQW58_BAKING)
+    {
+        warning("[EG Quick Wave] Bake already running (or was interrupted). Forcing cleanup and retry.");
+
+        // Orphan proxies from an interrupted bake
+        string $orP[] = `ls "EGQW58_BK_PRX_*"`;
+        int $oi2;
+        for ($oi2=0; $oi2<size($orP); $oi2++)
+        {
+            if ($orP[$oi2] == "" || $orP[$oi2] == "0") continue;
+            if (`objExists $orP[$oi2]`) catchQuiet(("delete \"" + $orP[$oi2] + "\";"));
+        }
+
+
+        // Orphan constraints from an interrupted bake
+        string $orC1[] = `ls "EGQW58_BK_CAP_*"`;
+        string $orC2[] = `ls "EGQW58_BK_DRV_*"`;
+        EGQW58__bk_deleteList($orC1);
+        EGQW58__bk_deleteList($orC2);
+
+
+        $EGQW58_BAKING = 0;
+    }
+    $EGQW58_BAKING = 1;
+
+    string $keepSel[] = `ls -sl -l`;
+
+    // Stop playback before baking (stable evaluation)
+    // NOTE: Preview has an idle watcher that auto-stops when playback stops.
+    //       During Bake we intentionally pause playback, so we must disable that watcher
+    //       to keep the preview rig alive for sampling.
+    int $wasPlaying = `play -q -state`;
+    if ($EGQW58_PREVIEW_ON)
+    {
+        $EGQW58_STOP_REQ = 1;
+        EGQW58__killIdleJob();
+        EGQW58__killTimeJob();
+    }
+    if ($wasPlaying) play -state 0;
+
+    // Channels
+    int $doT = 0; if (`control -ex "EGQW58_CB_TR"`) $doT = `checkBox -q -v "EGQW58_CB_TR"`;
+    int $doR = 0; if (`control -ex "EGQW58_CB_RT"`) $doR = `checkBox -q -v "EGQW58_CB_RT"`;
+    int $doS = 0; if (`control -ex "EGQW58_CB_SC"`) $doS = `checkBox -q -v "EGQW58_CB_SC"`;
+    if (!($doT || $doR || $doS))
+    {
+        warning("[EG Quick Wave] Bake: No channels selected.");
+        if ($wasPlaying) play -state 1;
+        $EGQW58_BAKING = 0;
+        return;
+    }
+
+    // Range
+    int $usePR = 0; if (`control -ex "EGQW58_CB_PLAYR"`) $usePR = `checkBox -q -v "EGQW58_CB_PLAYR"`;
+    int $t0 = `playbackOptions -q -min`;
+    int $t1 = `playbackOptions -q -max`;
+    if ($usePR)
+    {
+        if (`control -ex "EGQW58_IF_START"`) $t0 = `intField -q -v "EGQW58_IF_START"`;
+        if (`control -ex "EGQW58_IF_END"`)   $t1 = `intField -q -v "EGQW58_IF_END"`;
+    }
+    if ($t1 < $t0) { int $tmp=$t0; $t0=$t1; $t1=$tmp; }
+    int $nF = ($t1 - $t0 + 1);
+    if ($nF < 1)
+    {
+        warning("[EG Quick Wave] Bake: Invalid range.");
+        if ($wasPlaying) play -state 1;
+        $EGQW58_BAKING = 0;
+        return;
+    }
+
+    // Ensure preview is ON during sampling (we bake the final evaluated motion)
+    int $tempPreview = 0;
+    if (!$EGQW58_PREVIEW_ON)
+    {
+        $tempPreview = 1;
+        EGQW58_StartPreview();
+
+        // StartPreview auto-plays and installs the idle watcher.
+        // For Bake we pause playback and sample by stepping time.
+        $EGQW58_STOP_REQ = 1;
+        EGQW58__killIdleJob();
+        EGQW58__killTimeJob();
+        if (`play -q -state`) play -state 0;
+    }
+
+    // Targets
+    string $objs[] = $EGQW58_TGT;
+    if (size($objs) < 1)
+    {
+        warning("[EG Quick Wave] Bake: No targets. Select controls and try again.");
+        if ($tempPreview) EGQW58_StopPreview();
+        if ($wasPlaying) play -state 1;
+        $EGQW58_BAKING = 0;
+        return;
+    }
+    int $nObj = size($objs);
+
+    // Layer option
+    int $useLayer = 0; if (`control -ex "EGQW58_CB_LAYER"`) $useLayer = `checkBox -q -v "EGQW58_CB_LAYER"`;
+    string $layer = "";
+    if ($useLayer)
+    {
+        string $want = EGQW58__nextBakeLayerName();
+        string $newL = `animLayer`;
+        if ($newL != "" && $newL != "0" && $want != "") $newL = `rename $newL $want`;
+        if ($newL != "" && $newL != "0") $layer = $newL;
+    }
+
+    // Attributes
+    string $ALL[9] = {"translateX","translateY","translateZ","rotateX","rotateY","rotateZ","scaleX","scaleY","scaleZ"};
+    int $nA = 9;
+
+    // Build per-object mask (skip locked OR driven by non-animation connections)
+    int $mask[];
+    $mask[($nObj*$nA)-1] = 0;
+
+    int $oi, $ai;
+    for ($oi=0; $oi<$nObj; $oi++)
+    {
+        string $o = $objs[$oi];
+        if ($o == "" || !`objExists $o`) continue;
+
+        for ($ai=0; $ai<$nA; $ai++)
+        {
+            int $use = 0;
+            if ($ai < 3) { if ($doT) $use = 1; }
+            else if ($ai < 6) { if ($doR) $use = 1; }
+            else { if ($doS) $use = 1; }
+
+            if ($use)
+            {
+                string $plug = ($o + "." + $ALL[$ai]);
+                if (EGQW58__plugLockedOrConnected($plug)) $use = 0;
+            }
+            $mask[($oi*$nA)+$ai] = $use;
+        }
+    }
+
+    // Active list (attribute-level)
+    int $activeOi[];
+    string $activeObj[];
+    string $activeAttr[];
+    int $nAct = 0;
+
+    for ($oi=0; $oi<$nObj; $oi++)
+    {
+        string $o = $objs[$oi];
+        if ($o == "" || !`objExists $o`) continue;
+        for ($ai=0; $ai<$nA; $ai++)
+        {
+            if (!$mask[($oi*$nA)+$ai]) continue;
+            $activeOi[$nAct] = $oi;
+            $activeObj[$nAct] = $o;
+            $activeAttr[$nAct] = $ALL[$ai];
+            $nAct++;
+        }
+    }
+
+    if ($nAct < 1)
+    {
+        warning("[EG Quick Wave] Bake: No keyable channels on targets.");
+        if ($tempPreview) EGQW58_StopPreview();
+        if ($wasPlaying) play -state 1;
+        $EGQW58_BAKING = 0;
+        return;
+    }
+
+    // If baking to a layer: add objects and attributes
+    if ($layer != "")
+    {
+        select -r $objs;
+        catchQuiet( ("animLayer -e -addSelectedObjects \"" + $layer + "\";") );
+        int $k;
+        for ($k=0; $k<$nAct; $k++)
+        {
+            string $plug = ($activeObj[$k] + "." + $activeAttr[$k]);
+            catchQuiet( ("animLayer -e -addAttribute \"" + $plug + "\" \"" + $layer + "\";") );
+        }
+        catchQuiet( ("animLayer -e -selected 1 \"" + $layer + "\";") );
+        catchQuiet( ("animLayer -e -preferred 1 \"" + $layer + "\";") );
+    }
+
+    string $rng = ($t0 + ":" + $t1);
+    float $origTime = `currentTime -q`;
+
+    // Disable autokey / heavy undo for bake loop
+    int $akWas = `autoKeyframe -q -state`;
+    if ($akWas) autoKeyframe -state 0;
+    int $undoWas = `undoInfo -q -stateWithoutFlush`;
+    undoInfo -stateWithoutFlush 0;
+
+    // ---------------------------------------------------------------------
+    // Bake strategy (v1.77)
+    // 1) While Preview is ON: bake evaluated motion onto proxies.
+    // 2) StopPreview: restore original OPM.
+    // 3) Constrain targets to proxies and bake selected channels onto targets.
+    //    (We do NOT bake target channels while Preview is ON because OPM-driven
+    //     preview leaves TRS channels unchanged, resulting in flat keys.)
+    // ---------------------------------------------------------------------
+
+    // Proxies (only objects that actually have any active attrs)
+    string $proxyByIdx[];
+    int $pii;
+    for ($pii=0; $pii<$nObj; $pii++) $proxyByIdx[$pii] = "";
+    string $proxyList[];
+    string $capCons[];
+    int $capN = 0;
+
+    for ($oi=0; $oi<$nObj; $oi++)
+    {
+        string $o = $objs[$oi];
+        if ($o == "" || !`objExists $o`) continue;
+
+        int $any = 0;
+        for ($ai=0; $ai<$nA; $ai++) { if ($mask[($oi*$nA)+$ai]) { $any = 1; break; } }
+        if (!$any) continue;
+
+        string $p = EGQW58__bk_makeProxy($o, $oi);
+        if ($p == "") continue;
+
+        $proxyByIdx[$oi] = $p;
+        $proxyList[size($proxyList)] = $p;
+
+        // Capture TR (and scale) from preview motion
+        string $cn1 = ("EGQW58_BK_CAP_PC_" + $oi + "_" + EGQW58__safeName($o));
+        if (`objExists $cn1`) catchQuiet(("delete \"" + $cn1 + "\";"));
+        int $e1 = catchQuiet(("parentConstraint -w 1 -mo 0 -n \"" + $cn1 + "\" \"" + $o + "\" \"" + $p + "\";"));
+        if (!$e1 && `objExists $cn1`) { $capCons[$capN] = $cn1; $capN++; }
+
+        string $cn2 = ("EGQW58_BK_CAP_SC_" + $oi + "_" + EGQW58__safeName($o));
+        if (`objExists $cn2`) catchQuiet(("delete \"" + $cn2 + "\";"));
+        int $e2 = catchQuiet(("scaleConstraint -w 1 -mo 0 -n \"" + $cn2 + "\" \"" + $o + "\" \"" + $p + "\";"));
+        if (!$e2 && `objExists $cn2`) { $capCons[$capN] = $cn2; $capN++; }
+    }
+
+    if (size($proxyList) < 1)
+    {
+        warning("[EG Quick Wave] Bake: Failed to build proxies.");
+        if ($tempPreview) EGQW58_StopPreview();
+        if ($wasPlaying) play -state 1;
+        undoInfo -stateWithoutFlush $undoWas;
+        if ($akWas) autoKeyframe -state 1;
+        $EGQW58_BAKING = 0;
+        return;
+    }
+
+    // Bake proxies (snapshot of preview world motion)
+
+    string $prxCmd = ("bakeResults -t \"" + $rng + "\" -simulation 1 -sampleBy 1 -preserveOutsideKeys 1"
+        + " -at \"translateX\" -at \"translateY\" -at \"translateZ\""
+        + " -at \"rotateX\" -at \"rotateY\" -at \"rotateZ\""
+        + " -at \"scaleX\" -at \"scaleY\" -at \"scaleZ\"");
+    int $pi;
+    for ($pi=0; $pi<size($proxyList); $pi++) $prxCmd += (" \"" + $proxyList[$pi] + "\"");
+    $prxCmd += ";";
+    int $prxErr = catchQuiet($prxCmd);
+if ($prxErr) warning("[EG Quick Wave] Bake: Proxy bakeResults failed.");
+
+    // Remove capture constraints
+    EGQW58__bk_deleteList($capCons);
+
+    // Stop preview now (restores original OPM on targets)
+    EGQW58_StopPreview();
+
+    // Clear existing keys on targets in range (selected channels only)
+    int $k2;
+    for ($k2=0; $k2<$nAct; $k2++)
+    {
+        string $o2 = $activeObj[$k2];
+        string $a2 = $activeAttr[$k2];
+        if ($o2 == "" || !`objExists $o2`) continue;
+        catchQuiet(("cutKey -t \"" + $rng + "\" -at \"" + $a2 + "\" \"" + $o2 + "\";"));
+    }
+
+    // Ensure correct layer selection
+    if ($layer != "")
+    {
+        catchQuiet(("animLayer -e -selected 1 \"" + $layer + "\";"));
+        catchQuiet(("animLayer -e -preferred 1 \"" + $layer + "\";"));
+    }
+
+    // Drive targets from baked proxies, then bake onto targets (per-object).
+    // NOTE: Some controls may have partially locked/connected channels.
+    //       Bake only the actually-available attrs per target to avoid bakeResults aborting mid-way.
+    int $bakedCount = 0;
+    string $drvConsAll[];
+    int $drvNAll = 0;
+
+    for ($oi=0; $oi<$nObj; $oi++)
+    {
+        string $o = $objs[$oi];
+        string $p = $proxyByIdx[$oi];
+        if ($o == "" || $o == "0" || $p == "" || $p == "0") continue;
+        if (!`objExists $o` || !`objExists $p`) continue;
+
+        int $hasT = 0;
+        int $hasR = 0;
+        int $hasS = 0;
+
+        string $cmd = ("bakeResults -t \"" + $rng + "\" -simulation 1 -sampleBy 1 -preserveOutsideKeys 1");
+
+        if ($mask[($oi*$nA)+0]) { $cmd += " -at \"translateX\""; $hasT = 1; }
+        if ($mask[($oi*$nA)+1]) { $cmd += " -at \"translateY\""; $hasT = 1; }
+        if ($mask[($oi*$nA)+2]) { $cmd += " -at \"translateZ\""; $hasT = 1; }
+
+        if ($mask[($oi*$nA)+3]) { $cmd += " -at \"rotateX\""; $hasR = 1; }
+        if ($mask[($oi*$nA)+4]) { $cmd += " -at \"rotateY\""; $hasR = 1; }
+        if ($mask[($oi*$nA)+5]) { $cmd += " -at \"rotateZ\""; $hasR = 1; }
+
+        if ($mask[($oi*$nA)+6]) { $cmd += " -at \"scaleX\""; $hasS = 1; }
+        if ($mask[($oi*$nA)+7]) { $cmd += " -at \"scaleY\""; $hasS = 1; }
+        if ($mask[($oi*$nA)+8]) { $cmd += " -at \"scaleZ\""; $hasS = 1; }
+
+        if (!($hasT || $hasR || $hasS)) continue;
+
+        // Temporary driving constraints (no offset)
+        string $drvCons[];
+        int $drvN = 0;
+
+        if ($hasT)
+        {
+            string $cn = ("EGQW58_BK_DRV_PC_" + $oi + "_" + EGQW58__safeName($o));
+            if (`objExists $cn`) catchQuiet(("delete \"" + $cn + "\";"));
+            int $err = catchQuiet(("pointConstraint -w 1 -mo 0 -n \"" + $cn + "\" \"" + $p + "\" \"" + $o + "\";"));
+            if (!$err && `objExists $cn`) { $drvCons[$drvN] = $cn; $drvConsAll[$drvNAll] = $cn; $drvN++; $drvNAll++; }
+        }
+        if ($hasR)
+        {
+            string $cn = ("EGQW58_BK_DRV_OC_" + $oi + "_" + EGQW58__safeName($o));
+            if (`objExists $cn`) catchQuiet(("delete \"" + $cn + "\";"));
+            int $err = catchQuiet(("orientConstraint -w 1 -mo 0 -n \"" + $cn + "\" \"" + $p + "\" \"" + $o + "\";"));
+            if (!$err && `objExists $cn`) { $drvCons[$drvN] = $cn; $drvConsAll[$drvNAll] = $cn; $drvN++; $drvNAll++; }
+        }
+        if ($hasS)
+        {
+            string $cn = ("EGQW58_BK_DRV_SC_" + $oi + "_" + EGQW58__safeName($o));
+            if (`objExists $cn`) catchQuiet(("delete \"" + $cn + "\";"));
+            int $err = catchQuiet(("scaleConstraint -w 1 -mo 0 -n \"" + $cn + "\" \"" + $p + "\" \"" + $o + "\";"));
+            if (!$err && `objExists $cn`) { $drvCons[$drvN] = $cn; $drvConsAll[$drvNAll] = $cn; $drvN++; $drvNAll++; }
+        }
+
+        $cmd += (" \"" + $o + "\";");
+        int $bkErr = catchQuiet($cmd);
+if ($bkErr) warning("[EG Quick Wave] Bake: bakeResults failed on " + $o + ".");
+        else $bakedCount++;
+
+        // Cleanup per-object constraints immediately
+        EGQW58__bk_deleteList($drvCons);
+    }
+
+    if ($bakedCount < 1) warning("[EG Quick Wave] Bake: No valid bake targets.");
+    // Cleanup driving constraints + proxies
+    EGQW58__bk_deleteList($drvConsAll);
+    EGQW58__bk_deleteList($proxyList);
+
+    currentTime -e $origTime;
+
+    // Restore selection
+    if (size($keepSel) > 0) select -r $keepSel;
+
+    // Restore undo / autokey
+    undoInfo -stateWithoutFlush $undoWas;
+    if ($akWas) autoKeyframe -state 1;
+
+    if ($wasPlaying) play -state 1;
+
+    $EGQW58_BAKING = 0;
+    print "[EG Quick Wave] Bake done.\n";
+}
+
+
+// -----------------------------------------------------------------------------
+// UI build
+// -----------------------------------------------------------------------------
+global proc EGQW58_UI()
+{
+    global string $EGQW58_VER;
+    global string $EGQW58_WIN;
+    global int $EGQW58_UI_MODE;
+
+    // Style Save UI handles (needed for button color updates)
+    if (`window -ex $EGQW58_WIN`) deleteUI -window $EGQW58_WIN;
+
+    // Safety: kill any orphan idle jobs from older versions
+    EGQW58__cleanupOrphanJobs();
+
+    int $WIN_W = 290;
+    int $LAB_W = 55;
+    int $FLD_W = 45;
+    int $SLD_W = 150;
+    int $BTN_W = ($WIN_W / 3);
+
+    int $PB_MIN = `playbackOptions -q -min`;
+    int $PB_MAX = `playbackOptions -q -max`;
+
+    window -t ("EG Quick Wave v" + $EGQW58_VER) -mnb 0 -mxb 0 -s 0 -w $WIN_W $EGQW58_WIN;
+    columnLayout -adj 1 -rs 6;
+
+    frameLayout -l "Params" -cll 0 -mw 6 -mh 6;
+        // Mode buttons + channel on/off
+        // (button widths slightly reduced, and a Reset button added)
+        rowLayout -nc 7 -cw 1 18 -cw 2 51 -cw 3 18 -cw 4 51 -cw 5 18 -cw 6 51 -cw 7 60;
+            checkBox -l "" -ann "Enable Trans" -w 18 -v 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_TR";
+            button -w 48 -h 22 -l "Trans" -c "EGQW58__UI_ModeTrans();" "EGQW58_BTN_MODE_TR";
+            checkBox -l "" -ann "Enable Rot" -w 18 -v 1 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_RT";
+            button -w 48 -h 22 -l "Rot" -c "EGQW58__UI_ModeRot();" "EGQW58_BTN_MODE_RT";
+            checkBox -l "" -ann "Enable Scale" -w 18 -v 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_SC";
+            button -w 48 -h 22 -l "Scale" -c "EGQW58__UI_ModeScale();" "EGQW58_BTN_MODE_SC";
+            button -w 60 -h 22 -l "Reset" -c "EGQW58__UI_ResetAll();";
+        setParent ..;
+
+        // Vertical sliders: Label -> Slider -> Field (QuickNoise style)
+        rowLayout -nc 4 -cw4 70 70 70 70 -cl4 "center" "center" "center" "center";
+
+            columnLayout -adj 1;
+                text -l "X";
+                floatSlider -min -10 -max 10 -v 0 -step 0.01 -h 120 -w 20 -horizontal 0 -dc "EGQW58__UI_AxSlider();" -cc "EGQW58__UI_AxSlider();" "EGQW58_SL_AX";
+                floatField -pre 2 -v 0 -w 45 -cc "EGQW58__UI_AxField();" "EGQW58_FF_AX";
+            setParent ..;
+
+            columnLayout -adj 1;
+                text -l "Y";
+                floatSlider -min -10 -max 10 -v 0 -step 0.01 -h 120 -w 20 -horizontal 0 -dc "EGQW58__UI_AySlider();" -cc "EGQW58__UI_AySlider();" "EGQW58_SL_AY";
+                floatField -pre 2 -v 0 -w 45 -cc "EGQW58__UI_AyField();" "EGQW58_FF_AY";
+            setParent ..;
+
+            columnLayout -adj 1;
+                text -l "Z";
+                floatSlider -min -10 -max 10 -v 10 -step 0.01 -h 120 -w 20 -horizontal 0 -dc "EGQW58__UI_AzSlider();" -cc "EGQW58__UI_AzSlider();" "EGQW58_SL_AZ";
+                floatField -pre 2 -v 10 -w 45 -cc "EGQW58__UI_AzField();" "EGQW58_FF_AZ";
+            setParent ..;
+
+            columnLayout -adj 1;
+                text -l "Power";
+                floatSlider -min 0 -max 10 -v 1 -step 0.01 -h 120 -w 20 -horizontal 0 -dc "EGQW58__UI_PowSlider();" -cc "EGQW58__UI_PowSlider();" "EGQW58_SL_POW";
+                floatField -pre 2 -v 1 -w 45 -cc "EGQW58__UI_PowField();" "EGQW58_FF_POW";
+            setParent ..;
+
+        setParent ..;
+    setParent ..;
+
+    frameLayout -l "Timing" -cll 0 -mw 6 -mh 6;
+        rowLayout -nc 3 -cw 1 $LAB_W -cw 2 $FLD_W -cw 3 $SLD_W -columnAlign3 "left" "left" "left";
+            text -l "Speed" -w $LAB_W -al "left";
+            floatField -w $FLD_W -pre 2 -v 1 -cc "EGQW58__UI_SpeedField();" "EGQW58_FF_SPEED";
+            floatSlider -w $SLD_W -min -5 -max 5 -v 1 -dc "EGQW58__UI_SpeedSlider();" -cc "EGQW58__UI_SpeedSlider();" "EGQW58_SL_SPEED";
+        setParent ..;
+        rowLayout -nc 3 -cw 1 $LAB_W -cw 2 $FLD_W -cw 3 $SLD_W -columnAlign3 "left" "left" "left";
+            text -l "Phase" -w $LAB_W -al "left";
+            floatField -w $FLD_W -pre 2 -v 8 -cc "EGQW58__UI_OffsetField();" "EGQW58_FF_OFFSET";
+            floatSlider -w $SLD_W -min 0 -max 30 -v 8 -dc "EGQW58__UI_OffsetSlider();" -cc "EGQW58__UI_OffsetSlider();" "EGQW58_SL_OFFSET";
+        setParent ..;
+        rowLayout -nc 4 -cw 1 $LAB_W -cw 2 $FLD_W -cw 3 105 -cw 4 44 -columnAlign4 "left" "left" "left" "left";
+            text -l "Falloff A" -w $LAB_W -al "left";
+            floatField -w $FLD_W -pre 2 -v 0 -cc "EGQW58__UI_FalloffField();" "EGQW58_FF_FAL";
+            floatSlider -w 105 -min 0 -max 10 -v 0 -dc "EGQW58__UI_FalloffSlider();" -cc "EGQW58__UI_FalloffSlider();" "EGQW58_SL_FAL";
+            floatField -w 44 -pre 2 -v 5.0 -cc "EGQW58__UI_FallScaleAField();" -ann "Falloff reach scale (A)" "EGQW58_FF_FALS";
+        setParent ..;
+		rowLayout -nc 4 -cw 1 $LAB_W -cw 2 $FLD_W -cw 3 105 -cw 4 44 -columnAlign4 "left" "left" "left" "left";
+            text -l "Falloff B" -w $LAB_W -al "left";
+            floatField -w $FLD_W -pre 2 -v 0 -cc "EGQW58__UI_Falloff2Field();" "EGQW58_FF_FAL2";
+            floatSlider -w 105 -min 0 -max 10 -v 0 -dc "EGQW58__UI_Falloff2Slider();" -cc "EGQW58__UI_Falloff2Slider();" "EGQW58_SL_FAL2";
+            floatField -w 44 -pre 2 -v 5.0 -cc "EGQW58__UI_FallScaleBField();" -ann "Falloff reach scale (B)" "EGQW58_FF_FAL2S";
+        setParent ..;
+		rowLayout -nc 3 -cw 1 55 -cw 2 45 -cw 3 150 -columnAlign3 "left" "left" "left";
+		    text -l "Parent" -w 55 -al "left";
+		    floatField -w 45 -pre 2 -v 0 -cc "EGQW58__UI_ParInfField();" "EGQW58_FF_PINF";
+		    floatSlider -w 150 -min 0 -max 10 -v 0 -dc "EGQW58__UI_ParInfSlider();" -cc "EGQW58__UI_ParInfSlider();" "EGQW58_SL_PINF";
+		setParent ..;
+
+        setParent ..;
+    setParent ..;
+    
+
+frameLayout -l "Style Save" -cll 0 -mw 6 -mh 6;
+    int $STY_W = ($WIN_W - 18) / 4;
+    rowLayout -nc 4 -cw 1 $STY_W -cw 2 $STY_W -cw 3 $STY_W -cw 4 $STY_W -columnAlign4 "center" "center" "center" "center";
+        button -w $STY_W -h 22 -l "1" -c "EGQW58__UI_StyleSlot(1);" "EGQW58_BTN_STYLE1";
+        button -w $STY_W -h 22 -l "2" -c "EGQW58__UI_StyleSlot(2);" "EGQW58_BTN_STYLE2";
+        button -w $STY_W -h 22 -l "3" -c "EGQW58__UI_StyleSlot(3);" "EGQW58_BTN_STYLE3";
+        button -w $STY_W -h 22 -l "Clear" -c "EGQW58__UI_StyleReset();" "EGQW58_BTN_STYLE_RESET";
+    setParent ..;
+setParent ..;
+
+frameLayout -l "Options" -cll 0 -mw 6 -mh 6;
+        rowLayout -nc 3 -cw 1 90 -cw 2 110 -cw 3 70 -columnAlign3 "left" "left" "left";
+            checkBox -l "Reverse"   -v 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_REV";
+            checkBox -l "Hierarchy" -v 0 -cc "EGQW58__UI_HierChanged();" "EGQW58_CB_HIER";
+            checkBox -l "Multi"     -v 0 -en 0 -cc "EGQW58__UI_MultiChanged();" "EGQW58_CB_MULTI";
+        setParent ..;
+    setParent ..;
+
+    frameLayout -l "Range" -cll 0 -mw 6 -mh 6;
+        rowLayout -nc 3 -cw3 100 95 100 -cl3 "left" "left" "left";
+            checkBox -l "Play Range" -v 0 -cc "EGQW58__UI_RangeEnable(); EGQW58__UI_ParamChanged();" "EGQW58_CB_PLAYR";
+            checkBox -l "Loop"       -v 1 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_LOOP";
+            checkBox -l "Layer"      -v 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_CB_LAYER";
+        setParent ..;
+
+        int $LAB_L = 40; // Start / Ease In (move ~10px left)
+        int $LAB_R = 50; // End / Out
+        int $FLD1 = $FLD_W;
+        int $MIDG = 1;   // reduce Start↔End / In↔Out gap
+
+        rowLayout -nc 5 -cw5 $LAB_L $FLD1 $MIDG $LAB_R $FLD1 -cl5 "right" "left" "left" "right" "left";
+            text -l "Start" -w $LAB_L;
+            intField -w $FLD1 -v $PB_MIN -en 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_IF_START";
+            text -l "" -w $MIDG;
+            text -l "End" -w $LAB_R;
+            intField -w $FLD1 -v $PB_MAX -en 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_IF_END";
+        setParent ..;
+
+        rowLayout -nc 5 -cw5 $LAB_L $FLD1 $MIDG $LAB_R $FLD1 -cl5 "right" "left" "left" "right" "left";
+            text -l "Ease In" -w $LAB_L -al "right";
+            intField -w $FLD1 -v 0 -min 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_FF_EIN";
+            text -l "" -w $MIDG;
+            text -l "Out" -w $LAB_R -al "right";
+            intField -w $FLD1 -v 0 -min 0 -cc "EGQW58__UI_ParamChanged();" "EGQW58_FF_EOUT";
+        setParent ..;
+    setParent ..;
+
+    separator -style "in" -h 8;
+
+    rowLayout -nc 3 -cw 1 $BTN_W -cw 2 $BTN_W -cw 3 $BTN_W -columnAlign3 "left" "left" "left";
+        button -w $BTN_W -h 32 -l "Preview" -c "EGQW58_TogglePreview();" "EGQW58_BTN_PREVIEW";
+        button -w $BTN_W -h 32 -l "Bake" -c "EGQW58_Bake();";
+        button -w $BTN_W -h 32 -l "Close" -c "EGQW58_StopPreview(); if (`window -ex EGQW58_WIN`) deleteUI -window EGQW58_WIN;";
+    setParent ..;
+
+    showWindow $EGQW58_WIN;
+    window -e -resizeToFitChildren 1 $EGQW58_WIN;
+    window -e -w $WIN_W $EGQW58_WIN;
+
+    EGQW58__UI_LoadFromCfg();
+    // NOTE: Do NOT call ParamChanged here (prevents overwriting stored values like Power)
+}
+
+// Auto-open UI when sourced
+EGQW58__cleanupOrphanJobs();
+EGQW58__cleanupSceneOverlay();
+evalDeferred("EGQW58_UI();");
