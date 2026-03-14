@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // EG_QuickWave_v1.82.mel
 // ============================================================================
 
@@ -39,7 +39,7 @@
 // Entry (stable name)
 global proc EG_QuickWave(){ EGQW58_UI(); }
 
-global string $EGQW58_VER = "1.82";
+global string $EGQW58_VER = "1.84";
 // -----------------------------------------------------------------------------
 // Globals
 // -----------------------------------------------------------------------------
@@ -3300,7 +3300,7 @@ frameLayout -l "Options" -cll 0 -mw 6 -mh 6;
         int $LAB_L = 40; // Start / Ease In (move ~10px left)
         int $LAB_R = 50; // End / Out
         int $FLD1 = $FLD_W;
-        int $MIDG = 1;   // reduce Start↔End / In↔Out gap
+        int $MIDG = 1;   // reduce Start?봂nd / In?봑ut gap
 
         rowLayout -nc 5 -cw5 $LAB_L $FLD1 $MIDG $LAB_R $FLD1 -cl5 "right" "left" "left" "right" "left";
             text -l "Start" -w $LAB_L;
@@ -3339,3 +3339,4 @@ frameLayout -l "Options" -cll 0 -mw 6 -mh 6;
 EGQW58__cleanupOrphanJobs();
 EGQW58__cleanupSceneOverlay();
 evalDeferred("EGQW58_UI();");
+
