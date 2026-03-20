@@ -1716,6 +1716,15 @@ body {
   padding: 16px 12px;
 }
 
+.question-screen .toggle-group-grid.toggle-group-count-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.question-screen .toggle-group-grid.toggle-group-count-3 .toggle-card {
+  min-height: auto;
+  padding: 16px 10px;
+}
+
 .boolean-question .toggle-card,
 .question-livingCosts .toggle-card,
 .question-household .toggle-card,
@@ -1788,6 +1797,10 @@ body {
 @media (max-width: 900px) {
   .question-screen .toggle-group-grid.toggle-group-count-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen .toggle-group-grid.toggle-group-count-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .question-screen .screen-header {

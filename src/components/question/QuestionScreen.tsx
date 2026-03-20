@@ -41,9 +41,9 @@ const yesNoOptions = [
 ] as const
 
 const dividendOwnershipOptions = [
-  { value: 'mineOnly', label: '본인 귀속', description: '배당을 전부 본인 수입으로 봅니다.' },
-  { value: 'spouseOnly', label: '배우자 귀속', description: '배당을 전부 배우자 수입으로 봅니다.' },
-  { value: 'split', label: '나눠서 귀속', description: '배당 귀속을 둘로 나눠서 봅니다.' },
+  { value: 'mineOnly', label: '본인' },
+  { value: 'spouseOnly', label: '배우자' },
+  { value: 'split', label: '분할' },
 ] as const
 
 const otherIncomeTypeOptions = [
