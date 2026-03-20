@@ -524,12 +524,12 @@ const getRegionalPropertyBase = (formData: RetireCalcFormData) => {
 
 const estimateHealthInsurance = (
   formData: RetireCalcFormData,
-  totalDividendMonthlyNet: number,
+  totalDividendAnnualGross: number,
   otherIncomeMonthly: number,
   pensionMonthly: number,
 ) => {
   const annualNonSalaryIncome =
-    totalDividendMonthlyNet * 12 + otherIncomeMonthly * 12 + pensionMonthly * 12
+    totalDividendAnnualGross + otherIncomeMonthly * 12 + pensionMonthly * 12
 
   const employeeMonthlyBasePremium =
     formData.salaryMonthly *
@@ -687,7 +687,7 @@ export const calculateRetireScenario = (
     formData.otherIncomeType === 'none' ? 0 : formData.otherIncomeMonthly
   const estimatedHealthInsurance = estimateHealthInsurance(
     formData,
-    totalDividend.monthlyNet,
+    totalDividend.annualGross,
     otherIncomeMonthlyApplied,
     pensionMonthlyApplied,
   )

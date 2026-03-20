@@ -1817,18 +1817,18 @@ body {
 }
 
 .result-table tbody tr.result-category-tax td {
-  background: #3b2729;
-  color: #ead2cd;
+  background: #24191b;
+  color: #e5cfca;
 }
 
 .result-table tbody tr.result-category-essential td {
-  background: #473b1f;
-  color: #e9ddb3;
+  background: #2d2514;
+  color: #e6dbaf;
 }
 
 .result-table tbody tr.result-category-outcome td {
-  background: #143a32;
-  color: #c4e7db;
+  background: #0e2923;
+  color: #bfe2d6;
 }
 
 .result-table tbody tr.result-category-tax td:first-child,
