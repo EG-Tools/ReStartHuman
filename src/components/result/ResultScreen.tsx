@@ -244,34 +244,49 @@ function CashFlowChart({
       ? result.cashBalanceTimeline
       : [{ year: 0, balance: result.startingCashReserve }]
   const width = 360
-  const height = 160
-  const paddingX = 18
-  const paddingY = 18
+  const height = 196
+  const paddingLeft = 58
+  const paddingRight = 18
+  const paddingTop = 18
+  const paddingBottom = 36
+  const currentYear = new Date().getFullYear()
   const balances = points.map((point) => point.balance)
   const minBalance = Math.min(...balances)
   const maxBalance = Math.max(...balances)
   const range = maxBalance - minBalance || 1
-  const baselineY = height - paddingY
-  const coordinates = points.map((point, index) => {
-    const x =
-      paddingX +
-      (index * (width - paddingX * 2)) / Math.max(points.length - 1, 1)
-    const y =
-      paddingY +
-      (1 - (point.balance - minBalance) / range) * (height - paddingY * 2)
-
-    return {
-      ...point,
-      x,
-      y,
-    }
-  })
+  const chartWidth = width - paddingLeft - paddingRight
+  const chartHeight = height - paddingTop - paddingBottom
+  const chartFloorY = height - paddingBottom
+  const getX = (index: number) =>
+    paddingLeft + (index * chartWidth) / Math.max(points.length - 1, 1)
+  const getY = (balance: number) =>
+    paddingTop + (1 - (balance - minBalance) / range) * chartHeight
+  const coordinates = points.map((point, index) => ({
+    ...point,
+    x: getX(index),
+    y: getY(point.balance),
+  }))
   const linePath = coordinates
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
     .join(' ')
-  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} ${baselineY} L ${coordinates[0].x} ${baselineY} Z`
+  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} ${chartFloorY} L ${coordinates[0].x} ${chartFloorY} Z`
   const endingBalance =
     coordinates[coordinates.length - 1]?.balance ?? result.startingCashReserve
+  const yTicks = [maxBalance, Math.round((maxBalance + minBalance) / 2), minBalance].map(
+    (value, index) => ({
+      key: index,
+      value,
+      y: getY(value),
+    }),
+  )
+  const xTicks = [
+    { label: '지금', year: currentYear, index: 0 },
+    { label: '5년', year: currentYear + 5, index: Math.min(5, points.length - 1) },
+    { label: '10년', year: currentYear + 10, index: points.length - 1 },
+  ].map((tick) => ({
+    ...tick,
+    x: getX(tick.index),
+  }))
 
   return (
     <section className={`result-panel cashflow-hero tone-${result.riskLevel}`}>
@@ -296,8 +311,35 @@ function CashFlowChart({
         role="img"
         aria-label="10년 현금흐름 그래프"
       >
+        {yTicks.map((tick) => (
+          <g key={`y-tick-${tick.key}`}>
+            <line
+              className="cashflow-grid-line"
+              x1={paddingLeft}
+              y1={tick.y}
+              x2={width - paddingRight}
+              y2={tick.y}
+            />
+            <text className="cashflow-grid-label" x={0} y={tick.y + 4}>
+              {formatCompactCurrency(tick.value)}
+            </text>
+          </g>
+        ))}
+
         <path className="cashflow-chart-area" d={areaPath} />
         <path className="cashflow-chart-line" d={linePath} />
+
+        {xTicks.map((tick) => (
+          <line
+            key={`x-tick-${tick.year}`}
+            className="cashflow-year-tick"
+            x1={tick.x}
+            y1={chartFloorY}
+            x2={tick.x}
+            y2={chartFloorY + 6}
+          />
+        ))}
+
         {coordinates.map((point, index) => (
           <circle
             key={point.year}
@@ -310,9 +352,12 @@ function CashFlowChart({
       </svg>
 
       <div className="cashflow-axis">
-        <span>지금</span>
-        <span>5년</span>
-        <span>10년</span>
+        {xTicks.map((tick) => (
+          <span key={tick.year}>
+            <strong>{tick.label}</strong>
+            <em>{tick.year}</em>
+          </span>
+        ))}
       </div>
     </section>
   )
@@ -1076,6 +1121,7 @@ export function ResultScreen({
     </section>
   )
 }
+
 
 
 
