@@ -1220,7 +1220,7 @@ export function ResultScreen({
     <section className="screen result-screen">
       <div className="screen-header result-screen-header">
         <div>
-          <h1 className="screen-title">???? ??</h1>
+          <h1 className="screen-title">결과 요약</h1>
         </div>
         {headerAction ? (
           <div className="result-screen-header-action" data-capture-exclude="true">
