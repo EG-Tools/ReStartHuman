@@ -1,4 +1,4 @@
-﻿import type { RetireCalcFormData } from '../types/retireCalc'
+import type { RetireCalcFormData } from '../types/retireCalc'
 
 export const defaultFormData: RetireCalcFormData = {
   householdType: 'single',
@@ -73,6 +73,7 @@ export const defaultFormData: RetireCalcFormData = {
   inflationEnabled: true,
   inflationRateAnnual: 0.02,
   startingCashReserve: 100_000_000,
+  currentAge: 55,
 }
 
 

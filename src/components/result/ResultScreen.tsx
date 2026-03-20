@@ -1,4 +1,4 @@
-﻿import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { toBlob } from 'html-to-image'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
@@ -59,6 +59,69 @@ const getIsaTypeLabel = (
   isaType: RetireCalcResult['isaTaxBreakdown'][number]['isaType'],
 ) => (isaType === 'workingClass' ? '서민형' : '일반형')
 
+const ageAssetBenchmarks = [
+  { min: 0, max: 39, label: '39세 이하', averageAsset: 314_980_000 },
+  { min: 40, max: 49, label: '40대', averageAsset: 627_140_000 },
+  { min: 50, max: 59, label: '50대', averageAsset: 662_050_000 },
+  { min: 60, max: Number.POSITIVE_INFINITY, label: '60세 이상', averageAsset: 600_950_000 },
+] as const
+
+const getAgeAssetBenchmark = (age: number) =>
+  ageAssetBenchmarks.find((benchmark) => age >= benchmark.min && age <= benchmark.max) ??
+  ageAssetBenchmarks[ageAssetBenchmarks.length - 1]
+
+const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
+  const housingAsset =
+    formData.housingType === 'own'
+      ? formData.homeMarketValue
+      : formData.housingType === 'jeonse'
+        ? formData.jeonseDeposit
+        : formData.monthlyRentDeposit
+
+  return (
+    housingAsset +
+    formData.taxableAccountAssets +
+    formData.isaAssets +
+    formData.pensionAccountAssets +
+    formData.otherAssets +
+    formData.startingCashReserve
+  )
+}
+
+const getAssetTierMessage = (totalAssets: number) => {
+  if (totalAssets >= 10_000_000_000) {
+    return '대한민국 자산 상위 0.1% 안팎의 초상위권으로 볼 수 있는 규모입니다.'
+  }
+
+  if (totalAssets >= 3_000_000_000) {
+    return '대한민국 자산 상위 1% 안팎의 상위권으로 볼 수 있는 규모입니다.'
+  }
+
+  if (totalAssets >= 1_000_000_000) {
+    return '대한민국 자산 상위 10% 안팎의 상위권으로 볼 수 있는 규모입니다.'
+  }
+
+  if (totalAssets >= 300_000_000) {
+    return '대한민국 자산 중위권 이상으로 볼 수 있는 규모입니다.'
+  }
+
+  return '대한민국 자산 하위권 또는 자산 형성 초기 구간으로 볼 수 있는 규모입니다.'
+}
+
+const getHealthInsuranceTypeSummary = (healthInsuranceType: RetireCalcFormData['healthInsuranceType']) => {
+  switch (healthInsuranceType) {
+    case 'employee':
+    case 'employeeWithDependentSpouse':
+      return '직장가입자 기준'
+    case 'dependent':
+      return '피부양자 유지 여부 기준'
+    case 'regional':
+    case 'bothRegional':
+      return '지역가입자 기준'
+    default:
+      return '건강보험 추정 기준'
+  }
+}
 const formatOwnershipSummary = (breakdown: AccountOwnershipBreakdown[]) =>
   breakdown.map((item) => `${item.label} ${formatCompactCurrency(item.attributedAnnual)}`).join(', ')
 
@@ -421,8 +484,8 @@ const getResultCategoryClassName = (category: string) => {
   switch (category) {
     case '세금':
       return 'result-category-tax'
-    case '필수비용':
-      return 'result-category-essential'
+    case '지출':
+      return 'result-category-expense'
     case '결과':
       return 'result-category-outcome'
     default:
@@ -437,7 +500,6 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
         <thead>
           <tr>
             <th>구분</th>
-            <th>항목</th>
             <th>입력값</th>
             <th>월 기준</th>
             <th>1년 결과</th>
@@ -448,7 +510,6 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.category}-${row.item}`} className={getResultCategoryClassName(row.category)}>
-              <td className={getResultCategoryClassName(row.category)}>{row.category}</td>
               <td className="result-item-cell">
                 <span className="result-item-label" aria-label={row.item}>
                   {splitResultItemLabel(row.item).map((chunk, index) => (
@@ -478,6 +539,23 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
         </tbody>
       </table>
     </div>
+  )
+}
+
+function ResultInterpretation({ items }: { items: string[] }) {
+  return (
+    <section className="result-panel interpretation-panel">
+      <div className="panel-header">
+        <div>
+          <h2>결과표 해석</h2>
+        </div>
+      </div>
+      <ul className="interpretation-list">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -515,7 +593,7 @@ function InlineAmountInput({
   helperText?: string
   action?: ReactNode
 }) {
-  const displayValue = Number.isFinite(value) ? value / MANWON : 0
+  const displayValue = Number.isFinite(value) ? Math.round(value / MANWON) : 0
 
   return (
     <div className="table-edit-stack">
@@ -767,6 +845,45 @@ export function ResultScreen({
   const captureRef = useRef<HTMLDivElement | null>(null)
   const [exportState, setExportState] = useState<'idle' | 'sharing'>('idle')
   const [exportMessage, setExportMessage] = useState<string | null>(null)
+  const ageBenchmark = getAgeAssetBenchmark(formData.currentAge)
+  const totalAssetEstimate = getHouseholdAssetEstimate(formData)
+  const assetMultiple = ageBenchmark.averageAsset > 0 ? totalAssetEstimate / ageBenchmark.averageAsset : 0
+  const roundedAssetMultiple = Math.round(assetMultiple * 10) / 10
+  const highestComprehensiveTaxBreakdown =
+    result.comprehensiveTaxBreakdown.reduce<RetireCalcResult['comprehensiveTaxBreakdown'][number] | null>(
+      (highest, item) => {
+        if (!highest || item.finalTaxAnnual > highest.finalTaxAnnual) {
+          return item
+        }
+
+        return highest
+      },
+      null,
+    )
+  const effectiveComprehensiveRate =
+    highestComprehensiveTaxBreakdown && highestComprehensiveTaxBreakdown.attributedDividendAnnual > 0
+      ? Math.round(
+          (highestComprehensiveTaxBreakdown.finalTaxAnnual /
+            highestComprehensiveTaxBreakdown.attributedDividendAnnual) *
+            100,
+        )
+      : 0
+  const interpretationItems = [
+    result.holdingTaxAnnual >= 10_000_000
+      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)}과 주택 보유 형태가 반영돼 고액 보유세 구간에 들어갑니다.`
+      : result.holdingTaxAnnual > 0
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 추정입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준 재산세 구조를 반영했습니다.`
+        : '보유세는 현재 입력 기준으로 발생하지 않습니다.',
+    result.comprehensiveTaxIncluded
+      ? result.comprehensiveTaxImpactAnnual > 0
+        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 배당 귀속 기준 최종세율은 약 ${effectiveComprehensiveRate}% 수준으로 계산됩니다.`
+        : '금융소득 종합과세 판정 구간이지만, 원천징수세액과 비교세액을 비교한 결과 추가 납부는 0원입니다.'
+      : '종합소득세는 금융소득 2,000만원 이하 구간이라 추가 납부가 없습니다.',
+    result.healthInsuranceMonthly >= 1_000_000
+      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 소득과 재산이 함께 크게 반영되는 구간입니다.`
+      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 추정입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 입력된 소득·재산 조건이 반영됐습니다.`,
+    `${ageBenchmark.label} 나이 기준 추정 총자산은 ${formatCompactCurrency(totalAssetEstimate)}입니다. ${ageBenchmark.label} 평균 자산 ${formatCompactCurrency(ageBenchmark.averageAsset)} 대비 약 ${roundedAssetMultiple}배이며, ${getAssetTierMessage(totalAssetEstimate)}`,
+  ]
 
   const createResultImage = async () => {
     const node = captureRef.current
@@ -857,11 +974,26 @@ export function ResultScreen({
     }
   }
 
+  const householdSummary = `${formData.householdType === 'couple' ? '부부 합산' : '1인 가구'}, ${
+    formData.housingType === 'own'
+      ? '자가'
+      : formData.housingType === 'jeonse'
+        ? '전세'
+        : '월세'
+  }`
+  const housingRowLabel = formData.housingType === 'own' ? '집값' : '주거비'
+  const housingRowNote =
+    formData.housingType === 'own'
+      ? '시가 / 공시가'
+      : formData.housingType === 'jeonse'
+        ? '전세 보증금'
+        : '보증금 / 월세'
+
   const rows: ResultRow[] = [
     {
       category: '기본',
-      item: '가구 형태',
-      input: formData.householdType === 'couple' ? '부부 합산' : '본인만',
+      item: '가구',
+      input: householdSummary,
       monthly: '—',
       annual: '—',
       tenYear: '—',
@@ -869,64 +1001,21 @@ export function ResultScreen({
     },
     {
       category: '주거',
-      item: '주거 형태',
-      input:
-        formData.housingType === 'own'
-          ? '자가'
-          : formData.housingType === 'jeonse'
-            ? '전세'
-            : '월세',
+      item: housingRowLabel,
+      input: (
+        <HousingAmountEditor formData={formData} onPatchFormData={onPatchFormData} />
+      ),
       monthly:
         formData.housingType === 'monthlyRent'
           ? formatCompactCurrency(result.housingMonthlyCost)
           : '—',
       annual: '—',
       tenYear: '—',
-      note:
-        formData.housingType === 'own'
-          ? '재산세 추정 포함'
-          : '비자가 주거는 주택세 0원 처리',
-    },
-    {
-      category: '주거',
-      item: '주거 금액',
-      input: (
-        <HousingAmountEditor formData={formData} onPatchFormData={onPatchFormData} />
-      ),
-      monthly: '—',
-      annual: '—',
-      tenYear: '—',
-      note:
-        formData.housingType === 'own'
-          ? '시가 / 공시가격'
-          : '주거 입력값 표시',
-    },
-    {
-      category: '세금',
-      item: '주택 재산세 추정',
-      input: formData.housingType === 'own' ? '자가 주택 기준' : '해당 없음',
-      monthly:
-        formData.housingType === 'own'
-          ? formatCompactCurrency(result.holdingTaxMonthly)
-          : '—',
-      annual:
-        formData.housingType === 'own'
-          ? formatCompactCurrency(result.holdingTaxAnnual)
-          : '—',
-      tenYear:
-        formData.housingType === 'own'
-          ? formatCompactCurrency(result.holdingTaxAnnual * 10)
-          : '—',
-      note:
-        formData.housingType === 'own'
-          ? '2025 완화비율'
-          : '자가가 아니면 0원 처리',
-      noteDetail:
-        formData.housingType === 'own' ? policyConfig.holdingTax.note : undefined,
+      note: housingRowNote,
     },
     {
       category: '배당',
-      item: '일반계좌 배당',
+      item: '배당금',
       input: (
         <InlineAmountInput
           label="일반계좌 연간 배당금"
@@ -943,7 +1032,7 @@ export function ResultScreen({
     },
     {
       category: '배당',
-      item: 'ISA 배당',
+      item: 'ISA 배당금',
       input: (
         <InlineAmountInput
           label="ISA 연간 배당금"
@@ -976,36 +1065,12 @@ export function ResultScreen({
     },
     {
       category: '유입',
-      item: '월 총유입',
+      item: '총 유입',
       input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
-      tenYear: formatCompactCurrency(
-        result.totalIncomeMonthly * 12 * 10,
-      ),
-      note: '연금 수령액 포함 가능',
-    },
-    {
-      category: '세금',
-      item: '종합소득세 영향',
-      input: getComprehensiveTaxInput(result),
-      monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
-      annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
-      tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * 10),
-      note: '일반계좌만 반영',
-      noteDetail: getComprehensiveTaxNote(result),
-    },
-    {
-      category: '필수비용',
-      item: '건강보험료',
-      input: (
-        <HealthInsuranceEditor result={result} onPatchFormData={onPatchFormData} />
-      ),
-      monthly: formatCompactCurrency(result.healthInsuranceMonthly),
-      annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
-      tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * 10),
-      note: 'NHIS 단순화',
-      noteDetail: policyConfig.healthInsurance.approximationNotice,
+      tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * 10),
+      note: '세금 차감 전',
     },
     {
       category: '지출',
@@ -1017,6 +1082,20 @@ export function ResultScreen({
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
       tenYear: formatCompactCurrency(fixedExpenseAnnualBase * 10),
       note: '차량 제외',
+    },
+    {
+      category: '지출',
+      item: '식비생활비',
+      input: (
+        <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+      ),
+      monthly: formatCompactCurrency(result.livingExpenseMonthly),
+      annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
+      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * 10),
+      note:
+        formData.livingCostInputMode === 'detailed'
+          ? '세부 항목 합산'
+          : '총액 입력 사용',
     },
     {
       category: '지출',
@@ -1036,31 +1115,62 @@ export function ResultScreen({
       noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
     },
     {
-      category: '지출',
-      item: '생활비',
+      category: '세금',
+      item: '건강 보험료',
       input: (
-        <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+        <HealthInsuranceEditor result={result} onPatchFormData={onPatchFormData} />
       ),
-      monthly: formatCompactCurrency(result.livingExpenseMonthly),
-      annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
-      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * 10),
+      monthly: formatCompactCurrency(result.healthInsuranceMonthly),
+      annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
+      tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * 10),
+      note: 'NHIS 단순화',
+      noteDetail: policyConfig.healthInsurance.approximationNotice,
+    },
+    {
+      category: '세금',
+      item: '종합소득세',
+      input: getComprehensiveTaxInput(result),
+      monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
+      annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
+      tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * 10),
+      note: '일반계좌만 반영',
+      noteDetail: getComprehensiveTaxNote(result),
+    },
+    {
+      category: '세금',
+      item: '보유세',
+      input: formData.housingType === 'own' ? '자가 주택 기준' : '해당 없음',
+      monthly:
+        formData.housingType === 'own'
+          ? formatCompactCurrency(result.holdingTaxMonthly)
+          : '—',
+      annual:
+        formData.housingType === 'own'
+          ? formatCompactCurrency(result.holdingTaxAnnual)
+          : '—',
+      tenYear:
+        formData.housingType === 'own'
+          ? formatCompactCurrency(result.holdingTaxAnnual * 10)
+          : '—',
       note:
-        formData.livingCostInputMode === 'detailed'
-          ? '세부 항목 합산'
-          : '총액 입력 사용',
+        formData.housingType === 'own'
+          ? '주택세 추정'
+          : '자가가 아니면 0원 처리',
+      noteDetail:
+        formData.housingType === 'own' ? policyConfig.holdingTax.note : undefined,
     },
     {
       category: '결과',
-      item: '월 실사용 가능액',
-      input: '월 유입에서 건보료·주택세·종합소득세 반영',
+      item: '월 총소득',
+      input: '총 유입에서 건강보험료·보유세·종합소득세 반영',
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
       tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * 10),
-      note: '생활비와 고정지출 차감 전 금액',
+      note: '생활비와 고정지출 차감 전',
     },
     {
       category: '결과',
-      item: '월 흑자적자',
+      item: '흑자/적자',
       input: `월 총지출 ${formatCompactCurrency(result.totalExpenseMonthly)}`,
       monthly: formatSignedCompactCurrency(result.monthlySurplusOrDeficit),
       annual: formatSignedCompactCurrency(result.yearlySurplusOrDeficit),
@@ -1123,6 +1233,8 @@ export function ResultScreen({
             </div>
           </div>
         </section>
+
+        <ResultInterpretation items={interpretationItems} />
 
         <section className="result-panel">
           <div className="panel-header">

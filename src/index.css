@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family: 'Aptos', 'Bahnschrift', 'Segoe UI', sans-serif;
   line-height: 1.45;
   font-weight: 400;
@@ -1203,12 +1203,6 @@ p {
 
 .result-table th:nth-child(1),
 .result-table td:nth-child(1),
-.result-table th:nth-child(2),
-.result-table td:nth-child(2) {
-  width: 62px;
-  min-width: 62px;
-}
-
 .result-item-cell {
   width: 62px;
   min-width: 62px;
@@ -1226,8 +1220,8 @@ p {
   white-space: nowrap;
 }
 
-.result-table th:nth-child(3),
-.result-table td:nth-child(3) {
+.result-table th:nth-child(2),
+.result-table td:nth-child(2) {
   width: 120px;
   min-width: 120px;
 }
@@ -1312,15 +1306,13 @@ p {
 
   .result-table th:nth-child(1),
   .result-table td:nth-child(1),
-  .result-table th:nth-child(2),
-  .result-table td:nth-child(2),
   .result-item-cell {
     width: 52px;
     min-width: 52px;
   }
 
-  .result-table th:nth-child(3),
-  .result-table td:nth-child(3),
+  .result-table th:nth-child(2),
+  .result-table td:nth-child(2),
   .result-input-cell,
   .table-edit-cluster {
     width: 108px;
@@ -1768,12 +1760,12 @@ body {
   font-weight: 700;
 }
 
+.result-table th:nth-child(3),
 .result-table th:nth-child(4),
 .result-table th:nth-child(5),
-.result-table th:nth-child(6),
+.result-table td:nth-child(3),
 .result-table td:nth-child(4),
-.result-table td:nth-child(5),
-.result-table td:nth-child(6) {
+.result-table td:nth-child(5) {
   text-align: right;
 }
 
@@ -1821,9 +1813,9 @@ body {
   color: #e5cfca;
 }
 
-.result-table tbody tr.result-category-essential td {
-  background: #2d2514;
-  color: #e6dbaf;
+.result-table tbody tr.result-category-expense td {
+  background: #24182f;
+  color: #dccff0;
 }
 
 .result-table tbody tr.result-category-outcome td {
@@ -1832,7 +1824,7 @@ body {
 }
 
 .result-table tbody tr.result-category-tax td:first-child,
-.result-table tbody tr.result-category-essential td:first-child,
+.result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
   position: sticky;
   left: 0;
@@ -1841,64 +1833,113 @@ body {
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
 }
 .projection-inline-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .projection-inline-title {
   min-width: 0;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.projection-inline-title .note-popover-trigger {
+  flex: 0 0 auto;
 }
 
 .projection-inline-label {
   color: var(--ink);
   font-size: 1rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .projection-inline-controls {
-  display: flex;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-left: auto;
+  justify-content: end;
+  gap: 6px;
+  min-width: max-content;
 }
 
 .projection-inline-input {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .projection-inline-input .input-shell {
-  width: 92px;
-  min-width: 92px;
+  width: 56px;
+  min-width: 56px;
 }
 
 .projection-inline-input .input-control {
   text-align: right;
+  padding-block: 11px;
 }
 
 @media (max-width: 900px) {
   .projection-inline-row {
-    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .projection-inline-label {
+    font-size: 0.94rem;
   }
 
   .projection-inline-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .projection-inline-input {
-    flex: 1 1 auto;
+    gap: 5px;
   }
 
   .projection-inline-input .input-shell {
-    width: 84px;
-    min-width: 84px;
+    width: 52px;
+    min-width: 52px;
   }
+
+  .projection-inline-input .input-control {
+    padding-block: 10px;
+  }
+
+  .inflation-toggle {
+    gap: 5px;
+    padding: 6px 8px 6px 10px;
+  }
+
+  .inflation-toggle-copy {
+    min-width: 22px;
+    font-size: 0.74rem;
+  }
+
+  .inflation-toggle-track {
+    width: 40px;
+    height: 24px;
+    padding: 3px;
+  }
+
+  .inflation-toggle-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  .inflation-toggle.is-on .inflation-toggle-thumb {
+    transform: translateX(16px);
+  }
+}
+.interpretation-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.interpretation-list li {
+  line-height: 1.55;
 }
 /* Disabled input state */
 .input-card.is-disabled {
@@ -1918,4 +1959,5 @@ body {
 .input-card.is-disabled .input-preview {
   color: rgba(216, 226, 230, 0.68);
 }
+
 
