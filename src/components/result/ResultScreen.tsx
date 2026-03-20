@@ -1,7 +1,7 @@
 ﻿import { useRef, useState, type ReactNode } from 'react'
 import { toBlob } from 'html-to-image'
 import { policyConfig } from '../../config/policyConfig'
-import { NumericInput, PrimaryButton } from '../common/Ui'
+import { PrimaryButton } from '../common/Ui'
 import type {
   AccountOwnershipBreakdown,
   RetireCalcFormData,
@@ -1083,38 +1083,44 @@ export function ResultScreen({
         <SummaryCards result={result} />
 
         <section className="result-panel projection-panel">
-          <div className="panel-header projection-header">
-            <div className="title-with-help">
-              <h2>물가상승율</h2>
+          <div className="projection-inline-row">
+            <div className="title-with-help projection-inline-title">
+              <span className="projection-inline-label">물가상승율</span>
               <HelpPopover
                 detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 재산세는 고정으로 둡니다."
                 label="물가반영 설명 보기"
                 align="left"
               />
             </div>
-            <InflationSwitch
-              enabled={formData.inflationEnabled}
-              onToggle={(nextValue) => onPatchFormData({ inflationEnabled: nextValue })}
-            />
-          </div>
-
-          <div className="field-grid field-grid-2">
-            <NumericInput
-              label="시뮬레이션 기간"
-              value={formData.simulationYears}
-              onChange={(value) => onPatchFormData({ simulationYears: Math.max(1, value) })}
-              step={1}
-              display="number"
-              suffix="년"
-            />
-            <NumericInput
-              label="상승률"
-              value={Math.round(formData.inflationRateAnnual * 100)}
-              onChange={(value) => onPatchFormData({ inflationRateAnnual: value / 100 })}
-              step={0.5}
-              display="number"
-              suffix="%"
-            />
+            <div className="projection-inline-controls">
+              <label className="projection-inline-input">
+                <div className="input-shell">
+                  <input
+                    className="input-control"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step={0.5}
+                    value={Math.round(formData.inflationRateAnnual * 100)}
+                    aria-label="물가상승율"
+                    onWheel={(event) => {
+                      if (document.activeElement === event.currentTarget) {
+                        event.currentTarget.blur()
+                      }
+                    }}
+                    onChange={(event) => {
+                      const rawValue = Number(event.target.value) || 0
+                      onPatchFormData({ inflationRateAnnual: rawValue / 100 })
+                    }}
+                  />
+                </div>
+                <span className="input-suffix">%</span>
+              </label>
+              <InflationSwitch
+                enabled={formData.inflationEnabled}
+                onToggle={(nextValue) => onPatchFormData({ inflationEnabled: nextValue })}
+              />
+            </div>
           </div>
         </section>
 
