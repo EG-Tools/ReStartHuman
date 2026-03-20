@@ -3,7 +3,7 @@
 })
 
 const decimalFormatter = new Intl.NumberFormat('ko-KR', {
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 0,
 })
 
 export const formatCurrency = (value: number) =>
@@ -55,3 +55,4 @@ export const formatDateTime = (value: string) =>
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value))
+

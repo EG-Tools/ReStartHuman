@@ -396,9 +396,12 @@ const calculateComprehensiveTax = (
 const calculateExpenses = (formData: RetireCalcFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
 
+  const fixedMaintenanceMonthly =
+    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
+
   const fixedExpenseMonthly =
     formData.insuranceMonthly +
-    formData.maintenanceMonthly +
+    fixedMaintenanceMonthly +
     formData.telecomMonthly +
     formData.otherFixedMonthly +
     carMonthlyConverted
@@ -777,13 +780,4 @@ export const calculateRetireScenario = (
     loanNotice: formData.hasLoan,
   }
 }
-
-
-
-
-
-
-
-
-
 

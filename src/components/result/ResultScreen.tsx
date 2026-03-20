@@ -403,7 +403,7 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.category}-${row.item}`}>
+            <tr key={`${row.category}-${row.item}`} className={getResultCategoryClassName(row.category)}>
               <td className={getResultCategoryClassName(row.category)}>{row.category}</td>
               <td className="result-item-cell">
                 <span className="result-item-label" aria-label={row.item}>
@@ -628,9 +628,11 @@ function FixedExpenseEditor({
   formData: RetireCalcFormData
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }) {
+  const fixedMaintenanceMonthly =
+    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
   const lockedBase =
     formData.insuranceMonthly +
-    formData.maintenanceMonthly +
+    fixedMaintenanceMonthly +
     formData.telecomMonthly
   const totalValue = lockedBase + formData.otherFixedMonthly
 
@@ -643,7 +645,7 @@ function FixedExpenseEditor({
           otherFixedMonthly: Math.max(value - lockedBase, 0),
         })
       }
-      helperText={`기본 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherFixedMonthly)}`}
+      helperText={formData.housingType === 'monthlyRent' ? `기본 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherFixedMonthly)} (월세 관리비는 주거비에서 계산)` : `기본 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherFixedMonthly)}`}
     />
   )
 }
@@ -710,9 +712,11 @@ export function ResultScreen({
       ? '배당 입력 기준: 세전'
       : '배당 입력 기준: 세후'
 
+  const fixedMaintenanceMonthlyBase =
+    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
   const fixedExpenseMonthlyBase =
     formData.insuranceMonthly +
-    formData.maintenanceMonthly +
+    fixedMaintenanceMonthlyBase +
     formData.telecomMonthly +
     formData.otherFixedMonthly
   const fixedExpenseAnnualBase = fixedExpenseMonthlyBase * 12

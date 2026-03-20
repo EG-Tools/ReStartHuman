@@ -567,8 +567,13 @@ export function QuestionScreen({
               {
                 key: 'maintenanceMonthly',
                 label: '관리비',
-                value: formData.maintenanceMonthly,
+                value: formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly,
                 onChange: (value) => update('maintenanceMonthly', value),
+                disabled: formData.housingType === 'monthlyRent',
+                helperText:
+                  formData.housingType === 'monthlyRent'
+                    ? '월세 주거비에서 계산되어 여기서는 제외됩니다.'
+                    : undefined,
               },
               {
                 key: 'telecomMonthly',
@@ -682,3 +687,4 @@ export function QuestionScreen({
     </QuestionLayout>
   )
 }
+
