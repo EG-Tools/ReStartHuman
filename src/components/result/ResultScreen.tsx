@@ -1,5 +1,4 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { toBlob } from 'html-to-image'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -90,22 +89,22 @@ const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
 
 const getAssetTierMessage = (totalAssets: number) => {
   if (totalAssets >= 10_000_000_000) {
-    return '???? ?? ?? 0.1% ??? ?????? ? ? ?? ?????.'
+    return '대한민국 자산 상위 0.1% 안팎의 초상위권으로 볼 수 있는 규모입니다.'
   }
 
   if (totalAssets >= 3_000_000_000) {
-    return '???? ?? ?? 1% ??? ????? ? ? ?? ?????.'
+    return '대한민국 자산 상위 1% 안팎으로 볼 수 있는 규모입니다.'
   }
 
   if (totalAssets >= 1_000_000_000) {
-    return '???? ?? ?? 10% ??? ????? ? ? ?? ?????.'
+    return '대한민국 자산 상위 10% 안팎으로 볼 수 있는 규모입니다.'
   }
 
   if (totalAssets >= 300_000_000) {
-    return '???? ?? ??? ???? ? ? ?? ?????.'
+    return '대한민국 자산 중위권 이상으로 볼 수 있는 규모입니다.'
   }
 
-  return '???? ?? ??? ?? ?? ?? ?? ???? ? ? ?? ?????.'
+  return '대한민국 자산 하위권 또는 자산 형성 초기 구간으로 볼 수 있는 규모입니다.'
 }
 
 const getAssetInterpretationMessage = ({
@@ -126,10 +125,10 @@ const getAssetInterpretationMessage = ({
   const hasAssetIncomeMismatch = dividendAnnual > 0 && dividendToAssetRatio >= 0.15
 
   if (hasAssetIncomeMismatch) {
-    return `${benchmarkLabel} ?? ?? ?? ???? ${formatCompactCurrency(totalAssets)}???. ?? ? ??? ${formatCompactCurrency(dividendAnnual)}? ?? ??? ?? ????? ????? ???? ???? ?????. ?? ??? ?? ????? ?? ? ??? ?? ?? ????.`
+    return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. 다만 연 배당금 ${formatCompactCurrency(dividendAnnual)}이 입력 자산 대비 매우 큰 사례라 자산 서열 문구는 보수적으로 해석하는 편이 좋습니다.`
   }
 
-  return `${benchmarkLabel} ?? ?? ?? ???? ${formatCompactCurrency(totalAssets)}???. ${benchmarkLabel} ?? ?? ${formatCompactCurrency(benchmarkAverageAsset)} ?? ? ${roundedAssetMultiple}???, ${getAssetTierMessage(totalAssets)}`
+  return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. ${benchmarkLabel} 평균 자산 ${formatCompactCurrency(benchmarkAverageAsset)} 대비 약 ${roundedAssetMultiple}배이며, ${getAssetTierMessage(totalAssets)}`
 }
 
 const getHealthInsuranceTypeSummary = (healthInsuranceType: RetireCalcFormData['healthInsuranceType']) => {
@@ -138,14 +137,15 @@ const getHealthInsuranceTypeSummary = (healthInsuranceType: RetireCalcFormData['
     case 'employeeWithDependentSpouse':
       return '직장가입자 기준'
     case 'dependent':
-      return '피부양자 유지 여부 기준'
+      return '피부양자 기준'
     case 'regional':
     case 'bothRegional':
       return '지역가입자 기준'
     default:
-      return '건강보험 추정 기준'
+      return '입력한 건강보험 상태 기준'
   }
 }
+
 const formatOwnershipSummary = (breakdown: AccountOwnershipBreakdown[]) =>
   breakdown.map((item) => `${item.label} ${formatCompactCurrency(item.attributedAnnual)}`).join(', ')
 
@@ -916,18 +916,18 @@ export function ResultScreen({
       : 0
   const interpretationItems = [
     result.holdingTaxAnnual >= 10_000_000
-      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)}과 주택 보유 형태가 반영돼 고액 보유세 구간에 들어갑니다.`
+      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 주택이라면 보유세 부담이 큰 구간에 들어간 것으로 볼 수 있습니다.`
       : result.holdingTaxAnnual > 0
-        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 추정입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준 재산세 구조를 반영했습니다.`
-        : '보유세는 현재 입력 기준으로 발생하지 않습니다.',
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준으로 추정한 값입니다.`
+        : '보유세는 현재 납부 대상이 아닌 것으로 계산됐습니다.',
     result.comprehensiveTaxIncluded
       ? result.comprehensiveTaxImpactAnnual > 0
-        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 배당 귀속 기준 최종세율은 약 ${effectiveComprehensiveRate}% 수준으로 계산됩니다.`
-        : '금융소득 종합과세 판정 구간이지만, 원천징수세액과 비교세액을 비교한 결과 추가 납부는 0원입니다.'
-      : '종합소득세는 금융소득 2,000만원 이하 구간이라 추가 납부가 없습니다.',
+        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
+        : '종합소득세 대상 구간이지만, 비교세액 구조상 추가 납부는 0원으로 계산됐습니다.'
+      : '금융소득 2,000만원 이하로 보고 종합소득세 추가분은 제외했습니다.',
     result.healthInsuranceMonthly >= 1_000_000
-      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 소득과 재산이 함께 크게 반영되는 구간입니다.`
-      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 추정입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 입력된 소득·재산 조건이 반영됐습니다.`,
+      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
+      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
     assetInterpretation,
   ]
 
@@ -947,6 +947,7 @@ export function ResultScreen({
     })
 
     try {
+      const { toBlob } = await import('html-to-image')
       const blob = await toBlob(node, {
         backgroundColor: '#081113',
         pixelRatio: 2,
@@ -990,7 +991,7 @@ export function ResultScreen({
         navigator.canShare({ files: [file] })
       ) {
         await navigator.share({
-          title: '은퇴 현금흐름 결과',
+          title: 'Re Start Human 결과',
           files: [file],
         })
         setExportMessage('결과 이미지를 공유했습니다.')
@@ -999,21 +1000,21 @@ export function ResultScreen({
 
       if (navigator.share) {
         await navigator.share({
-          title: '은퇴 현금흐름 결과',
-          text: '이미지 공유가 지원되지 않아 링크 공유로 전환했습니다.',
+          title: 'Re Start Human 결과',
+          text: '결과 화면 이미지를 저장하거나 전송할 수 있습니다.',
           url: window.location.href,
         })
-        setExportMessage('이 기기에서는 링크 공유로 전환했습니다.')
+        setExportMessage('공유를 마쳤습니다.')
         return
       }
 
       downloadResultImage(blob)
-      setExportMessage('이 기기에서는 공유가 지원되지 않아 이미지 저장으로 전환했습니다.')
+      setExportMessage('공유 기능이 없어 이미지를 다운로드했습니다.')
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        setExportMessage('공유를 취소했습니다.')
+        setExportMessage('공유가 취소되었습니다.')
       } else {
-        setExportMessage('결과 이미지를 공유하지 못했습니다.')
+        setExportMessage('결과 이미지 공유에 실패했습니다.')
       }
     } finally {
       setExportState('idle')

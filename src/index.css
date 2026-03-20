@@ -1443,7 +1443,119 @@ body {
 }
 
 .start-screen {
+  justify-content: flex-start;
+}
+
+.start-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.start-settings-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.settings-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.start-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.settings-modal {
+  width: min(100%, 540px);
+}
+
+.support-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.support-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.support-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.support-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.support-metric-card,
+.support-option-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.support-metric-card span,
+.support-copy,
+.support-note,
+.support-option-row span {
+  color: var(--muted);
+}
+
+.support-metric-card strong,
+.support-option-row strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.support-actions {
+  display: flex;
+}
+
+.support-option-list {
+  display: grid;
+  gap: 10px;
 }
 
 .start-hero-panel {
@@ -1608,6 +1720,14 @@ body {
   .start-actions-compact .button,
   .question-screen .sticky-footer .button {
     width: auto;
+  }
+
+  .support-panel-header {
+    flex-direction: column;
+  }
+
+  .support-metrics {
+    grid-template-columns: 1fr;
   }
 
   .question-household .household-choice-block .toggle-group-grid {
