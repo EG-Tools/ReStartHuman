@@ -1204,8 +1204,8 @@ p {
 .result-table th:nth-child(1),
 .result-table td:nth-child(1),
 .result-item-cell {
-  width: 62px;
-  min-width: 62px;
+  width: 72px;
+  min-width: 72px;
 }
 
 .result-item-label {
@@ -1307,8 +1307,8 @@ p {
   .result-table th:nth-child(1),
   .result-table td:nth-child(1),
   .result-item-cell {
-    width: 52px;
-    min-width: 52px;
+    width: 60px;
+    min-width: 60px;
   }
 
   .result-table th:nth-child(2),
