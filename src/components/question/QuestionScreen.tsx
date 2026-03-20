@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
@@ -101,8 +101,20 @@ function QuestionLayout({
   onSeekQuestion: (index: number) => void
   children: ReactNode
 }) {
+  const screenRef = useRef<HTMLElement | null>(null)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0, left: 0 })
+    screenRef.current?.scrollTo({ top: 0, left: 0 })
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0 })
+    }
+  }, [question.id, questionIndex])
+
   return (
-    <section className={`screen question-screen question-${question.id}`}>
+    <section ref={screenRef} className={`screen question-screen question-${question.id}`}>
       <div className="screen-header">
         <div>
           <p className="eyebrow">질문 {questionIndex + 1}</p>
@@ -122,7 +134,7 @@ function QuestionLayout({
         </div>
       </div>
 
-      <div className="question-body">{children}</div>
+      <div ref={bodyRef} className="question-body">{children}</div>
 
       <div className="footer-actions sticky-footer">
         <PrimaryButton variant="ghost" onClick={onBack} disabled={questionIndex === 0}>
@@ -372,7 +384,17 @@ export function QuestionScreen({
                 <ChoiceQuestion
                   value={formData.dividendOwnershipType}
                   options={dividendOwnershipOptions}
-                  onChange={(value) => update('dividendOwnershipType', value)}
+                  onChange={(value) =>
+                    onPatchFormData(
+                      value === 'split'
+                        ? {
+                            dividendOwnershipType: value,
+                            myAnnualDividendAttributed: Math.round(formData.taxableAccountDividendAnnual / 2),
+                            spouseAnnualDividendAttributed: formData.taxableAccountDividendAnnual - Math.round(formData.taxableAccountDividendAnnual / 2),
+                          }
+                        : { dividendOwnershipType: value },
+                    )
+                  }
                 />
               </section>
             ) : (
@@ -429,7 +451,17 @@ export function QuestionScreen({
                     <ChoiceQuestion
                       value={formData.isaOwnershipType}
                       options={dividendOwnershipOptions}
-                      onChange={(value) => update('isaOwnershipType', value)}
+                      onChange={(value) =>
+                        onPatchFormData(
+                          value === 'split'
+                            ? {
+                                isaOwnershipType: value,
+                                myAnnualIsaDividendAttributed: Math.round(formData.isaDividendAnnual / 2),
+                                spouseAnnualIsaDividendAttributed: formData.isaDividendAnnual - Math.round(formData.isaDividendAnnual / 2),
+                              }
+                            : { isaOwnershipType: value },
+                        )
+                      }
                     />
                   </section>
                 ) : (
