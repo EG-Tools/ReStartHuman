@@ -285,17 +285,17 @@ function SummaryCards({ result }: { result: RetireCalcResult }) {
       tone: 'neutral',
     },
     {
-      label: '월 흑자적자',
+      label: '월 흑자 / 적자',
       value: formatSignedCompactCurrency(result.monthlySurplusOrDeficit),
       tone: result.riskLevel,
     },
     {
-      label: '1년 결과',
+      label: '1 년 결과',
       value: formatSignedCompactCurrency(result.yearlySurplusOrDeficit),
       tone: result.riskLevel,
     },
     {
-      label: '10년 결과',
+      label: '10 년 결과',
       value: formatSignedCompactCurrency(result.tenYearSurplusOrDeficit),
       tone: result.riskLevel,
     },
@@ -545,8 +545,8 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
             <th>구분</th>
             <th>입력값</th>
             <th>월 기준</th>
-            <th>1년 결과</th>
-            <th>10년 결과</th>
+            <th>1 년 결과</th>
+            <th>10 년 결과</th>
             <th>비고</th>
           </tr>
         </thead>
