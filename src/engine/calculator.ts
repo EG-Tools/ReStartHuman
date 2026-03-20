@@ -118,7 +118,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
     policyConfig.inflation.defaultAnnualRate,
   ),
   startingCashReserve: sanitizeMoney(formData.startingCashReserve),
-  currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 1),
+  currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 50),
 })
 
 const toMonthly = (annualValue: number) => roundCurrency(annualValue / 12)

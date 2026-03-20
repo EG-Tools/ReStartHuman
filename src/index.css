@@ -568,12 +568,18 @@ p {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: min(280px, calc(100vw - 64px));
-  padding: 12px 14px;
+  width: min(280px, calc(100vw - 40px));
+  max-width: calc(100vw - 40px);
+  padding: 11px 13px;
   border-radius: 16px;
   border: 1px solid var(--line);
   background: var(--paper-strong);
   color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   box-shadow: 0 14px 32px rgba(64, 50, 29, 0.14);
   z-index: 4;
 }
@@ -762,10 +768,20 @@ p {
 
 
 .title-with-help {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.title-with-help .note-popover {
+  position: static;
+}
+
+.title-with-help .note-popover-bubble {
+  left: 0;
+  right: auto;
 }
 
 
@@ -1553,6 +1569,26 @@ body {
   text-align: center;
 }
 
+.question-household .housing-choice-block .toggle-group-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.question-household .housing-choice-block .toggle-card {
+  min-height: auto;
+  padding: 18px 12px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.question-household .housing-choice-block .toggle-card-description {
+  display: none;
+}
+
+.question-household .housing-choice-block .toggle-card-label {
+  text-align: center;
+}
+
 .question-screen .sticky-footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1576,6 +1612,10 @@ body {
 
   .question-household .household-choice-block .toggle-group-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-household .housing-choice-block .toggle-group-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .result-table th:first-child,

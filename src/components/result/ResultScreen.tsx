@@ -1207,7 +1207,7 @@ export function ResultScreen({
     },
     {
       category: '결과',
-      item: '월 총소득',
+      item: '월별 순이익',
       input: '총 유입에서 건강보험료·보유세·종합소득세 반영',
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
