@@ -1,4 +1,4 @@
-﻿import { startTransition, useMemo, useState } from 'react'
+﻿import { startTransition, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { StartScreen } from '../components/start/StartScreen'
 import { QuestionScreen } from '../components/question/QuestionScreen'
 import { ResultScreen } from '../components/result/ResultScreen'
@@ -8,15 +8,117 @@ import { calculateRetireScenario } from '../engine/calculator'
 import { useRetireCalcFlow } from '../hooks/useRetireCalcFlow'
 import { useSaveSlots } from '../hooks/useSaveSlots'
 import { appRoutes } from './routes'
+import type { AppRoute } from './routes'
 import type { RetireCalcFormData, SaveSlotRecord } from '../types/retireCalc'
+
+type SaveSlotMode = 'load' | 'save' | 'manage'
+
+interface AppHistoryState {
+  __retireCalcNav: true
+  route: AppRoute
+  questionIndex: number
+  saveSlotMode: SaveSlotMode | null
+}
+
+const buildHistoryState = (
+  route: AppRoute,
+  questionIndex: number,
+  saveSlotMode: SaveSlotMode | null,
+): AppHistoryState => ({
+  __retireCalcNav: true,
+  route,
+  questionIndex,
+  saveSlotMode,
+})
+
+const defaultHistoryState = buildHistoryState(appRoutes.start, 0, null)
+
+const isAppHistoryState = (value: unknown): value is AppHistoryState => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<AppHistoryState>
+
+  return (
+    candidate.__retireCalcNav === true &&
+    typeof candidate.questionIndex === 'number' &&
+    (candidate.route === appRoutes.start ||
+      candidate.route === appRoutes.question ||
+      candidate.route === appRoutes.result) &&
+    (candidate.saveSlotMode === null ||
+      candidate.saveSlotMode === 'load' ||
+      candidate.saveSlotMode === 'save' ||
+      candidate.saveSlotMode === 'manage')
+  )
+}
 
 export default function App() {
   const [formData, setFormData] = useState<RetireCalcFormData>(defaultFormData)
-  const [saveSlotMode, setSaveSlotMode] = useState<'load' | 'save' | 'manage' | null>(null)
+  const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
 
   const result = useMemo(() => calculateRetireScenario(formData), [formData])
   const flow = useRetireCalcFlow(formData)
   const saveSlots = useSaveSlots()
+  const historyReadyRef = useRef(false)
+  const isRestoringHistoryRef = useRef(false)
+
+  const navigationState = useMemo(
+    () => buildHistoryState(flow.route, flow.questionIndex, saveSlotMode),
+    [flow.questionIndex, flow.route, saveSlotMode],
+  )
+
+  const restoreFromHistory = useEffectEvent((state: AppHistoryState) => {
+    isRestoringHistoryRef.current = true
+    flow.syncFromHistory(state.route, state.questionIndex)
+    setSaveSlotMode(state.saveSlotMode)
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    window.history.replaceState(defaultHistoryState, '', window.location.href)
+    historyReadyRef.current = true
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (isAppHistoryState(event.state)) {
+        restoreFromHistory(event.state)
+        return
+      }
+
+      restoreFromHistory(defaultHistoryState)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [restoreFromHistory])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !historyReadyRef.current) {
+      return
+    }
+
+    if (isRestoringHistoryRef.current) {
+      isRestoringHistoryRef.current = false
+      return
+    }
+
+    if (
+      isAppHistoryState(window.history.state) &&
+      window.history.state.route === navigationState.route &&
+      window.history.state.questionIndex === navigationState.questionIndex &&
+      window.history.state.saveSlotMode === navigationState.saveSlotMode
+    ) {
+      return
+    }
+
+    window.history.pushState(navigationState, '', window.location.href)
+  }, [navigationState])
 
   const patchFormData = (patch: Partial<RetireCalcFormData>) => {
     startTransition(() => {

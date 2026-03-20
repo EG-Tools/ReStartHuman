@@ -13,11 +13,10 @@ export const useRetireCalcFlow = (formData: RetireCalcFormData) => {
     [formData],
   )
 
-  const boundedQuestionIndex = Math.max(
-    0,
-    Math.min(questionIndex, Math.max(visibleQuestions.length - 1, 0)),
-  )
+  const clampQuestionIndex = (index: number) =>
+    Math.max(0, Math.min(index, Math.max(visibleQuestions.length - 1, 0)))
 
+  const boundedQuestionIndex = clampQuestionIndex(questionIndex)
   const currentQuestion =
     visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0]
 
@@ -46,9 +45,11 @@ export const useRetireCalcFlow = (formData: RetireCalcFormData) => {
     },
     goToQuestion: (index: number) => {
       setRoute(appRoutes.question)
-      setQuestionIndex(
-        Math.max(0, Math.min(index, Math.max(visibleQuestions.length - 1, 0))),
-      )
+      setQuestionIndex(clampQuestionIndex(index))
+    },
+    syncFromHistory: (nextRoute: AppRoute, nextQuestionIndex: number) => {
+      setRoute(nextRoute)
+      setQuestionIndex(clampQuestionIndex(nextQuestionIndex))
     },
   }
 }

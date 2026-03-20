@@ -174,7 +174,7 @@ function SummaryCards({ result }: { result: RetireCalcResult }) {
       tone: 'neutral',
     },
     {
-      label: '월 흑자 / 적자',
+      label: '월 흑자적자',
       value: formatSignedCompactCurrency(result.monthlySurplusOrDeficit),
       tone: result.riskLevel,
     },
@@ -219,8 +219,8 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
             <th>항목</th>
             <th>입력값</th>
             <th>월 기준</th>
-            <th>연 기준</th>
-            <th>10년 기준</th>
+            <th>1년 결과</th>
+            <th>10년 결과</th>
             <th>비고</th>
           </tr>
         </thead>
@@ -924,39 +924,46 @@ export function ResultScreen({
               <h2>결과표</h2>
             </div>
           </div>
+          <p className="table-scroll-hint">결과표는 좌우로 밀어서 확인할 수 있어요.</p>
           <ResultTable rows={rows} />
         </section>
       </div>
 
-      <section className="result-panel warning-panel">
-        <div className="notice-stack">
-          <div className="notice-card">
-            <h2>정책 기준 안내</h2>
-            <p>{result.policyStatus}</p>
-          </div>
-          <div className="notice-card">
-            <h2>배당세 반영 기준</h2>
-            <p>
-              일반계좌는 {policyConfig.dividendWithholding.note}를 반영했고, 금융소득은 본인과
-              배우자를 나눠 연 2,000만원 초과 여부를 따로 판정합니다. ISA는 {policyConfig.isa.note}
-            </p>
-          </div>
-          <div className="notice-card">
-            <h2>주택세·건강보험 기준</h2>
-            <p>
-              {policyConfig.holdingTax.note} 건강보험은 {policyConfig.healthInsurance.approximationNotice}
-            </p>
-          </div>
-          <div className="notice-card">
-            <h2>대출 주의문구</h2>
-            <p>
-              {result.loanNotice
-                ? '대출이 있다고 표시했습니다. 이 프로토타입은 대출 상환액을 계산에 포함하지 않으므로 실제 월 현금흐름은 달라질 수 있습니다.'
-                : '대출금이 있는 경우 실제 월 현금흐름 결과는 달라질 수 있습니다.'}
-            </p>
+      <details className="help-drawer result-panel">
+        <summary className="help-drawer-toggle">
+          <span>도움말</span>
+          <span className="help-drawer-toggle-copy">눌러서 열기 / 닫기</span>
+        </summary>
+        <div className="help-drawer-body">
+          <div className="notice-stack help-drawer-stack">
+            <div className="notice-card">
+              <h2>정책 기준 안내</h2>
+              <p>{result.policyStatus}</p>
+            </div>
+            <div className="notice-card">
+              <h2>배당세 반영 기준</h2>
+              <p>
+                일반계좌는 {policyConfig.dividendWithholding.note}를 반영했고, 금융소득은 본인과
+                배우자를 나눠 연 2,000만원 초과 여부를 따로 판정합니다. ISA는 {policyConfig.isa.note}
+              </p>
+            </div>
+            <div className="notice-card">
+              <h2>주택세·건강보험 기준</h2>
+              <p>
+                {policyConfig.holdingTax.note} 건강보험은 {policyConfig.healthInsurance.approximationNotice}
+              </p>
+            </div>
+            <div className="notice-card">
+              <h2>대출 주의문구</h2>
+              <p>
+                {result.loanNotice
+                  ? '대출이 있다고 표시했습니다. 이 프로토타입은 대출 상환액을 계산에 포함하지 않으므로 실제 월 현금흐름은 달라질 수 있습니다.'
+                  : '대출금이 있는 경우 실제 월 현금흐름 결과는 달라질 수 있습니다.'}
+              </p>
+            </div>
           </div>
         </div>
-      </section>
+      </details>
 
       {exportMessage ? <p className="action-feedback">{exportMessage}</p> : null}
 
@@ -982,6 +989,11 @@ export function ResultScreen({
     </section>
   )
 }
+
+
+
+
+
 
 
 
