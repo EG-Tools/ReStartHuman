@@ -1,4 +1,4 @@
-export type HouseholdType = 'single' | 'couple'
+﻿export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
@@ -26,6 +26,7 @@ export type QuestionStepId =
   | 'healthInsurance'
   | 'fixedExpenses'
   | 'livingCosts'
+  | 'cashReserve'
 
 export interface RetireCalcFormData {
   householdType: HouseholdType
@@ -99,6 +100,7 @@ export interface RetireCalcFormData {
 
   inflationEnabled: boolean
   inflationRateAnnual: number
+  startingCashReserve: number
 }
 
 export interface AccountOwnershipBreakdown {
@@ -128,6 +130,11 @@ export interface ComprehensiveTaxPersonBreakdown {
   finalTaxAnnual: number
   withheldTaxAnnual: number
   additionalTaxAnnual: number
+}
+
+export interface CashBalancePoint {
+  year: number
+  balance: number
 }
 
 export interface RetireCalcResult {
@@ -190,6 +197,9 @@ export interface RetireCalcResult {
 
   yearlySurplusOrDeficit: number
   tenYearSurplusOrDeficit: number
+  startingCashReserve: number
+  cashBalanceAfterTenYears: number
+  cashBalanceTimeline: CashBalancePoint[]
 
   riskLevel: 'surplus' | 'deficit' | 'neutral'
 
@@ -210,3 +220,4 @@ export interface QuestionStep {
   description: string
   visibility: (formData: RetireCalcFormData) => boolean
 }
+

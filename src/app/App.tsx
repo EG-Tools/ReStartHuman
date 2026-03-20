@@ -171,7 +171,6 @@ export default function App() {
             <StartScreen
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
-              savedCount={saveSlots.slots.length}
             />
           ) : null}
 
@@ -214,3 +213,6 @@ export default function App() {
     </div>
   )
 }
+
+
+
