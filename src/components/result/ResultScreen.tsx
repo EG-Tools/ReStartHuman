@@ -292,7 +292,12 @@ function CashFlowChart({
     <section className={`result-panel cashflow-hero tone-${result.riskLevel}`}>
       <div className="cashflow-hero-header">
         <div>
-          <p className="cashflow-hero-eyebrow">10년 현금흐름</p>
+          <div className="cashflow-hero-titleline">
+            <p className="cashflow-hero-eyebrow">10년 현금흐름</p>
+            <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
+              ({getRiskLabel(result.riskLevel)})
+            </span>
+          </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
             남아있는 현금을 시작점으로 10년 뒤 잔액이 어떻게 변하는지 보여줍니다.
@@ -613,8 +618,7 @@ function FixedExpenseEditor({
   const lockedBase =
     formData.insuranceMonthly +
     formData.maintenanceMonthly +
-    formData.telecomMonthly +
-    formData.nationalPensionMonthly
+    formData.telecomMonthly
   const totalValue = lockedBase + formData.otherFixedMonthly
 
   return (
@@ -697,7 +701,6 @@ export function ResultScreen({
     formData.insuranceMonthly +
     formData.maintenanceMonthly +
     formData.telecomMonthly +
-    formData.nationalPensionMonthly +
     formData.otherFixedMonthly
   const fixedExpenseAnnualBase = fixedExpenseMonthlyBase * 12
   const captureRef = useRef<HTMLDivElement | null>(null)
@@ -721,7 +724,7 @@ export function ResultScreen({
 
     try {
       const blob = await toBlob(node, {
-        backgroundColor: '#f6f1e7',
+        backgroundColor: '#081113',
         pixelRatio: 2,
         cacheBust: true,
       })
@@ -895,25 +898,25 @@ export function ResultScreen({
       noteDetail: getIsaDividendNote(result),
     },
     {
-      category: '배당',
-      item: '연금계좌 배당',
+      category: '유입',
+      item: '국민연금',
       input: (
         <InlineAmountInput
-          label="연금계좌 연간 배당금"
-          value={formData.pensionDividendAnnual}
-          onChange={(value) => onPatchFormData({ pensionDividendAnnual: value })}
-          helperText={result.dividendInputMode === 'gross' ? '세전 입력' : '세후 입력'}
+          label="국민연금 예상 금액"
+          value={formData.pensionMonthlyAmount}
+          onChange={(value) => onPatchFormData({ pensionMonthlyAmount: value })}
+          helperText="월 예상 수령액"
         />
       ),
-      monthly: formatCompactCurrency(result.pensionDividendMonthlyNet),
-      annual: formatCompactCurrency(result.pensionDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.pensionDividendAnnualNet * 10),
-      note: '월 총유입에 포함',
+      monthly: formatCompactCurrency(result.pensionMonthlyApplied),
+      annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
+      tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * 10),
+      note: '월 기준 유입',
     },
     {
       category: '유입',
       item: '월 총유입',
-      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득`,
+      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(
@@ -1012,9 +1015,6 @@ export function ResultScreen({
           <div>
             <h1 className="screen-title">현금흐름 결과</h1>
           </div>
-          <span className={`risk-pill risk-${result.riskLevel}`}>
-            {getRiskLabel(result.riskLevel)}
-          </span>
         </div>
 
         <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} />
@@ -1121,6 +1121,9 @@ export function ResultScreen({
     </section>
   )
 }
+
+
+
 
 
 

@@ -1651,3 +1651,143 @@ body {
     font-size: 0.72rem;
   }
 }
+
+.progress-bar.is-interactive {
+  position: relative;
+  overflow: visible;
+}
+
+.progress-bar-input {
+  position: absolute;
+  inset: -4px 0;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.progress-bar-input::-webkit-slider-runnable-track {
+  height: 10px;
+  background: transparent;
+}
+
+.progress-bar-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -4px;
+  border: 2px solid #081113;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar-input::-moz-range-track {
+  height: 10px;
+  background: transparent;
+}
+
+.progress-bar-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #081113;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.question-screen .toggle-group-grid.toggle-group-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.question-screen .toggle-group-grid.toggle-group-count-2 .toggle-card {
+  min-height: auto;
+  padding: 16px 12px;
+}
+
+.boolean-question .toggle-card,
+.question-livingCosts .toggle-card,
+.question-household .toggle-card,
+.question-isa .toggle-card {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.boolean-question .toggle-card-description {
+  display: none;
+}
+
+.question-screen .input-card {
+  background: rgba(12, 18, 22, 0.9);
+}
+
+.question-screen .input-shell,
+.projection-panel .input-shell {
+  background: rgba(0, 0, 0, 0.26);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.question-screen .input-control,
+.question-screen .table-edit-input {
+  color: #f3f7f8;
+}
+
+.question-screen .sticky-footer {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 17, 19, 0) 0%,
+    rgba(22, 28, 31, 0.88) 22%,
+    rgba(28, 33, 37, 0.97) 100%
+  );
+}
+
+.question-screen .button-ghost {
+  background: rgba(43, 48, 53, 0.98);
+  color: #dde5e8;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.question-screen .button-primary {
+  background: linear-gradient(135deg, #14383d, #102c30);
+}
+
+.cashflow-hero-titleline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cashflow-hero-status {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.result-table th:nth-child(4),
+.result-table th:nth-child(5),
+.result-table th:nth-child(6),
+.result-table td:nth-child(4),
+.result-table td:nth-child(5),
+.result-table td:nth-child(6) {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .question-screen .toggle-group-grid.toggle-group-count-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen .screen-header {
+    gap: 14px;
+  }
+
+  .question-screen .button-ghost,
+  .question-screen .button-primary {
+    width: 100%;
+  }
+}

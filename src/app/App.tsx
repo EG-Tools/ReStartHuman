@@ -182,6 +182,7 @@ export default function App() {
               formData={formData}
               onBack={flow.previousQuestion}
               onNext={flow.nextQuestion}
+              onSeekQuestion={flow.goToQuestion}
               onPatchFormData={patchFormData}
             />
           ) : null}
@@ -213,6 +214,9 @@ export default function App() {
     </div>
   )
 }
+
+
+
 
 
 

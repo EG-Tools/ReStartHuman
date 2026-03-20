@@ -21,32 +21,26 @@ export const questionFlow: QuestionStep[] = [
   },
   {
     id: 'assets',
-    title: '금융자산 규모를 입력해 주세요.',
-    description: '배당 현금흐름을 보기 전에 자산 구성을 정리합니다.',
+    title: '주식계좌 규모를 입력해 주세요.',
+    description: '',
     visibility: () => true,
   },
   {
     id: 'dividends',
-    title: '연간 배당금을 입력해 주세요.',
-    description: '세전 또는 세후 입력을 고르고, 일반계좌와 ISA 배당 귀속도 함께 정합니다.',
+    title: '배당금과 연금 예상액을 입력해 주세요.',
+    description: '',
     visibility: () => true,
   },
   {
     id: 'isa',
-    title: 'ISA 조건을 선택해 주세요.',
-    description: '잘 모르겠음은 명세서 기본 규칙으로 처리합니다.',
+    title: 'ISA 유형을 선택해 주세요.',
+    description: '',
     visibility: () => true,
   },
   {
     id: 'income',
     title: '기타 소득을 입력해 주세요.',
     description: '배당 외에 추가 월소득이 있으면 종류와 금액을 반영합니다.',
-    visibility: () => true,
-  },
-  {
-    id: 'pension',
-    title: '연금 수령 여부를 입력해 주세요.',
-    description: '이미 수령 중인 월 연금만 우선 반영합니다.',
     visibility: () => true,
   },
   {
@@ -64,7 +58,7 @@ export const questionFlow: QuestionStep[] = [
   {
     id: 'livingCosts',
     title: '생활비 입력 방식을 선택해 주세요.',
-    description: '총액 한 번 입력 또는 세부 항목 입력 중에서 고를 수 있습니다.',
+    description: '',
     visibility: () => true,
   },
   {
@@ -74,6 +68,3 @@ export const questionFlow: QuestionStep[] = [
     visibility: () => true,
   },
 ]
-
-
-
