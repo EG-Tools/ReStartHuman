@@ -650,7 +650,12 @@ p {
     padding: 0;
   }
 
+  .aurora {
+    display: none;
+  }
+
   .phone-stage {
+    width: 100%;
     min-height: var(--app-height);
   }
 
@@ -661,12 +666,14 @@ p {
   }
 
   .device-frame {
-    width: var(--app-width);
-    max-width: var(--app-width);
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
   }
 
   .screen {
-    width: var(--app-width);
+    width: 100%;
     padding: 20px;
   }
 
