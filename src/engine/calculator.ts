@@ -1,4 +1,4 @@
-﻿import { policyConfig } from '../config/policyConfig'
+import { policyConfig } from '../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
   CashBalancePoint,
@@ -118,6 +118,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
     policyConfig.inflation.defaultAnnualRate,
   ),
   startingCashReserve: sanitizeMoney(formData.startingCashReserve),
+  currentAge: Math.max(20, sanitizeMoney(formData.currentAge) || 55),
 })
 
 const toMonthly = (annualValue: number) => roundCurrency(annualValue / 12)
@@ -319,12 +320,12 @@ const getOwnershipAllocations = ({
   return [
     {
       personKey: 'mine',
-      label: '본인',
+        label: '본인',
       attributedAnnual: mineAllocatedAnnual,
     },
     {
       personKey: 'spouse',
-      label: '배우자',
+        label: '배우자',
       attributedAnnual: roundCurrency(
         Math.max(totalAnnualAllocated - mineAllocatedAnnual, 0),
       ),
@@ -780,4 +781,5 @@ export const calculateRetireScenario = (
     loanNotice: formData.hasLoan,
   }
 }
+
 

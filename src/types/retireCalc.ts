@@ -1,4 +1,4 @@
-﻿export type HouseholdType = 'single' | 'couple'
+export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
@@ -101,6 +101,7 @@ export interface RetireCalcFormData {
   inflationEnabled: boolean
   inflationRateAnnual: number
   startingCashReserve: number
+  currentAge: number
 }
 
 export interface AccountOwnershipBreakdown {
@@ -220,4 +221,5 @@ export interface QuestionStep {
   description: string
   visibility: (formData: RetireCalcFormData) => boolean
 }
+
 

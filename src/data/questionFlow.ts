@@ -1,4 +1,4 @@
-﻿import type { QuestionStep } from '../types/retireCalc'
+import type { QuestionStep } from '../types/retireCalc'
 
 export const questionFlow: QuestionStep[] = [
   {
@@ -63,8 +63,8 @@ export const questionFlow: QuestionStep[] = [
   },
   {
     id: 'cashReserve',
-    title: '지금 남아있는 현금을 입력해 주세요.',
-    description: '기본값 1억원을 시작점으로 10년 현금흐름 그래프에 반영합니다.',
+    title: '남아있는 현금과 나이를 입력해 주세요.',
+    description: '기본값 1억원과 현재 나이를 결과 상단 그래프와 자산 수준 해석에 반영합니다.',
     visibility: () => true,
   },
 ]

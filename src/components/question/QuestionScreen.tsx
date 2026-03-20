@@ -658,6 +658,7 @@ export function QuestionScreen({
       case 'cashReserve':
         return (
           <NumberFields
+            columns={2}
             fields={[
               {
                 key: 'startingCashReserve',
@@ -665,6 +666,17 @@ export function QuestionScreen({
                 value: formData.startingCashReserve,
                 onChange: (value) => update('startingCashReserve', value),
                 helperText: '기본값 1억원이며, 결과 상단 10년 현금흐름 그래프의 시작점이 됩니다.',
+              },
+              {
+                key: 'currentAge',
+                label: '현재 나이',
+                value: formData.currentAge,
+                onChange: (value) => update('currentAge', value),
+                display: 'number',
+                suffix: '세',
+                min: 20,
+                step: 1,
+                helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
               },
             ]}
           />
