@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -875,49 +875,82 @@ export function ResultScreen({
   const captureRef = useRef<HTMLDivElement | null>(null)
   const [exportState, setExportState] = useState<'idle' | 'sharing'>('idle')
   const [exportMessage, setExportMessage] = useState<string | null>(null)
-  const ageBenchmark = getAgeAssetBenchmark(formData.currentAge)
-  const totalAssetEstimate = getHouseholdAssetEstimate(formData)
-  const assetInterpretation = getAssetInterpretationMessage({
-    benchmarkLabel: ageBenchmark.label,
-    benchmarkAverageAsset: ageBenchmark.averageAsset,
-    totalAssets: totalAssetEstimate,
-    dividendAnnual: result.totalDividendAnnualGross,
-  })
-  const highestComprehensiveTaxBreakdown =
-    result.comprehensiveTaxBreakdown.reduce<RetireCalcResult['comprehensiveTaxBreakdown'][number] | null>(
-      (highest, item) => {
+  const ageBenchmark = useMemo(
+    () => getAgeAssetBenchmark(formData.currentAge),
+    [formData.currentAge],
+  )
+  const totalAssetEstimate = useMemo(
+    () => getHouseholdAssetEstimate(formData),
+    [formData],
+  )
+  const assetInterpretation = useMemo(
+    () =>
+      getAssetInterpretationMessage({
+        benchmarkLabel: ageBenchmark.label,
+        benchmarkAverageAsset: ageBenchmark.averageAsset,
+        totalAssets: totalAssetEstimate,
+        dividendAnnual: result.totalDividendAnnualGross,
+      }),
+    [
+      ageBenchmark.averageAsset,
+      ageBenchmark.label,
+      result.totalDividendAnnualGross,
+      totalAssetEstimate,
+    ],
+  )
+  const highestComprehensiveTaxBreakdown = useMemo(
+    () =>
+      result.comprehensiveTaxBreakdown.reduce<
+        RetireCalcResult['comprehensiveTaxBreakdown'][number] | null
+      >((highest, item) => {
         if (!highest || item.finalTaxAnnual > highest.finalTaxAnnual) {
           return item
         }
 
         return highest
-      },
-      null,
-    )
-  const effectiveComprehensiveRate =
-    highestComprehensiveTaxBreakdown && highestComprehensiveTaxBreakdown.attributedDividendAnnual > 0
-      ? Math.round(
-          (highestComprehensiveTaxBreakdown.finalTaxAnnual /
-            highestComprehensiveTaxBreakdown.attributedDividendAnnual) *
-            100,
-        )
-      : 0
-  const interpretationItems = [
-    result.holdingTaxAnnual >= 10_000_000
-      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 주택이라면 보유세 부담이 큰 구간에 들어간 것으로 볼 수 있습니다.`
-      : result.holdingTaxAnnual > 0
-        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준으로 추정한 값입니다.`
-        : '보유세는 현재 납부 대상이 아닌 것으로 계산됐습니다.',
-    result.comprehensiveTaxIncluded
-      ? result.comprehensiveTaxImpactAnnual > 0
-        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-        : '종합소득세 대상 구간이지만, 비교세액 구조상 추가 납부는 0원으로 계산됐습니다.'
-      : '금융소득 2,000만원 이하로 보고 종합소득세 추가분은 제외했습니다.',
-    result.healthInsuranceMonthly >= 1_000_000
-      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
-      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
-    assetInterpretation,
-  ]
+      }, null),
+    [result.comprehensiveTaxBreakdown],
+  )
+  const effectiveComprehensiveRate = useMemo(
+    () =>
+      highestComprehensiveTaxBreakdown &&
+      highestComprehensiveTaxBreakdown.attributedDividendAnnual > 0
+        ? Math.round(
+            (highestComprehensiveTaxBreakdown.finalTaxAnnual /
+              highestComprehensiveTaxBreakdown.attributedDividendAnnual) *
+              100,
+          )
+        : 0,
+    [highestComprehensiveTaxBreakdown],
+  )
+  const interpretationItems = useMemo(
+    () => [
+      result.holdingTaxAnnual >= 10_000_000
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 주택이라면 보유세 부담이 큰 구간에 들어갈 것으로 보입니다.`
+        : result.holdingTaxAnnual > 0
+          ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준으로 추정된 값입니다.`
+          : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
+      result.comprehensiveTaxIncluded
+        ? result.comprehensiveTaxImpactAnnual > 0
+          ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
+          : '종합소득세는 대상 구간이지만 비교과세 구조로 추가 세 부담은 0으로 계산했습니다.'
+        : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
+      result.healthInsuranceMonthly >= 1_000_000
+        ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
+        : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
+      assetInterpretation,
+    ],
+    [
+      assetInterpretation,
+      effectiveComprehensiveRate,
+      formData.healthInsuranceType,
+      formData.homeOfficialValue,
+      result.comprehensiveTaxImpactAnnual,
+      result.comprehensiveTaxIncluded,
+      result.healthInsuranceMonthly,
+      result.holdingTaxAnnual,
+    ],
+  )
 
   const createResultImage = async () => {
     const node = captureRef.current
@@ -1313,7 +1346,7 @@ export function ResultScreen({
       <details className="help-drawer result-panel">
         <summary className="help-drawer-toggle">
           <span>도움말</span>
-          <span className="help-drawer-toggle-copy">눌러서 열기 / 닫기</span>
+          <span className="help-drawer-toggle-copy">열기 / 닫기</span>
         </summary>
         <div className="help-drawer-body">
           <div className="notice-stack help-drawer-stack">

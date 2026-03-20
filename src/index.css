@@ -1657,7 +1657,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  height: clamp(372px, 56vh, 520px);
+  height: clamp(420px, 64vh, 620px);
   padding: 0;
   overflow: hidden;
   text-align: left;
@@ -1667,7 +1667,7 @@ body {
 
 .start-hero-image {
   display: block;
-  width: calc(100% + 16px);
+  width: calc(100% + 8px);
   max-width: none;
   height: auto;
   align-self: flex-start;
@@ -2471,11 +2471,11 @@ body {
   }
 
   .start-hero-panel {
-    height: 296px;
+    height: clamp(380px, 58svh, 500px);
   }
 
   .start-hero-image {
-    width: calc(100% + 8px);
+    width: 100%;
   }
 
   .start-hero-overlay {
