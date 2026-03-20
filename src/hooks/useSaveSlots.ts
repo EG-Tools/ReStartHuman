@@ -47,8 +47,12 @@ export const useSaveSlots = () => {
     return slotMap
   }, [slots])
 
-  const refresh = () => {
-    setSlots(readSlots())
+  const replaceSlot = (nextRecord: SaveSlotRecord) => {
+    setSlots((currentSlots) =>
+      [...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId), nextRecord].sort(
+        (left, right) => left.slotId - right.slotId,
+      ),
+    )
   }
 
   const saveSlot = (
@@ -69,7 +73,7 @@ export const useSaveSlots = () => {
     }
 
     window.localStorage.setItem(getStorageKey(slotId), JSON.stringify(record))
-    refresh()
+    replaceSlot(record)
   }
 
   const deleteSlot = (slotId: number) => {
@@ -78,7 +82,7 @@ export const useSaveSlots = () => {
     }
 
     window.localStorage.removeItem(getStorageKey(slotId))
-    refresh()
+    setSlots((currentSlots) => currentSlots.filter((slot) => slot.slotId !== slotId))
   }
 
   return {
