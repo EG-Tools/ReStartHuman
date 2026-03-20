@@ -1,4 +1,4 @@
-﻿import { startTransition, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { startTransition, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { StartScreen } from '../components/start/StartScreen'
 import { QuestionScreen } from '../components/question/QuestionScreen'
 import { ResultScreen } from '../components/result/ResultScreen'
@@ -97,6 +97,34 @@ export default function App() {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [restoreFromHistory])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const root = document.documentElement
+    const syncViewportSize = () => {
+      const viewport = window.visualViewport
+      const viewportHeight = Math.round(viewport?.height ?? window.innerHeight)
+      const viewportWidth = Math.round(viewport?.width ?? window.innerWidth)
+
+      root.style.setProperty('--app-height', `${viewportHeight}px`)
+      root.style.setProperty('--app-width', `${viewportWidth}px`)
+    }
+
+    syncViewportSize()
+
+    window.addEventListener('resize', syncViewportSize)
+    window.addEventListener('orientationchange', syncViewportSize)
+    window.visualViewport?.addEventListener('resize', syncViewportSize)
+
+    return () => {
+      window.removeEventListener('resize', syncViewportSize)
+      window.removeEventListener('orientationchange', syncViewportSize)
+      window.visualViewport?.removeEventListener('resize', syncViewportSize)
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined' || !historyReadyRef.current) {

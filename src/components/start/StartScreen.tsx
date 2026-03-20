@@ -25,14 +25,11 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-backdrop" role="presentation">
       <div className="modal-panel settings-modal" role="dialog" aria-modal="true" aria-label="설정">
-        <div className="modal-header">
+        <div className="modal-header settings-modal-header">
           <div>
             <p className="eyebrow">옵션</p>
             <h2>설정</h2>
           </div>
-          <button type="button" className="icon-button" onClick={onClose}>
-            닫기
-          </button>
         </div>
 
         <section className="note-panel support-panel">
@@ -66,23 +63,31 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="support-option-list">
-            <div className="support-option-row">
-              <span>현재 버전</span>
-              <strong>0.10</strong>
+            <div className="support-option-row support-option-heading">
+              <span>개발자 주소</span>
+              <strong>EG Life</strong>
             </div>
             <div className="support-option-row">
-              <span>결제 연동</span>
-              <strong>추후 연결</strong>
+              <span>회사명</span>
+              <strong>EG Life</strong>
             </div>
             <div className="support-option-row">
-              <span>광고 제거 저장</span>
-              <strong>추후 연결</strong>
+              <span>이메일</span>
+              <strong>Lyrikey@Naver.com</strong>
+            </div>
+            <div className="support-option-row">
+              <span>연락처</span>
+              <strong>이메일 문의</strong>
             </div>
           </div>
 
           <p className="support-note">
             실제 결제, 후원 내역 저장, 광고 제거 상태 저장은 광고 기능이 붙는 시점에 함께 연결할 예정입니다.
           </p>
+
+          <PrimaryButton className="settings-close-button" onClick={onClose}>
+            닫기
+          </PrimaryButton>
         </section>
       </div>
     </div>
