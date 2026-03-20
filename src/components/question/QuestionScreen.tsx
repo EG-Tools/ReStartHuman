@@ -1,0 +1,731 @@
+﻿import type { ReactNode } from 'react'
+import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
+import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
+import { formatCompactCurrency } from '../../utils/format'
+
+interface QuestionScreenProps {
+  question: QuestionStep
+  questionIndex: number
+  totalQuestions: number
+  formData: RetireCalcFormData
+  onBack: () => void
+  onNext: () => void
+  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+}
+
+const householdOptions = [
+  { value: 'single', label: '본인만', description: '혼자 기준으로 계산합니다.' },
+  { value: 'couple', label: '부부 합산', description: '가구 기준으로 함께 계산합니다.' },
+] as const
+
+const housingOptions = [
+  { value: 'own', label: '자가', description: '재산세 추정을 포함합니다.' },
+  { value: 'jeonse', label: '전세', description: '전세 보증금 기준으로 입력합니다.' },
+  { value: 'monthlyRent', label: '월세', description: '보증금과 월세를 함께 입력합니다.' },
+] as const
+
+const dividendModeOptions = [
+  { value: 'gross', label: '세전 입력', description: '입력값을 기준으로 세후 배당을 계산합니다.' },
+  { value: 'net', label: '세후 입력', description: '입력값을 이미 세후 금액으로 처리합니다.' },
+] as const
+
+const isaTypeOptions = [
+  { value: 'general', label: '일반형', description: '기본 ISA 기준을 적용합니다.' },
+  { value: 'workingClass', label: '서민형', description: '더 큰 비과세 한도를 적용합니다.' },
+  { value: 'unknown', label: '잘 모르겠음', description: '일반형으로 계산합니다.' },
+] as const
+
+const yesNoUnknownOptions = [
+  { value: 'yes', label: '예', description: '혜택 적용으로 봅니다.' },
+  { value: 'no', label: '아니오', description: '보수적으로 계산합니다.' },
+  { value: 'unknown', label: '잘 모르겠음', description: '기본값으로 처리합니다.' },
+] as const
+
+const dividendOwnershipOptions = [
+  { value: 'mineOnly', label: '본인 귀속', description: '배당을 전부 본인 수입으로 봅니다.' },
+  { value: 'spouseOnly', label: '배우자 귀속', description: '배당을 전부 배우자 수입으로 봅니다.' },
+  { value: 'split', label: '나눠서 귀속', description: '배당 귀속을 둘로 나눠서 봅니다.' },
+] as const
+
+const otherIncomeTypeOptions = [
+  { value: 'none', label: '없음', description: '추가 월소득이 없습니다.' },
+  { value: 'earned', label: '근로소득', description: '월 급여성 소득입니다.' },
+  { value: 'business', label: '사업소득', description: '월 사업소득입니다.' },
+  { value: 'pension', label: '기타 연금', description: '기타 연금성 소득입니다.' },
+  { value: 'other', label: '기타', description: '그 외 월 현금유입입니다.' },
+] as const
+
+const healthInsuranceOptions = [
+  { value: 'regional', label: '지역가입자', description: '소득·재산 구조를 반영한 지역 추정입니다.' },
+  {
+    value: 'employee',
+    label: '직장가입자',
+    description: '보수월액과 보수 외 소득 구조를 반영합니다.',
+  },
+  {
+    value: 'dependent',
+    label: '피부양자',
+    description: '조건 유지 시 0원, 초과 시 지역 기준으로 전환합니다.',
+  },
+  {
+    value: 'bothRegional',
+    label: '부부 모두 지역',
+    description: '지역가입자 구조와 같은 방식으로 추정합니다.',
+  },
+  {
+    value: 'employeeWithDependentSpouse',
+    label: '직장 + 피부양 배우자',
+    description: '직장가입자 구조 중심으로 계산합니다.',
+  },
+  { value: 'other', label: '기타', description: '지역가입자 구조에 가깝게 추정합니다.' },
+] as const
+
+const livingCostModeOptions = [
+  { value: 'total', label: '총액 입력', description: '월 생활비 총액만 한 번에 넣습니다.' },
+  { value: 'detailed', label: '세부 입력', description: '항목별로 나눠서 입력합니다.' },
+] as const
+
+function QuestionLayout({
+  question,
+  questionIndex,
+  totalQuestions,
+  onBack,
+  onNext,
+  children,
+}: {
+  question: QuestionStep
+  questionIndex: number
+  totalQuestions: number
+  onBack: () => void
+  onNext: () => void
+  children: ReactNode
+}) {
+  const progress = ((questionIndex + 1) / totalQuestions) * 100
+
+  return (
+    <section className="screen question-screen">
+      <div className="screen-header">
+        <div>
+          <p className="eyebrow">질문 {questionIndex + 1}</p>
+          <h1 className="screen-title">{question.title}</h1>
+          <p className="screen-copy">{question.description}</p>
+        </div>
+        <div className="progress-shell">
+          <span className="progress-label">
+            {questionIndex + 1} / {totalQuestions}
+          </span>
+          <ProgressBar value={progress} />
+        </div>
+      </div>
+
+      <div className="question-body">{children}</div>
+
+      <div className="footer-actions sticky-footer">
+        <PrimaryButton variant="ghost" onClick={onBack} disabled={questionIndex === 0}>
+          이전
+        </PrimaryButton>
+        <PrimaryButton onClick={onNext}>
+          {questionIndex === totalQuestions - 1 ? '결과 보기' : '다음'}
+        </PrimaryButton>
+      </div>
+    </section>
+  )
+}
+
+export function QuestionScreen({
+  question,
+  questionIndex,
+  totalQuestions,
+  formData,
+  onBack,
+  onNext,
+  onPatchFormData,
+}: QuestionScreenProps) {
+  const update = <K extends keyof RetireCalcFormData>(
+    key: K,
+    value: RetireCalcFormData[K],
+  ) => {
+    onPatchFormData({ [key]: value } as Pick<RetireCalcFormData, K>)
+  }
+
+  const renderBooleanChoice = (
+    label: string,
+    value: boolean,
+    onChange: (nextValue: boolean) => void,
+  ) => (
+    <section className="question-block">
+      <div className="question-block-header">
+        <h2>{label}</h2>
+      </div>
+      <ChoiceQuestion
+        value={value ? 'yes' : 'no'}
+        options={[
+          { value: 'yes', label: '예', description: '이 조건을 포함합니다.' },
+          { value: 'no', label: '아니오', description: '이 조건을 제외합니다.' },
+        ]}
+        onChange={(nextValue) => onChange(nextValue === 'yes')}
+      />
+    </section>
+  )
+
+  const renderContent = () => {
+    switch (question.id) {
+      case 'household':
+        return (
+          <ChoiceQuestion
+            value={formData.householdType}
+            options={householdOptions}
+            onChange={(value) => update('householdType', value)}
+          />
+        )
+      case 'housingType':
+        return (
+          <ChoiceQuestion
+            value={formData.housingType}
+            options={housingOptions}
+            onChange={(value) => update('housingType', value)}
+          />
+        )
+      case 'housingDetails':
+        return (
+          <div className="question-stack">
+            {formData.housingType === 'own' ? (
+              <>
+                <NumberFields
+                  columns={2}
+                  fields={[
+                    {
+                      key: 'homeMarketValue',
+                      label: '주택 시가',
+                      value: formData.homeMarketValue,
+                      onChange: (value) => update('homeMarketValue', value),
+                    },
+                    {
+                      key: 'homeOfficialValue',
+                      label: '주택 공시가격',
+                      value: formData.homeOfficialValue,
+                      onChange: (value) => update('homeOfficialValue', value),
+                    },
+                  ]}
+                />
+                {renderBooleanChoice('공동명의인가요?', formData.isJointOwnership, (value) =>
+                  update('isJointOwnership', value),
+                )}
+                {renderBooleanChoice('1주택자로 볼 수 있나요?', formData.isSingleHomeOwner, (value) =>
+                  update('isSingleHomeOwner', value),
+                )}
+                {renderBooleanChoice('주택담보대출이 있나요?', formData.hasLoan, (value) =>
+                  update('hasLoan', value),
+                )}
+              </>
+            ) : null}
+
+            {formData.housingType === 'jeonse' ? (
+              <>
+                <NumberFields
+                  fields={[
+                    {
+                      key: 'jeonseDeposit',
+                      label: '전세 보증금',
+                      value: formData.jeonseDeposit,
+                      onChange: (value) => update('jeonseDeposit', value),
+                    },
+                  ]}
+                />
+                {renderBooleanChoice('공동명의 계약인가요?', formData.isJointOwnership, (value) =>
+                  update('isJointOwnership', value),
+                )}
+              </>
+            ) : null}
+
+            {formData.housingType === 'monthlyRent' ? (
+              <>
+                <NumberFields
+                  columns={2}
+                  fields={[
+                    {
+                      key: 'monthlyRentDeposit',
+                      label: '월세 보증금',
+                      value: formData.monthlyRentDeposit,
+                      onChange: (value) => update('monthlyRentDeposit', value),
+                    },
+                    {
+                      key: 'monthlyRentAmount',
+                      label: '월세',
+                      value: formData.monthlyRentAmount,
+                      onChange: (value) => update('monthlyRentAmount', value),
+                    },
+                  ]}
+                />
+                {renderBooleanChoice(
+                  '관리비가 월세에 포함되어 있나요?',
+                  formData.maintenanceIncludedInRent,
+                  (value) => update('maintenanceIncludedInRent', value),
+                )}
+                {!formData.maintenanceIncludedInRent ? (
+                  <NumberFields
+                    fields={[
+                      {
+                        key: 'monthlyMaintenanceFee',
+                        label: '월 관리비',
+                        value: formData.monthlyMaintenanceFee,
+                        onChange: (value) => update('monthlyMaintenanceFee', value),
+                      },
+                    ]}
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        )
+      case 'assets':
+        return (
+          <NumberFields
+            columns={2}
+            fields={[
+              {
+                key: 'taxableAccountAssets',
+                label: '일반계좌 자산',
+                value: formData.taxableAccountAssets,
+                onChange: (value) => update('taxableAccountAssets', value),
+              },
+              {
+                key: 'isaAssets',
+                label: 'ISA 자산',
+                value: formData.isaAssets,
+                onChange: (value) => update('isaAssets', value),
+              },
+              {
+                key: 'pensionAccountAssets',
+                label: '연금계좌 자산',
+                value: formData.pensionAccountAssets,
+                onChange: (value) => update('pensionAccountAssets', value),
+              },
+              {
+                key: 'otherAssets',
+                label: '기타 자산',
+                value: formData.otherAssets,
+                onChange: (value) => update('otherAssets', value),
+              },
+            ]}
+          />
+        )
+      case 'dividends':
+        return (
+          <div className="question-stack">
+            <ChoiceQuestion
+              value={formData.dividendInputMode}
+              options={dividendModeOptions}
+              onChange={(value) => update('dividendInputMode', value)}
+            />
+            <NumberFields
+              columns={2}
+              fields={[
+                {
+                  key: 'taxableAccountDividendAnnual',
+                  label: '일반계좌 연간 배당금',
+                  value: formData.taxableAccountDividendAnnual,
+                  onChange: (value) => update('taxableAccountDividendAnnual', value),
+                },
+                {
+                  key: 'isaDividendAnnual',
+                  label: 'ISA 연간 배당금',
+                  value: formData.isaDividendAnnual,
+                  onChange: (value) => update('isaDividendAnnual', value),
+                },
+                {
+                  key: 'pensionDividendAnnual',
+                  label: '연금계좌 연간 배당금',
+                  value: formData.pensionDividendAnnual,
+                  onChange: (value) => update('pensionDividendAnnual', value),
+                },
+              ]}
+            />
+            {formData.householdType === 'couple' ? (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>일반계좌 배당 귀속</h2>
+                </div>
+                <ChoiceQuestion
+                  value={formData.dividendOwnershipType}
+                  options={dividendOwnershipOptions}
+                  onChange={(value) => update('dividendOwnershipType', value)}
+                />
+              </section>
+            ) : (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>일반계좌 배당 귀속</h2>
+                </div>
+                <p className="screen-copy">
+                  본인만 계산하므로 일반계좌 배당은 전부 본인 귀속으로 처리합니다.
+                </p>
+              </section>
+            )}
+            {formData.householdType === 'couple' && formData.dividendOwnershipType === 'split' ? (
+              <NumberFields
+                fields={[
+                  {
+                    key: 'myAnnualDividendAttributed',
+                    label: '본인 귀속 일반계좌 연간 배당금',
+                    value: formData.myAnnualDividendAttributed,
+                    onChange: (value) => {
+                      const mineDividend = Math.min(
+                        Math.max(value, 0),
+                        formData.taxableAccountDividendAnnual,
+                      )
+                      onPatchFormData({
+                        myAnnualDividendAttributed: mineDividend,
+                        spouseAnnualDividendAttributed: Math.max(
+                          formData.taxableAccountDividendAnnual - mineDividend,
+                          0,
+                        ),
+                      })
+                    },
+                    helperText: `배우자 귀속은 자동 계산: ${formatCompactCurrency(
+                      Math.max(
+                        formData.taxableAccountDividendAnnual -
+                          Math.min(
+                            Math.max(formData.myAnnualDividendAttributed, 0),
+                            formData.taxableAccountDividendAnnual,
+                          ),
+                        0,
+                      ),
+                    )}`,
+                  },
+                ]}
+              />
+            ) : null}
+            {formData.isaDividendAnnual > 0 ? (
+              <>
+                {formData.householdType === 'couple' ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>ISA 배당 귀속</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.isaOwnershipType}
+                      options={dividendOwnershipOptions}
+                      onChange={(value) => update('isaOwnershipType', value)}
+                    />
+                  </section>
+                ) : (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>ISA 배당 귀속</h2>
+                    </div>
+                    <p className="screen-copy">
+                      본인만 계산하므로 ISA 배당도 전부 본인 귀속으로 처리합니다.
+                    </p>
+                  </section>
+                )}
+                {formData.householdType === 'couple' && formData.isaOwnershipType === 'split' ? (
+                  <NumberFields
+                    fields={[
+                      {
+                        key: 'myAnnualIsaDividendAttributed',
+                        label: '본인 귀속 ISA 연간 배당금',
+                        value: formData.myAnnualIsaDividendAttributed,
+                        onChange: (value) => {
+                          const mineIsaDividend = Math.min(
+                            Math.max(value, 0),
+                            formData.isaDividendAnnual,
+                          )
+                          onPatchFormData({
+                            myAnnualIsaDividendAttributed: mineIsaDividend,
+                            spouseAnnualIsaDividendAttributed: Math.max(
+                              formData.isaDividendAnnual - mineIsaDividend,
+                              0,
+                            ),
+                          })
+                        },
+                        helperText: `배우자 귀속은 자동 계산: ${formatCompactCurrency(
+                          Math.max(
+                            formData.isaDividendAnnual -
+                              Math.min(
+                                Math.max(formData.myAnnualIsaDividendAttributed, 0),
+                                formData.isaDividendAnnual,
+                              ),
+                            0,
+                          ),
+                        )}`,
+                      },
+                    ]}
+                  />
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        )
+      case 'isa':
+        return (
+          <div className="question-stack">
+            {formData.householdType === 'couple' ? (
+              <>
+                {formData.isaOwnershipType !== 'spouseOnly' ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>본인 ISA 유형</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.myIsaType}
+                      options={isaTypeOptions}
+                      onChange={(value) => onPatchFormData({ myIsaType: value })}
+                    />
+                  </section>
+                ) : null}
+                {formData.isaOwnershipType !== 'mineOnly' ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>배우자 ISA 유형</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.spouseIsaType}
+                      options={isaTypeOptions}
+                      onChange={(value) => onPatchFormData({ spouseIsaType: value })}
+                    />
+                  </section>
+                ) : null}
+                <p className="screen-copy">
+                  ISA 절세 한도는 귀속된 사람별로 따로 적용합니다. 일반형은 연 500만원,
+                  서민형은 연 1,000만원까지 비과세로 보고 초과분만 9.9% 분리과세로 계산합니다.
+                </p>
+              </>
+            ) : (
+              <>
+                <ChoiceQuestion
+                  value={formData.isaType}
+                  options={isaTypeOptions}
+                  onChange={(value) =>
+                    onPatchFormData({
+                      isaType: value,
+                      myIsaType: value,
+                    })
+                  }
+                />
+                <p className="screen-copy">
+                  일반형은 연 500만원, 서민형은 연 1,000만원까지 비과세로 보고 초과분만
+                  9.9% 분리과세로 계산합니다.
+                </p>
+              </>
+            )}
+            <NumberFields
+              fields={[
+                {
+                  key: 'isaYearsSinceOpen',
+                  label: 'ISA 개설 후 경과 연수',
+                  value: formData.isaYearsSinceOpen,
+                  onChange: (value) => update('isaYearsSinceOpen', value),
+                  step: 1,
+                  display: 'number',
+                  suffix: '년',
+                },
+              ]}
+            />
+            <ChoiceQuestion
+              value={formData.isaMaturityExtended}
+              options={yesNoUnknownOptions}
+              onChange={(value) => update('isaMaturityExtended', value)}
+            />
+          </div>
+        )
+      case 'income':
+        return (
+          <div className="question-stack">
+            <NumberFields
+              fields={[
+                {
+                  key: 'otherIncomeMonthly',
+                  label: '기타 월소득',
+                  value: formData.otherIncomeMonthly,
+                  onChange: (value) => update('otherIncomeMonthly', value),
+                },
+              ]}
+            />
+            <ChoiceQuestion
+              value={formData.otherIncomeType}
+              options={otherIncomeTypeOptions}
+              onChange={(value) => update('otherIncomeType', value)}
+            />
+          </div>
+        )
+      case 'pension':
+        return (
+          <div className="question-stack">
+            {renderBooleanChoice('연금 수령을 반영할까요?', formData.hasPensionIncome, (value) =>
+              update('hasPensionIncome', value),
+            )}
+            {formData.hasPensionIncome ? (
+              <NumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'pensionStartAge',
+                    label: '연금 수령 시작 나이',
+                    value: formData.pensionStartAge,
+                    onChange: (value) => update('pensionStartAge', value),
+                    step: 1,
+                    display: 'number',
+                    suffix: '세',
+                  },
+                  {
+                    key: 'pensionMonthlyAmount',
+                    label: '월 연금 수령액',
+                    value: formData.pensionMonthlyAmount,
+                    onChange: (value) => update('pensionMonthlyAmount', value),
+                  },
+                ]}
+              />
+            ) : null}
+          </div>
+        )
+      case 'healthInsurance':
+        return (
+          <div className="question-stack">
+            <ChoiceQuestion
+              value={formData.healthInsuranceType}
+              options={healthInsuranceOptions}
+              onChange={(value) => update('healthInsuranceType', value)}
+            />
+            <NumberFields
+              fields={[
+                {
+                  key: 'salaryMonthly',
+                  label: '월 급여',
+                  value: formData.salaryMonthly,
+                  onChange: (value) => update('salaryMonthly', value),
+                  helperText: '직장가입자 계산에 사용합니다. 입력 단위는 만원입니다.',
+                },
+              ]}
+            />
+            {renderBooleanChoice('배우자가 피부양자인가요?', formData.spouseDependent, (value) =>
+              update('spouseDependent', value),
+            )}
+            {renderBooleanChoice('사업소득이 있나요?', formData.isBusinessOwner, (value) =>
+              update('isBusinessOwner', value),
+            )}
+            {renderBooleanChoice('무급가족종사자인가요?', formData.isUnpaidOwner, (value) =>
+              update('isUnpaidOwner', value),
+            )}
+          </div>
+        )
+      case 'fixedExpenses':
+        return (
+          <NumberFields
+            columns={2}
+            fields={[
+              {
+                key: 'insuranceMonthly',
+                label: '보험료',
+                value: formData.insuranceMonthly,
+                onChange: (value) => update('insuranceMonthly', value),
+              },
+              {
+                key: 'maintenanceMonthly',
+                label: '관리비',
+                value: formData.maintenanceMonthly,
+                onChange: (value) => update('maintenanceMonthly', value),
+              },
+              {
+                key: 'telecomMonthly',
+                label: '통신비',
+                value: formData.telecomMonthly,
+                onChange: (value) => update('telecomMonthly', value),
+              },
+              {
+                key: 'nationalPensionMonthly',
+                label: '국민연금',
+                value: formData.nationalPensionMonthly,
+                onChange: (value) => update('nationalPensionMonthly', value),
+              },
+              {
+                key: 'carYearlyCost',
+                label: '자동차 연간 유지비',
+                value: formData.carYearlyCost,
+                onChange: (value) => update('carYearlyCost', value),
+                helperText: '연간 금액을 입력하면 월 기준으로 12개월 나누어 계산합니다.',
+              },
+              {
+                key: 'otherFixedMonthly',
+                label: '기타 고정지출',
+                value: formData.otherFixedMonthly,
+                onChange: (value) => update('otherFixedMonthly', value),
+              },
+            ]}
+          />
+        )
+      case 'livingCosts':
+        return (
+          <div className="question-stack">
+            <ChoiceQuestion
+              value={formData.livingCostInputMode}
+              options={livingCostModeOptions}
+              onChange={(value) => update('livingCostInputMode', value)}
+            />
+            {formData.livingCostInputMode === 'total' ? (
+              <NumberFields
+                fields={[
+                  {
+                    key: 'livingCostMonthlyTotal',
+                    label: '월 생활비 총액',
+                    value: formData.livingCostMonthlyTotal,
+                    onChange: (value) => update('livingCostMonthlyTotal', value),
+                  },
+                ]}
+              />
+            ) : (
+              <NumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'foodMonthly',
+                    label: '식비',
+                    value: formData.foodMonthly,
+                    onChange: (value) => update('foodMonthly', value),
+                  },
+                  {
+                    key: 'necessitiesMonthly',
+                    label: '생필품',
+                    value: formData.necessitiesMonthly,
+                    onChange: (value) => update('necessitiesMonthly', value),
+                  },
+                  {
+                    key: 'diningOutMonthly',
+                    label: '외식비',
+                    value: formData.diningOutMonthly,
+                    onChange: (value) => update('diningOutMonthly', value),
+                  },
+                  {
+                    key: 'hobbyMonthly',
+                    label: '취미비',
+                    value: formData.hobbyMonthly,
+                    onChange: (value) => update('hobbyMonthly', value),
+                  },
+                  {
+                    key: 'otherLivingMonthly',
+                    label: '기타 생활비',
+                    value: formData.otherLivingMonthly,
+                    onChange: (value) => update('otherLivingMonthly', value),
+                  },
+                ]}
+              />
+            )}
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <QuestionLayout
+      question={question}
+      questionIndex={questionIndex}
+      totalQuestions={totalQuestions}
+      onBack={onBack}
+      onNext={onNext}
+    >
+      {renderContent()}
+    </QuestionLayout>
+  )
+}
