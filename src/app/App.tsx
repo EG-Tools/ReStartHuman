@@ -109,11 +109,12 @@ export default function App() {
     const timerIds = new Set<number>()
 
     const syncViewportSize = () => {
+      const visualViewport = window.visualViewport
       const viewportWidth = Math.round(
-        document.documentElement.clientWidth || window.innerWidth,
+        visualViewport?.width || document.documentElement.clientWidth || window.innerWidth,
       )
       const viewportHeight = Math.round(
-        window.innerHeight || document.documentElement.clientHeight,
+        visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
       )
 
       root.style.setProperty('--app-height', `${viewportHeight}px`)
