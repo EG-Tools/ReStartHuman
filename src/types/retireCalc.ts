@@ -78,7 +78,6 @@ export interface RetireCalcFormData {
 
   healthInsuranceType: HealthInsuranceType
   salaryMonthly: number
-  spouseDependent: boolean
   isBusinessOwner: boolean
   isUnpaidOwner: boolean
   healthInsuranceOverrideMonthly: number | null
