@@ -90,22 +90,46 @@ const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
 
 const getAssetTierMessage = (totalAssets: number) => {
   if (totalAssets >= 10_000_000_000) {
-    return '대한민국 자산 상위 0.1% 안팎의 초상위권으로 볼 수 있는 규모입니다.'
+    return '???? ?? ?? 0.1% ??? ?????? ? ? ?? ?????.'
   }
 
   if (totalAssets >= 3_000_000_000) {
-    return '대한민국 자산 상위 1% 안팎의 상위권으로 볼 수 있는 규모입니다.'
+    return '???? ?? ?? 1% ??? ????? ? ? ?? ?????.'
   }
 
   if (totalAssets >= 1_000_000_000) {
-    return '대한민국 자산 상위 10% 안팎의 상위권으로 볼 수 있는 규모입니다.'
+    return '???? ?? ?? 10% ??? ????? ? ? ?? ?????.'
   }
 
   if (totalAssets >= 300_000_000) {
-    return '대한민국 자산 중위권 이상으로 볼 수 있는 규모입니다.'
+    return '???? ?? ??? ???? ? ? ?? ?????.'
   }
 
-  return '대한민국 자산 하위권 또는 자산 형성 초기 구간으로 볼 수 있는 규모입니다.'
+  return '???? ?? ??? ?? ?? ?? ?? ???? ? ? ?? ?????.'
+}
+
+const getAssetInterpretationMessage = ({
+  benchmarkLabel,
+  benchmarkAverageAsset,
+  totalAssets,
+  dividendAnnual,
+}: {
+  benchmarkLabel: string
+  benchmarkAverageAsset: number
+  totalAssets: number
+  dividendAnnual: number
+}) => {
+  const assetMultiple = benchmarkAverageAsset > 0 ? totalAssets / benchmarkAverageAsset : 0
+  const roundedAssetMultiple = Math.round(assetMultiple * 10) / 10
+  const dividendToAssetRatio =
+    totalAssets > 0 ? dividendAnnual / totalAssets : dividendAnnual > 0 ? Number.POSITIVE_INFINITY : 0
+  const hasAssetIncomeMismatch = dividendAnnual > 0 && dividendToAssetRatio >= 0.15
+
+  if (hasAssetIncomeMismatch) {
+    return `${benchmarkLabel} ?? ?? ?? ???? ${formatCompactCurrency(totalAssets)}???. ?? ? ??? ${formatCompactCurrency(dividendAnnual)}? ?? ??? ?? ????? ????? ???? ???? ?????. ?? ??? ?? ????? ?? ? ??? ?? ?? ????.`
+  }
+
+  return `${benchmarkLabel} ?? ?? ?? ???? ${formatCompactCurrency(totalAssets)}???. ${benchmarkLabel} ?? ?? ${formatCompactCurrency(benchmarkAverageAsset)} ?? ? ${roundedAssetMultiple}???, ${getAssetTierMessage(totalAssets)}`
 }
 
 const getHealthInsuranceTypeSummary = (healthInsuranceType: RetireCalcFormData['healthInsuranceType']) => {
@@ -865,8 +889,12 @@ export function ResultScreen({
   const [exportMessage, setExportMessage] = useState<string | null>(null)
   const ageBenchmark = getAgeAssetBenchmark(formData.currentAge)
   const totalAssetEstimate = getHouseholdAssetEstimate(formData)
-  const assetMultiple = ageBenchmark.averageAsset > 0 ? totalAssetEstimate / ageBenchmark.averageAsset : 0
-  const roundedAssetMultiple = Math.round(assetMultiple * 10) / 10
+  const assetInterpretation = getAssetInterpretationMessage({
+    benchmarkLabel: ageBenchmark.label,
+    benchmarkAverageAsset: ageBenchmark.averageAsset,
+    totalAssets: totalAssetEstimate,
+    dividendAnnual: result.totalDividendAnnualGross,
+  })
   const highestComprehensiveTaxBreakdown =
     result.comprehensiveTaxBreakdown.reduce<RetireCalcResult['comprehensiveTaxBreakdown'][number] | null>(
       (highest, item) => {
@@ -900,7 +928,7 @@ export function ResultScreen({
     result.healthInsuranceMonthly >= 1_000_000
       ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 소득과 재산이 함께 크게 반영되는 구간입니다.`
       : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 추정입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 입력된 소득·재산 조건이 반영됐습니다.`,
-    `${ageBenchmark.label} 나이 기준 추정 총자산은 ${formatCompactCurrency(totalAssetEstimate)}입니다. ${ageBenchmark.label} 평균 자산 ${formatCompactCurrency(ageBenchmark.averageAsset)} 대비 약 ${roundedAssetMultiple}배이며, ${getAssetTierMessage(totalAssetEstimate)}`,
+    assetInterpretation,
   ]
 
   const createResultImage = async () => {
