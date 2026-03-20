@@ -67,7 +67,7 @@ export default function App() {
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
-  const flow = useRetireCalcFlow(formData)
+  const flow = useRetireCalcFlow()
   const saveSlots = useSaveSlots()
   const historyReadyRef = useRef(false)
   const isRestoringHistoryRef = useRef(false)
