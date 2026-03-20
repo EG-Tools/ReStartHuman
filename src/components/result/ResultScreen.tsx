@@ -19,6 +19,7 @@ interface ResultScreenProps {
   onStartOver: () => void
   onOpenSaveSlots: () => void
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  headerAction?: ReactNode
 }
 
 interface ResultRow {
@@ -856,6 +857,7 @@ export function ResultScreen({
   onStartOver,
   onOpenSaveSlots,
   onPatchFormData,
+  headerAction,
 }: ResultScreenProps) {
   const dividendBasisLabel =
     result.dividendInputMode === 'gross'
@@ -938,6 +940,12 @@ export function ResultScreen({
         backgroundColor: '#081113',
         pixelRatio: 2,
         cacheBust: true,
+        filter: (currentNode) => {
+          return !(
+            currentNode instanceof HTMLElement &&
+            currentNode.dataset.captureExclude === 'true'
+          )
+        },
       })
 
       if (!blob) {
@@ -1210,6 +1218,17 @@ export function ResultScreen({
 
   return (
     <section className="screen result-screen">
+      <div className="screen-header result-screen-header">
+        <div>
+          <h1 className="screen-title">???? ??</h1>
+        </div>
+        {headerAction ? (
+          <div className="result-screen-header-action" data-capture-exclude="true">
+            {headerAction}
+          </div>
+        ) : null}
+      </div>
+
       <div ref={captureRef} className="result-capture">
         <div className="screen-header">
           <div>

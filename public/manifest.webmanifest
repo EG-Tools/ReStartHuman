@@ -1,13 +1,13 @@
-﻿{
-  "name": "은퇴 후 월 현금흐름 계산기",
-  "short_name": "은퇴 현금흐름",
+{
+  "name": "Re Start Human",
+  "short_name": "Re Start Human",
   "description": "배당, 종합소득세, 건강보험료, 지출을 함께 보는 은퇴 현금흐름 계산기",
   "lang": "ko-KR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f1e7",
-  "theme_color": "#0d6f73",
+  "background_color": "#081113",
+  "theme_color": "#081113",
   "icons": [
     {
       "src": "./icons/app-icon-192.png",

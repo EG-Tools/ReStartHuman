@@ -2264,3 +2264,110 @@ body {
     flex-shrink: 0;
   }
 }
+
+
+/* App chrome refinements */
+.start-topbar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.app-options-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.question-screen-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'copy action'
+    'progress progress';
+  align-items: start;
+  gap: 14px 16px;
+}
+
+.question-screen-header-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.question-screen-header-action {
+  grid-area: action;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-self: start;
+}
+
+.question-progress-shell {
+  grid-area: progress;
+  width: min(240px, 100%);
+  justify-self: end;
+}
+
+.result-screen-header {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.result-screen-header-action {
+  display: inline-flex;
+  margin-left: auto;
+}
+
+@media (max-width: 900px) {
+  body {
+    background: #081113;
+  }
+
+  .app-shell {
+    background: #081113;
+  }
+
+  .phone-stage,
+  .device-frame {
+    width: 100vw;
+    max-width: 100vw;
+  }
+
+  .screen {
+    padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  }
+
+  .question-screen-header {
+    gap: 12px 12px;
+  }
+
+  .question-progress-shell {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .result-screen-header {
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .screen {
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+
+  .start-hero-panel {
+    min-height: 180px;
+  }
+
+  .question-screen .sticky-footer {
+    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+  }
+}
