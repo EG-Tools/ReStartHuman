@@ -1840,6 +1840,66 @@ body {
   font-weight: 800;
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
 }
+.projection-inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.projection-inline-title {
+  min-width: 0;
+}
+
+.projection-inline-label {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.projection-inline-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.projection-inline-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.projection-inline-input .input-shell {
+  width: 92px;
+  min-width: 92px;
+}
+
+.projection-inline-input .input-control {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .projection-inline-row {
+    align-items: flex-start;
+  }
+
+  .projection-inline-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .projection-inline-input {
+    flex: 1 1 auto;
+  }
+
+  .projection-inline-input .input-shell {
+    width: 84px;
+    min-width: 84px;
+  }
+}
 /* Disabled input state */
 .input-card.is-disabled {
   opacity: 0.76;
