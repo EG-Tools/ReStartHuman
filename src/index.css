@@ -767,7 +767,7 @@ p {
   padding: 0 10px;
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .table-edit-input {
@@ -1970,8 +1970,15 @@ body {
 
 .question-screen .input-shell,
 .projection-panel .input-shell {
-  background: rgba(0, 0, 0, 0.26);
+  background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+.question-screen .table-edit-field,
+.projection-panel .table-edit-field,
+.result-screen .table-edit-field {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .question-screen .input-control,
@@ -2398,6 +2405,16 @@ body {
     padding-right: 6px;
     padding-bottom: calc(6px + env(safe-area-inset-bottom));
     padding-left: 6px;
+  }
+
+  .result-screen .result-input-cell,
+  .result-screen .table-edit-cluster {
+    width: 116px;
+    min-width: 116px;
+  }
+
+  .result-screen .table-edit-field {
+    min-width: 0;
   }
 
   .start-hero-panel {
