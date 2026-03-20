@@ -25,6 +25,8 @@
   --neutral: #6f5d2e;
   --neutral-soft: rgba(111, 93, 46, 0.12);
   --shadow: 0 24px 80px rgba(61, 51, 30, 0.18);
+  --app-height: 100vh;
+  --app-width: 100vw;
 }
 
 * {
@@ -34,7 +36,8 @@
 html,
 body,
 #root {
-  min-height: 100%;
+  min-height: 100vh;
+  min-height: var(--app-height);
 }
 
 body {
@@ -65,11 +68,14 @@ p {
 
 #root {
   min-height: 100vh;
+  min-height: var(--app-height);
+  width: 100%;
 }
 
 .app-shell {
   position: relative;
   min-height: 100vh;
+  min-height: var(--app-height);
   overflow: hidden;
   padding: 24px;
 }
@@ -100,11 +106,14 @@ p {
   z-index: 1;
   display: flex;
   justify-content: center;
+  width: 100%;
+  min-height: calc(var(--app-height) - 48px);
 }
 
 .device-frame {
   width: min(100%, 980px);
-  min-height: calc(100vh - 48px);
+  max-width: calc(var(--app-width) - 48px);
+  min-height: calc(var(--app-height) - 48px);
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 36px;
   background: rgba(255, 248, 239, 0.78);
@@ -114,7 +123,7 @@ p {
 }
 
 .screen {
-  min-height: calc(100vh - 48px);
+  min-height: calc(var(--app-height) - 48px);
   padding: 28px;
   display: flex;
   flex-direction: column;
@@ -628,15 +637,29 @@ p {
   align-items: center;
 }
 
+.slot-card > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .app-shell {
+    min-height: var(--app-height);
     padding: 0;
+  }
+
+  .phone-stage {
+    min-height: var(--app-height);
   }
 
   .device-frame,
   .screen {
-    min-height: 100vh;
+    min-height: var(--app-height);
     border-radius: 0;
+  }
+
+  .device-frame {
+    max-width: var(--app-width);
   }
 
   .screen {
@@ -652,9 +675,7 @@ p {
   }
 
   .screen-header,
-  .panel-header,
-  .modal-header,
-  .slot-card {
+  .panel-header {
     flex-direction: column;
     align-items: stretch;
   }
@@ -665,7 +686,22 @@ p {
     width: 100%;
   }
 
-  .slot-actions,
+  .slot-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slot-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+
+  .slot-actions .button {
+    width: auto;
+  }
+
   .footer-actions,
   .start-actions {
     flex-direction: column;
@@ -1491,6 +1527,11 @@ body {
 
 .settings-modal {
   width: min(100%, 540px);
+  max-height: calc(var(--app-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
+}
+
+.settings-modal-header {
+  justify-content: flex-start;
 }
 
 .support-panel {
@@ -1551,6 +1592,15 @@ body {
 
 .support-actions {
   display: flex;
+}
+
+.support-actions .button,
+.settings-close-button {
+  width: 100%;
+}
+
+.settings-close-button {
+  margin-top: 4px;
 }
 
 .support-option-list {
