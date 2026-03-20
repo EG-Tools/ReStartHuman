@@ -1079,6 +1079,10 @@ p {
     padding-inline: 14px;
   }
 
+  .settings-modal-backdrop {
+    align-items: center;
+  }
+
   .modal-panel {
     width: 100%;
     max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
@@ -1563,6 +1567,11 @@ body {
   height: auto;
   max-height: calc(var(--app-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
   overflow: hidden;
+  margin-block: auto;
+}
+
+.settings-modal-backdrop {
+  align-items: center;
 }
 
 .settings-modal-header {

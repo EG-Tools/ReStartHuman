@@ -53,7 +53,11 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
   }, [onClose])
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div
+      className="modal-backdrop settings-modal-backdrop"
+      role="presentation"
+      onClick={onClose}
+    >
       <div
         className="modal-panel settings-modal"
         role="dialog"

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -277,7 +277,7 @@ function InflationSwitch({
     </button>
   )
 }
-function SummaryCards({ result }: { result: RetireCalcResult }) {
+const SummaryCards = memo(function SummaryCards({ result }: { result: RetireCalcResult }) {
   const cards = [
     {
       label: '월 실사용 가능액',
@@ -318,9 +318,9 @@ function SummaryCards({ result }: { result: RetireCalcResult }) {
       })}
     </div>
   )
-}
+})
 
-function CashFlowChart({
+const CashFlowChart = memo(function CashFlowChart({
   result,
   inflationEnabled,
   inflationRateAnnual,
@@ -498,7 +498,7 @@ function CashFlowChart({
       </div>
     </section>
   )
-}
+})
 const splitResultItemWord = (word: string) => {
   if (!word) {
     return []
@@ -585,7 +585,11 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
   )
 }
 
-function ResultInterpretation({ items }: { items: string[] }) {
+const ResultInterpretation = memo(function ResultInterpretation({
+  items,
+}: {
+  items: string[]
+}) {
   return (
     <section className="result-panel interpretation-panel">
       <div className="panel-header">
@@ -600,7 +604,7 @@ function ResultInterpretation({ items }: { items: string[] }) {
       </ul>
     </section>
   )
-}
+})
 
 function HelpPopover({
   detail,
