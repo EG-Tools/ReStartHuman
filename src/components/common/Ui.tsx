@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 
 const MANWON = 10_000
@@ -56,7 +56,11 @@ export function ProgressBar({
   const boundedValue = isInteractive
     ? Math.min(Math.max(value, 1), boundedMax)
     : Math.min(Math.max(value, 0), 100)
-  const ratio = isInteractive ? (boundedValue / boundedMax) * 100 : boundedValue
+  const ratio = isInteractive
+    ? boundedMax <= 1
+      ? 100
+      : ((boundedValue - 1) / (boundedMax - 1)) * 100
+    : boundedValue
 
   return (
     <div className={`progress-bar ${isInteractive ? 'is-interactive' : ''}`.trim()}>

@@ -1,4 +1,4 @@
-﻿const wonFormatter = new Intl.NumberFormat('ko-KR', {
+const wonFormatter = new Intl.NumberFormat('ko-KR', {
   maximumFractionDigits: 0,
 })
 
@@ -6,21 +6,45 @@ const decimalFormatter = new Intl.NumberFormat('ko-KR', {
   maximumFractionDigits: 0,
 })
 
-export const formatCurrency = (value: number) =>
-  `${wonFormatter.format(Math.round(value))}원`
+const formatRoundedManwon = (absoluteValue: number) => {
+  const roundedManwon = Math.round(absoluteValue / 10_000)
 
-export const formatCompactCurrency = (value: number) => {
-  const absoluteValue = Math.abs(value)
+  if (roundedManwon >= 10_000) {
+    const eok = Math.floor(roundedManwon / 10_000)
+    const manwon = roundedManwon % 10_000
+
+    if (manwon === 0) {
+      return `${decimalFormatter.format(eok)}억`
+    }
+
+    return `${decimalFormatter.format(eok)}억 ${decimalFormatter.format(manwon)}만원`
+  }
+
+  return `${decimalFormatter.format(roundedManwon)}만원`
+}
+
+export const formatCurrency = (value: number) => {
+  const roundedValue = Math.round(value)
+  const sign = roundedValue < 0 ? '-' : ''
+  const absoluteValue = Math.abs(roundedValue)
 
   if (absoluteValue >= 100_000_000) {
-    return `${decimalFormatter.format(value / 100_000_000)}억원`
+    return `${sign}${formatRoundedManwon(absoluteValue)}`
   }
+
+  return `${sign}${wonFormatter.format(absoluteValue)}원`
+}
+
+export const formatCompactCurrency = (value: number) => {
+  const roundedValue = Math.round(value)
+  const sign = roundedValue < 0 ? '-' : ''
+  const absoluteValue = Math.abs(roundedValue)
 
   if (absoluteValue >= 10_000) {
-    return `${decimalFormatter.format(value / 10_000)}만원`
+    return `${sign}${formatRoundedManwon(absoluteValue)}`
   }
 
-  return formatCurrency(value)
+  return formatCurrency(roundedValue)
 }
 
 export const formatSignedCurrency = (value: number) => {
@@ -55,4 +79,3 @@ export const formatDateTime = (value: string) =>
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value))
-
