@@ -1815,14 +1815,21 @@ body {
 
 @media (max-width: 900px) {
   .question-screen {
-    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+    min-height: 100dvh;
+    height: 100dvh;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .question-screen .question-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 16px;
   }
 
   .question-screen .sticky-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
     z-index: 24;
     margin-top: 0;
     padding: 14px 20px calc(12px + env(safe-area-inset-bottom));
