@@ -12,6 +12,7 @@ interface QuestionScreenProps {
   onNext: () => void
   onSeekQuestion: (index: number) => void
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  headerAction?: ReactNode
 }
 
 const householdOptions = [
@@ -91,6 +92,7 @@ function QuestionLayout({
   onBack,
   onNext,
   onSeekQuestion,
+  headerAction,
   children,
 }: {
   question: QuestionStep
@@ -99,6 +101,7 @@ function QuestionLayout({
   onBack: () => void
   onNext: () => void
   onSeekQuestion: (index: number) => void
+  headerAction?: ReactNode
   children: ReactNode
 }) {
   const screenRef = useRef<HTMLElement | null>(null)
@@ -115,20 +118,21 @@ function QuestionLayout({
 
   return (
     <section ref={screenRef} className={`screen question-screen question-${question.id}`}>
-      <div className="screen-header">
-        <div>
-          <p className="eyebrow">질문 {questionIndex + 1}</p>
+      <div className="screen-header question-screen-header">
+        <div className="question-screen-header-copy">
+          <p className="eyebrow">?? {questionIndex + 1}</p>
           <h1 className="screen-title">{question.title}</h1>
           {question.description ? <p className="screen-copy">{question.description}</p> : null}
         </div>
-        <div className="progress-shell">
+        {headerAction ? <div className="question-screen-header-action">{headerAction}</div> : null}
+        <div className="progress-shell question-progress-shell">
           <span className="progress-label">
             {questionIndex + 1} / {totalQuestions}
           </span>
           <ProgressBar
             value={questionIndex + 1}
             max={totalQuestions}
-            ariaLabel="질문 진행도 이동"
+            ariaLabel="?? ??? ??"
             onChange={(nextValue) => onSeekQuestion(nextValue - 1)}
           />
         </div>
@@ -157,6 +161,7 @@ export function QuestionScreen({
   onNext,
   onSeekQuestion,
   onPatchFormData,
+  headerAction,
 }: QuestionScreenProps) {
   const update = <K extends keyof RetireCalcFormData>(
     key: K,
@@ -750,6 +755,7 @@ export function QuestionScreen({
       onBack={onBack}
       onNext={onNext}
       onSeekQuestion={onSeekQuestion}
+      headerAction={headerAction}
     >
       {renderContent()}
     </QuestionLayout>

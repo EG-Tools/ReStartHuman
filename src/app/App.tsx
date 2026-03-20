@@ -1,8 +1,9 @@
 import { startTransition, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { StartScreen } from '../components/start/StartScreen'
+import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { QuestionScreen } from '../components/question/QuestionScreen'
 import { ResultScreen } from '../components/result/ResultScreen'
 import { SaveSlotModal } from '../components/result/SaveSlotModal'
+import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateRetireScenario } from '../engine/calculator'
 import { useRetireCalcFlow } from '../hooks/useRetireCalcFlow'
@@ -56,6 +57,7 @@ const isAppHistoryState = (value: unknown): value is AppHistoryState => {
 export default function App() {
   const [formData, setFormData] = useState<RetireCalcFormData>(defaultFormData)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
   const result = useMemo(() => calculateRetireScenario(formData), [formData])
   const flow = useRetireCalcFlow(formData)
@@ -215,6 +217,8 @@ export default function App() {
     })
   }
 
+  const renderOptionsButton = () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />
+
   return (
     <div className="app-shell">
       <div className="aurora aurora-left" aria-hidden="true" />
@@ -225,6 +229,7 @@ export default function App() {
             <StartScreen
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
+              headerAction={renderOptionsButton()}
             />
           ) : null}
 
@@ -238,6 +243,7 @@ export default function App() {
               onNext={flow.nextQuestion}
               onSeekQuestion={flow.goToQuestion}
               onPatchFormData={patchFormData}
+              headerAction={renderOptionsButton()}
             />
           ) : null}
 
@@ -249,6 +255,7 @@ export default function App() {
               onStartOver={startOver}
               onOpenSaveSlots={() => setSaveSlotMode('manage')}
               onPatchFormData={patchFormData}
+              headerAction={renderOptionsButton()}
             />
           ) : null}
         </div>
@@ -265,12 +272,8 @@ export default function App() {
           onDelete={handleDeleteSlot}
         />
       ) : null}
+
+      {isOptionsOpen ? <AppOptionsModal onClose={() => setIsOptionsOpen(false)} /> : null}
     </div>
   )
 }
-
-
-
-
-
-
