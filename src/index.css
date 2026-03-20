@@ -1791,3 +1791,52 @@ body {
     width: 100%;
   }
 }
+
+/* Result visual refinements */
+.summary-card.tone-neutral,
+.summary-card.tone-surplus,
+.summary-card.tone-deficit {
+  background: #112f29;
+  border-color: rgba(104, 164, 143, 0.22);
+}
+
+.summary-card p {
+  color: rgba(224, 237, 231, 0.76);
+}
+
+.summary-card.tone-surplus .summary-value {
+  color: #d8f4df;
+}
+
+.summary-card.tone-neutral .summary-value {
+  color: #e4e8cb;
+}
+
+.summary-card.tone-deficit .summary-value {
+  color: #ffd2c6;
+}
+
+.result-table tbody td.result-category-tax,
+.result-table tbody td.result-category-essential,
+.result-table tbody td.result-category-outcome {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  font-weight: 800;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.result-table tbody td.result-category-tax {
+  background: rgba(60, 31, 34, 0.98);
+  color: #f1c5bd;
+}
+
+.result-table tbody td.result-category-essential {
+  background: rgba(66, 54, 24, 0.98);
+  color: #ecdfac;
+}
+
+.result-table tbody td.result-category-outcome {
+  background: rgba(16, 59, 50, 0.98);
+  color: #bae7d8;
+}
