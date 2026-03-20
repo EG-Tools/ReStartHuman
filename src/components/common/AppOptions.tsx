@@ -64,13 +64,13 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
         <div className="modal-header settings-modal-header">
           <div>
             <p className="eyebrow">옵션</p>
-            <h2>설정</h2>
           </div>
         </div>
 
         <section className="note-panel support-panel">
           <div className="support-panel-header">
             <div>
+              <p className="support-version-label">Version 0.10</p>
               <h2>개발자 후원</h2>
             </div>
             <span className="support-status-pill">준비중</span>

@@ -120,7 +120,7 @@ function QuestionLayout({
     <section ref={screenRef} className={`screen question-screen question-${question.id}`}>
       <div className="screen-header question-screen-header">
         <div className="question-screen-header-copy">
-          <p className="eyebrow">?? {questionIndex + 1}</p>
+          <p className="eyebrow">질문 {questionIndex + 1}</p>
           <h1 className="screen-title">{question.title}</h1>
           {question.description ? <p className="screen-copy">{question.description}</p> : null}
         </div>
@@ -132,7 +132,7 @@ function QuestionLayout({
           <ProgressBar
             value={questionIndex + 1}
             max={totalQuestions}
-            ariaLabel="?? ??? ??"
+            ariaLabel="질문 진행 상태"
             onChange={(nextValue) => onSeekQuestion(nextValue - 1)}
           />
         </div>
