@@ -1,4 +1,12 @@
-import { startTransition, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import {
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { QuestionScreen } from '../components/question/QuestionScreen'
 import { ResultScreen } from '../components/result/ResultScreen'
@@ -59,11 +67,17 @@ export default function App() {
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
-  const result = useMemo(() => calculateRetireScenario(formData), [formData])
   const flow = useRetireCalcFlow(formData)
   const saveSlots = useSaveSlots()
   const historyReadyRef = useRef(false)
   const isRestoringHistoryRef = useRef(false)
+  const deferredFormData = useDeferredValue(formData)
+  const shouldRenderResult =
+    flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
+  const result = useMemo(
+    () => (shouldRenderResult ? calculateRetireScenario(deferredFormData) : null),
+    [deferredFormData, shouldRenderResult],
+  )
 
   const navigationState = useMemo(
     () => buildHistoryState(flow.route, flow.questionIndex, saveSlotMode),
@@ -202,7 +216,7 @@ export default function App() {
   }
 
   const handleSaveSlot = (slotId: number) => {
-    saveSlots.saveSlot(slotId, formData, result)
+    saveSlots.saveSlot(slotId, formData, result ?? calculateRetireScenario(formData))
     setSaveSlotMode(null)
   }
 
@@ -248,7 +262,7 @@ export default function App() {
             />
           ) : null}
 
-          {flow.route === appRoutes.result ? (
+          {flow.route === appRoutes.result && result ? (
             <ResultScreen
               formData={formData}
               result={result}
