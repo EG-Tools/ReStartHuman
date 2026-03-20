@@ -373,6 +373,19 @@ const splitResultItemLabel = (value: string) =>
     .flatMap((word) => word.match(/.{1,2}/g) ?? [word])
     .filter((chunk) => chunk.length > 0)
 
+const getResultCategoryClassName = (category: string) => {
+  switch (category) {
+    case '세금':
+      return 'result-category-tax'
+    case '필수비용':
+      return 'result-category-essential'
+    case '결과':
+      return 'result-category-outcome'
+    default:
+      return ''
+  }
+}
+
 function ResultTable({ rows }: { rows: ResultRow[] }) {
   return (
     <div className="table-shell">
@@ -391,7 +404,7 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.category}-${row.item}`}>
-              <td>{row.category}</td>
+              <td className={getResultCategoryClassName(row.category)}>{row.category}</td>
               <td className="result-item-cell">
                 <span className="result-item-label" aria-label={row.item}>
                   {splitResultItemLabel(row.item).map((chunk, index) => (
@@ -1121,24 +1134,4 @@ export function ResultScreen({
     </section>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
