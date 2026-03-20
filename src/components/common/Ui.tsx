@@ -153,6 +153,7 @@ export function NumericInput({
 }: NumericInputProps) {
   const isCurrency = display === 'currency'
   const displayValue = isCurrency ? value / MANWON : value
+  const inputValue = Number.isFinite(displayValue) && displayValue !== 0 ? displayValue : ''
   const preview = helperText ?? (isCurrency ? `환산: ${formatCurrency(value)}` : undefined)
   const resolvedStep = step ?? 1
   const resolvedSuffix = suffix ?? (isCurrency ? '만원' : undefined)
@@ -168,7 +169,9 @@ export function NumericInput({
             inputMode="decimal"
             min={min}
             step={resolvedStep}
-            value={Number.isFinite(displayValue) ? displayValue : 0}
+            value={inputValue}
+            placeholder="0"
+            onFocus={(event) => event.currentTarget.select()}
             disabled={disabled}
             onWheel={(event) => {
               if (document.activeElement === event.currentTarget) {
