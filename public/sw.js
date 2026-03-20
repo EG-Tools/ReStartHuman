@@ -1,12 +1,12 @@
-const CACHE_NAME = 'kr-retire-calc-v5'
+const CACHE_NAME = 'kr-retire-calc-v7'
 const toScopedUrl = (path) => new URL(path, self.registration.scope).toString()
 const APP_SHELL = [
   toScopedUrl('./'),
   toScopedUrl('./offline.html'),
-  toScopedUrl('./manifest.webmanifest'),
-  toScopedUrl('./icons/apple-touch-icon-180.png'),
-  toScopedUrl('./icons/app-icon-192.png'),
-  toScopedUrl('./icons/app-icon-512.png'),
+  toScopedUrl('./manifest.webmanifest?v=7'),
+  toScopedUrl('./icons/apple-touch-icon-180.png?v=7'),
+  toScopedUrl('./icons/app-icon-192.png?v=7'),
+  toScopedUrl('./icons/app-icon-512.png?v=7'),
 ]
 
 self.addEventListener('install', (event) => {

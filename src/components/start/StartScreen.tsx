@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
+import startHeroImage from '../../assets/start-hero-main.jpg'
 
 interface StartScreenProps {
   onStart: () => void
@@ -17,7 +18,14 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
 
       <div className="start-main">
         <div className="hero-panel start-hero-panel">
-          <h1 className="hero-title">Re Start Human</h1>
+          <img
+            className="start-hero-image"
+            src={startHeroImage}
+            alt="Re Start Human main screen illustration"
+          />
+          <div className="start-hero-overlay">
+            <h1 className="hero-title">Re Start Human</h1>
+          </div>
         </div>
 
         <div className="start-actions start-actions-compact">
