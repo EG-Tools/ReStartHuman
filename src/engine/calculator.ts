@@ -66,9 +66,9 @@ const clampRate = (value: number, fallback: number) => {
 
 const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   ...formData,
-  isaType: formData.isaType ?? 'unknown',
-  myIsaType: formData.myIsaType ?? formData.isaType ?? 'unknown',
-  spouseIsaType: formData.spouseIsaType ?? formData.isaType ?? 'unknown',
+  isaType: formData.isaType === 'workingClass' ? 'workingClass' : 'general',
+  myIsaType: formData.myIsaType === 'workingClass' ? 'workingClass' : formData.isaType === 'workingClass' ? 'workingClass' : 'general',
+  spouseIsaType: formData.spouseIsaType === 'workingClass' ? 'workingClass' : formData.isaType === 'workingClass' ? 'workingClass' : 'general',
   simulationYears: Math.max(1, sanitizeMoney(formData.simulationYears) || 10),
   homeMarketValue: sanitizeMoney(formData.homeMarketValue),
   homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
@@ -400,7 +400,6 @@ const calculateExpenses = (formData: RetireCalcFormData) => {
     formData.insuranceMonthly +
     formData.maintenanceMonthly +
     formData.telecomMonthly +
-    formData.nationalPensionMonthly +
     formData.otherFixedMonthly +
     carMonthlyConverted
 
@@ -680,9 +679,7 @@ export const calculateRetireScenario = (
     taxableDividendOwnershipBreakdown,
   )
   const expenses = calculateExpenses(formData)
-  const pensionMonthlyApplied = formData.hasPensionIncome
-    ? formData.pensionMonthlyAmount
-    : 0
+  const pensionMonthlyApplied = formData.pensionMonthlyAmount
   const otherIncomeMonthlyApplied =
     formData.otherIncomeType === 'none' ? 0 : formData.otherIncomeMonthly
   const estimatedHealthInsurance = estimateHealthInsurance(
@@ -780,6 +777,8 @@ export const calculateRetireScenario = (
     loanNotice: formData.hasLoan,
   }
 }
+
+
 
 
 

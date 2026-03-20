@@ -10,6 +10,7 @@ interface QuestionScreenProps {
   formData: RetireCalcFormData
   onBack: () => void
   onNext: () => void
+  onSeekQuestion: (index: number) => void
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }
 
@@ -30,15 +31,13 @@ const dividendModeOptions = [
 ] as const
 
 const isaTypeOptions = [
-  { value: 'general', label: '일반형', description: '기본 ISA 기준을 적용합니다.' },
-  { value: 'workingClass', label: '서민형', description: '더 큰 비과세 한도를 적용합니다.' },
-  { value: 'unknown', label: '잘 모르겠음', description: '일반형으로 계산합니다.' },
+  { value: 'general', label: '일반형' },
+  { value: 'workingClass', label: '서민형' },
 ] as const
 
-const yesNoUnknownOptions = [
-  { value: 'yes', label: '예', description: '혜택 적용으로 봅니다.' },
-  { value: 'no', label: '아니오', description: '보수적으로 계산합니다.' },
-  { value: 'unknown', label: '잘 모르겠음', description: '기본값으로 처리합니다.' },
+const yesNoOptions = [
+  { value: 'yes', label: '예' },
+  { value: 'no', label: '아니오' },
 ] as const
 
 const dividendOwnershipOptions = [
@@ -81,8 +80,8 @@ const healthInsuranceOptions = [
 ] as const
 
 const livingCostModeOptions = [
-  { value: 'total', label: '총액 입력', description: '월 생활비 총액만 한 번에 넣습니다.' },
-  { value: 'detailed', label: '세부 입력', description: '항목별로 나눠서 입력합니다.' },
+  { value: 'total', label: '총 금액' },
+  { value: 'detailed', label: '세부입력' },
 ] as const
 
 function QuestionLayout({
@@ -91,6 +90,7 @@ function QuestionLayout({
   totalQuestions,
   onBack,
   onNext,
+  onSeekQuestion,
   children,
 }: {
   question: QuestionStep
@@ -98,10 +98,9 @@ function QuestionLayout({
   totalQuestions: number
   onBack: () => void
   onNext: () => void
+  onSeekQuestion: (index: number) => void
   children: ReactNode
 }) {
-  const progress = ((questionIndex + 1) / totalQuestions) * 100
-
   return (
     <section className={`screen question-screen question-${question.id}`}>
       <div className="screen-header">
@@ -114,7 +113,12 @@ function QuestionLayout({
           <span className="progress-label">
             {questionIndex + 1} / {totalQuestions}
           </span>
-          <ProgressBar value={progress} />
+          <ProgressBar
+            value={questionIndex + 1}
+            max={totalQuestions}
+            ariaLabel="질문 진행도 이동"
+            onChange={(nextValue) => onSeekQuestion(nextValue - 1)}
+          />
         </div>
       </div>
 
@@ -139,6 +143,7 @@ export function QuestionScreen({
   formData,
   onBack,
   onNext,
+  onSeekQuestion,
   onPatchFormData,
 }: QuestionScreenProps) {
   const update = <K extends keyof RetireCalcFormData>(
@@ -148,21 +153,23 @@ export function QuestionScreen({
     onPatchFormData({ [key]: value } as Pick<RetireCalcFormData, K>)
   }
 
+  const singleIsaType = formData.isaType === 'workingClass' ? 'workingClass' : 'general'
+  const myIsaType = formData.myIsaType === 'workingClass' ? 'workingClass' : 'general'
+  const spouseIsaType =
+    formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
+
   const renderBooleanChoice = (
     label: string,
     value: boolean,
     onChange: (nextValue: boolean) => void,
   ) => (
-    <section className="question-block">
+    <section className="question-block boolean-question">
       <div className="question-block-header">
         <h2>{label}</h2>
       </div>
       <ChoiceQuestion
         value={value ? 'yes' : 'no'}
-        options={[
-          { value: 'yes', label: '예', description: '이 조건을 포함합니다.' },
-          { value: 'no', label: '아니오', description: '이 조건을 제외합니다.' },
-        ]}
+        options={yesNoOptions}
         onChange={(nextValue) => onChange(nextValue === 'yes')}
       />
     </section>
@@ -196,19 +203,19 @@ export function QuestionScreen({
                   fields={[
                     {
                       key: 'homeMarketValue',
-                      label: '주택 시가',
+                      label: '시가',
                       value: formData.homeMarketValue,
                       onChange: (value) => update('homeMarketValue', value),
                     },
                     {
                       key: 'homeOfficialValue',
-                      label: '주택 공시가격',
+                      label: '공시가격',
                       value: formData.homeOfficialValue,
                       onChange: (value) => update('homeOfficialValue', value),
                     },
                   ]}
                 />
-                {renderBooleanChoice('공동명의인가요?', formData.isJointOwnership, (value) =>
+                {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
                   update('isJointOwnership', value),
                 )}
                 {renderBooleanChoice('1주택자로 볼 수 있나요?', formData.isSingleHomeOwner, (value) =>
@@ -232,7 +239,7 @@ export function QuestionScreen({
                     },
                   ]}
                 />
-                {renderBooleanChoice('공동명의 계약인가요?', formData.isJointOwnership, (value) =>
+                {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
                   update('isJointOwnership', value),
                 )}
               </>
@@ -285,25 +292,19 @@ export function QuestionScreen({
             fields={[
               {
                 key: 'taxableAccountAssets',
-                label: '일반계좌 자산',
+                label: '일반 주식 자산',
                 value: formData.taxableAccountAssets,
                 onChange: (value) => update('taxableAccountAssets', value),
               },
               {
                 key: 'isaAssets',
-                label: 'ISA 자산',
+                label: 'ISA 주식 자산',
                 value: formData.isaAssets,
                 onChange: (value) => update('isaAssets', value),
               },
               {
-                key: 'pensionAccountAssets',
-                label: '연금계좌 자산',
-                value: formData.pensionAccountAssets,
-                onChange: (value) => update('pensionAccountAssets', value),
-              },
-              {
                 key: 'otherAssets',
-                label: '기타 자산',
+                label: '기타 계좌 자산',
                 value: formData.otherAssets,
                 onChange: (value) => update('otherAssets', value),
               },
@@ -323,21 +324,22 @@ export function QuestionScreen({
               fields={[
                 {
                   key: 'taxableAccountDividendAnnual',
-                  label: '일반계좌 연간 배당금',
+                  label: '일반 주식계좌 연간 배당금',
                   value: formData.taxableAccountDividendAnnual,
                   onChange: (value) => update('taxableAccountDividendAnnual', value),
                 },
                 {
                   key: 'isaDividendAnnual',
-                  label: 'ISA 연간 배당금',
+                  label: 'ISA 연간배당금',
                   value: formData.isaDividendAnnual,
                   onChange: (value) => update('isaDividendAnnual', value),
                 },
                 {
-                  key: 'pensionDividendAnnual',
-                  label: '연금계좌 연간 배당금',
-                  value: formData.pensionDividendAnnual,
-                  onChange: (value) => update('pensionDividendAnnual', value),
+                  key: 'pensionMonthlyAmount',
+                  label: '국민연금 예상 금액',
+                  value: formData.pensionMonthlyAmount,
+                  onChange: (value) => update('pensionMonthlyAmount', value),
+                  helperText: '월 예상 수령액',
                 },
               ]}
             />
@@ -468,7 +470,7 @@ export function QuestionScreen({
                       <h2>본인 ISA 유형</h2>
                     </div>
                     <ChoiceQuestion
-                      value={formData.myIsaType}
+                      value={myIsaType}
                       options={isaTypeOptions}
                       onChange={(value) => onPatchFormData({ myIsaType: value })}
                     />
@@ -480,53 +482,25 @@ export function QuestionScreen({
                       <h2>배우자 ISA 유형</h2>
                     </div>
                     <ChoiceQuestion
-                      value={formData.spouseIsaType}
+                      value={spouseIsaType}
                       options={isaTypeOptions}
                       onChange={(value) => onPatchFormData({ spouseIsaType: value })}
                     />
                   </section>
                 ) : null}
-                <p className="screen-copy">
-                  ISA 절세 한도는 귀속된 사람별로 따로 적용합니다. 일반형은 연 500만원,
-                  서민형은 연 1,000만원까지 비과세로 보고 초과분만 9.9% 분리과세로 계산합니다.
-                </p>
               </>
             ) : (
-              <>
-                <ChoiceQuestion
-                  value={formData.isaType}
-                  options={isaTypeOptions}
-                  onChange={(value) =>
-                    onPatchFormData({
-                      isaType: value,
-                      myIsaType: value,
-                    })
-                  }
-                />
-                <p className="screen-copy">
-                  일반형은 연 500만원, 서민형은 연 1,000만원까지 비과세로 보고 초과분만
-                  9.9% 분리과세로 계산합니다.
-                </p>
-              </>
+              <ChoiceQuestion
+                value={singleIsaType}
+                options={isaTypeOptions}
+                onChange={(value) =>
+                  onPatchFormData({
+                    isaType: value,
+                    myIsaType: value,
+                  })
+                }
+              />
             )}
-            <NumberFields
-              fields={[
-                {
-                  key: 'isaYearsSinceOpen',
-                  label: 'ISA 개설 후 경과 연수',
-                  value: formData.isaYearsSinceOpen,
-                  onChange: (value) => update('isaYearsSinceOpen', value),
-                  step: 1,
-                  display: 'number',
-                  suffix: '년',
-                },
-              ]}
-            />
-            <ChoiceQuestion
-              value={formData.isaMaturityExtended}
-              options={yesNoUnknownOptions}
-              onChange={(value) => update('isaMaturityExtended', value)}
-            />
           </div>
         )
       case 'income':
@@ -547,36 +521,6 @@ export function QuestionScreen({
               options={otherIncomeTypeOptions}
               onChange={(value) => update('otherIncomeType', value)}
             />
-          </div>
-        )
-      case 'pension':
-        return (
-          <div className="question-stack">
-            {renderBooleanChoice('연금 수령을 반영할까요?', formData.hasPensionIncome, (value) =>
-              update('hasPensionIncome', value),
-            )}
-            {formData.hasPensionIncome ? (
-              <NumberFields
-                columns={2}
-                fields={[
-                  {
-                    key: 'pensionStartAge',
-                    label: '연금 수령 시작 나이',
-                    value: formData.pensionStartAge,
-                    onChange: (value) => update('pensionStartAge', value),
-                    step: 1,
-                    display: 'number',
-                    suffix: '세',
-                  },
-                  {
-                    key: 'pensionMonthlyAmount',
-                    label: '월 연금 수령액',
-                    value: formData.pensionMonthlyAmount,
-                    onChange: (value) => update('pensionMonthlyAmount', value),
-                  },
-                ]}
-              />
-            ) : null}
           </div>
         )
       case 'healthInsurance':
@@ -631,12 +575,6 @@ export function QuestionScreen({
                 label: '통신비',
                 value: formData.telecomMonthly,
                 onChange: (value) => update('telecomMonthly', value),
-              },
-              {
-                key: 'nationalPensionMonthly',
-                label: '국민연금',
-                value: formData.nationalPensionMonthly,
-                onChange: (value) => update('nationalPensionMonthly', value),
               },
               {
                 key: 'carYearlyCost',
@@ -738,11 +676,9 @@ export function QuestionScreen({
       totalQuestions={totalQuestions}
       onBack={onBack}
       onNext={onNext}
+      onSeekQuestion={onSeekQuestion}
     >
       {renderContent()}
     </QuestionLayout>
   )
 }
-
-
-

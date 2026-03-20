@@ -28,11 +28,11 @@ export const defaultFormData: RetireCalcFormData = {
   pensionDividendAnnual: 0,
   dividendInputMode: 'gross',
 
-  isaType: 'unknown',
+  isaType: 'general',
   isaYearsSinceOpen: 0,
-  isaMaturityExtended: 'unknown',
-  myIsaType: 'unknown',
-  spouseIsaType: 'unknown',
+  isaMaturityExtended: 'yes',
+  myIsaType: 'general',
+  spouseIsaType: 'general',
 
   dividendOwnershipType: 'mineOnly',
   myAnnualDividendAttributed: 0,
@@ -74,4 +74,5 @@ export const defaultFormData: RetireCalcFormData = {
   inflationRateAnnual: 0.02,
   startingCashReserve: 100_000_000,
 }
+
 
