@@ -596,12 +596,6 @@ export function QuestionScreen({
               ]}
             />
             {renderBooleanChoice(
-              '배우자가 피부양자인가요?',
-              formData.spouseDependent,
-              (value) => update('spouseDependent', value),
-              '피부양자는 직장가입자의 가족으로 등록돼 별도 건강보험료를 내지 않는 상태를 뜻합니다.',
-            )}
-            {renderBooleanChoice(
               '사업소득이 있나요?',
               formData.isBusinessOwner,
               (value) => update('isBusinessOwner', value),

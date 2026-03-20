@@ -50,7 +50,6 @@ export const defaultFormData: RetireCalcFormData = {
 
   healthInsuranceType: 'regional',
   salaryMonthly: 0,
-  spouseDependent: false,
   isBusinessOwner: false,
   isUnpaidOwner: false,
   healthInsuranceOverrideMonthly: null,
