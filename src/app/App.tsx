@@ -104,6 +104,8 @@ export default function App() {
     }
 
     const root = document.documentElement
+    const timerIds = new Set<number>()
+
     const syncViewportSize = () => {
       const viewport = window.visualViewport
       const viewportHeight = Math.round(viewport?.height ?? window.innerHeight)
@@ -113,16 +115,35 @@ export default function App() {
       root.style.setProperty('--app-width', `${viewportWidth}px`)
     }
 
-    syncViewportSize()
+    const queueViewportSync = () => {
+      syncViewportSize()
+      window.requestAnimationFrame(syncViewportSize)
 
-    window.addEventListener('resize', syncViewportSize)
-    window.addEventListener('orientationchange', syncViewportSize)
-    window.visualViewport?.addEventListener('resize', syncViewportSize)
+      ;[120, 280, 520].forEach((delay) => {
+        const timerId = window.setTimeout(() => {
+          syncViewportSize()
+          timerIds.delete(timerId)
+        }, delay)
+
+        timerIds.add(timerId)
+      })
+    }
+
+    queueViewportSync()
+
+    window.addEventListener('resize', queueViewportSync)
+    window.addEventListener('orientationchange', queueViewportSync)
+    window.visualViewport?.addEventListener('resize', queueViewportSync)
+    window.visualViewport?.addEventListener('scroll', queueViewportSync)
 
     return () => {
-      window.removeEventListener('resize', syncViewportSize)
-      window.removeEventListener('orientationchange', syncViewportSize)
-      window.visualViewport?.removeEventListener('resize', syncViewportSize)
+      timerIds.forEach((timerId) => {
+        window.clearTimeout(timerId)
+      })
+      window.removeEventListener('resize', queueViewportSync)
+      window.removeEventListener('orientationchange', queueViewportSync)
+      window.visualViewport?.removeEventListener('resize', queueViewportSync)
+      window.visualViewport?.removeEventListener('scroll', queueViewportSync)
     }
   }, [])
 

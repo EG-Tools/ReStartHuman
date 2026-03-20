@@ -626,13 +626,11 @@ function InlineAmountInput({
   label,
   value,
   onChange,
-  helperText,
   action,
 }: {
   label: string
   value: number
   onChange: (value: number) => void
-  helperText?: string
   action?: ReactNode
 }) {
   const displayValue = Number.isFinite(value) ? Math.round(value / MANWON) : 0
@@ -663,7 +661,6 @@ function InlineAmountInput({
         <span className="table-edit-suffix">만원</span>
         {action ? <div className="table-edit-action">{action}</div> : null}
       </div>
-      {helperText ? <span className="table-edit-helper">{helperText}</span> : null}
     </div>
   )
 }
@@ -673,13 +670,11 @@ function InlineLabeledAmountInput({
   label,
   value,
   onChange,
-  helperText,
 }: {
   caption: string
   label: string
   value: number
   onChange: (value: number) => void
-  helperText?: string
 }) {
   return (
     <div className="table-edit-group">
@@ -688,7 +683,6 @@ function InlineLabeledAmountInput({
         label={label}
         value={value}
         onChange={onChange}
-        helperText={helperText}
       />
     </div>
   )
@@ -765,11 +759,6 @@ function HealthInsuranceEditor({
           healthInsuranceOverrideMonthly: value,
         })
       }
-      helperText={
-        result.healthInsuranceSource === 'manual'
-          ? '현재 수동 입력'
-          : '직접 수정하면 수동값으로 전환'
-      }
       action={
         result.healthInsuranceSource === 'manual' ? (
           <button
@@ -809,7 +798,6 @@ function FixedExpenseEditor({
           otherFixedMonthly: Math.max(value - lockedBase, 0),
         })
       }
-      helperText={formData.housingType === 'monthlyRent' ? `기본 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherFixedMonthly)} (월세 관리비는 주거비에서 계산)` : `기본 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherFixedMonthly)}`}
     />
   )
 }
@@ -829,7 +817,6 @@ function LivingExpenseEditor({
         label="월 생활비"
         value={totalValue}
         onChange={(value) => onPatchFormData({ livingCostMonthlyTotal: value })}
-        helperText="총액 입력 모드"
       />
     )
   }
@@ -849,7 +836,6 @@ function LivingExpenseEditor({
           otherLivingMonthly: Math.max(value - lockedBase, 0),
         })
       }
-      helperText={`세부합계 ${formatCompactCurrency(lockedBase)} + 기타 ${formatCompactCurrency(formData.otherLivingMonthly)}`}
     />
   )
 }
@@ -1068,7 +1054,6 @@ export function ResultScreen({
           label="일반계좌 연간 배당금"
           value={formData.taxableAccountDividendAnnual}
           onChange={(value) => onPatchFormData({ taxableAccountDividendAnnual: value })}
-          helperText={result.dividendInputMode === 'gross' ? '세전 입력' : '세후 입력'}
         />
       ),
       monthly: formatCompactCurrency(result.taxableDividendMonthlyNet),
@@ -1085,7 +1070,6 @@ export function ResultScreen({
           label="ISA 연간 배당금"
           value={formData.isaDividendAnnual}
           onChange={(value) => onPatchFormData({ isaDividendAnnual: value })}
-          helperText={result.dividendInputMode === 'gross' ? '세전 입력' : '세후 입력'}
         />
       ),
       monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
@@ -1102,7 +1086,6 @@ export function ResultScreen({
           label="국민연금 예상 금액"
           value={formData.pensionMonthlyAmount}
           onChange={(value) => onPatchFormData({ pensionMonthlyAmount: value })}
-          helperText="월 예상 수령액"
         />
       ),
       monthly: formatCompactCurrency(result.pensionMonthlyApplied),
@@ -1152,7 +1135,6 @@ export function ResultScreen({
           label="자동차 연간 유지비"
           value={formData.carYearlyCost}
           onChange={(value) => onPatchFormData({ carYearlyCost: value })}
-          helperText={`월 환산 ${formatCompactCurrency(result.carMonthlyConverted)}`}
         />
       ),
       monthly: formatCompactCurrency(result.carMonthlyConverted),

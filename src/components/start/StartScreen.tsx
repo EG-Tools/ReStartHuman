@@ -36,20 +36,8 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           <div className="support-panel-header">
             <div>
               <h2>개발자 후원금</h2>
-              <p>1회 3,000원. 여러 번 후원할 수 있고, 실제 결제 연동은 추후 연결 예정입니다.</p>
             </div>
             <span className="support-status-pill">준비중</span>
-          </div>
-
-          <div className="support-metrics">
-            <div className="support-metric-card">
-              <span>후원 단위</span>
-              <strong>3,000원</strong>
-            </div>
-            <div className="support-metric-card">
-              <span>광고 제거</span>
-              <strong>평생 적용 예정</strong>
-            </div>
           </div>
 
           <p className="support-copy">
@@ -63,13 +51,9 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="support-option-list">
-            <div className="support-option-row support-option-heading">
-              <span>개발자 주소</span>
-              <strong>EG Life</strong>
-            </div>
             <div className="support-option-row">
               <span>회사명</span>
-              <strong>EG Life</strong>
+              <strong>EGSY</strong>
             </div>
             <div className="support-option-row">
               <span>이메일</span>
