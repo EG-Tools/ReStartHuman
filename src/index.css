@@ -1573,3 +1573,81 @@ body {
     background: rgba(18, 35, 39, 0.98);
   }
 }
+
+.button-primary {
+  background: linear-gradient(135deg, #173f44, #123237);
+  color: #eefbfc;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.button-ghost,
+.icon-button {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.toggle-card.is-active {
+  border-color: rgba(46, 167, 170, 0.36);
+  background: linear-gradient(180deg, rgba(46, 167, 170, 0.14), rgba(14, 21, 25, 0.96));
+}
+
+.inflation-toggle {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cashflow-grid-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.cashflow-grid-label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cashflow-year-tick {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+}
+
+.cashflow-axis {
+  gap: 8px;
+}
+
+.cashflow-axis span {
+  display: grid;
+  gap: 2px;
+  color: var(--muted);
+}
+
+.cashflow-axis span strong {
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.cashflow-axis span em {
+  font-style: normal;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+  .cashflow-grid-label {
+    font-size: 10px;
+  }
+
+  .cashflow-axis span strong {
+    font-size: 0.78rem;
+  }
+
+  .cashflow-axis span em {
+    font-size: 0.72rem;
+  }
+}
