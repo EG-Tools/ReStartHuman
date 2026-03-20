@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
@@ -162,10 +162,21 @@ export function QuestionScreen({
     label: string,
     value: boolean,
     onChange: (nextValue: boolean) => void,
+    helpText?: string,
   ) => (
     <section className="question-block boolean-question">
       <div className="question-block-header">
-        <h2>{label}</h2>
+        <div className="title-with-help">
+          <h2>{label}</h2>
+          {helpText ? (
+            <details className="note-popover note-popover-left">
+              <summary className="note-popover-trigger" aria-label={`${label} 설명 보기`}>
+                ?
+              </summary>
+              <div className="note-popover-bubble">{helpText}</div>
+            </details>
+          ) : null}
+        </div>
       </div>
       <ChoiceQuestion
         value={value ? 'yes' : 'no'}
@@ -542,14 +553,23 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {renderBooleanChoice('배우자가 피부양자인가요?', formData.spouseDependent, (value) =>
-              update('spouseDependent', value),
+            {renderBooleanChoice(
+              '배우자가 피부양자인가요?',
+              formData.spouseDependent,
+              (value) => update('spouseDependent', value),
+              '피부양자는 직장가입자의 가족으로 등록돼 별도 건강보험료를 내지 않는 상태를 뜻합니다.',
             )}
-            {renderBooleanChoice('사업소득이 있나요?', formData.isBusinessOwner, (value) =>
-              update('isBusinessOwner', value),
+            {renderBooleanChoice(
+              '사업소득이 있나요?',
+              formData.isBusinessOwner,
+              (value) => update('isBusinessOwner', value),
+              '사업소득은 개인사업, 프리랜서, 임대 등으로 신고되는 소득을 말합니다.',
             )}
-            {renderBooleanChoice('무급가족종사자인가요?', formData.isUnpaidOwner, (value) =>
-              update('isUnpaidOwner', value),
+            {renderBooleanChoice(
+              '무급가족종사자인가요?',
+              formData.isUnpaidOwner,
+              (value) => update('isUnpaidOwner', value),
+              '무급가족종사자는 가족 사업을 돕지만 급여를 따로 받지 않는 가족 구성원을 뜻합니다.',
             )}
           </div>
         )
@@ -674,7 +694,7 @@ export function QuestionScreen({
                 onChange: (value) => update('currentAge', value),
                 display: 'number',
                 suffix: '세',
-                min: 20,
+                min: 1,
                 step: 1,
                 helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
               },
