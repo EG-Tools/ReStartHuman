@@ -73,7 +73,7 @@ export const defaultFormData: RetireCalcFormData = {
   inflationEnabled: true,
   inflationRateAnnual: 0.02,
   startingCashReserve: 100_000_000,
-  currentAge: 1,
+  currentAge: 50,
 }
 
 
