@@ -107,9 +107,12 @@ export default function App() {
     const timerIds = new Set<number>()
 
     const syncViewportSize = () => {
-      const viewport = window.visualViewport
-      const viewportHeight = Math.round(viewport?.height ?? window.innerHeight)
-      const viewportWidth = Math.round(viewport?.width ?? window.innerWidth)
+      const viewportWidth = Math.round(
+        document.documentElement.clientWidth || window.innerWidth,
+      )
+      const viewportHeight = Math.round(
+        window.innerHeight || document.documentElement.clientHeight,
+      )
 
       root.style.setProperty('--app-height', `${viewportHeight}px`)
       root.style.setProperty('--app-width', `${viewportWidth}px`)
@@ -119,7 +122,7 @@ export default function App() {
       syncViewportSize()
       window.requestAnimationFrame(syncViewportSize)
 
-      ;[120, 280, 520].forEach((delay) => {
+      ;[120, 280, 520, 900].forEach((delay) => {
         const timerId = window.setTimeout(() => {
           syncViewportSize()
           timerIds.delete(timerId)
@@ -133,6 +136,7 @@ export default function App() {
 
     window.addEventListener('resize', queueViewportSync)
     window.addEventListener('orientationchange', queueViewportSync)
+    window.addEventListener('pageshow', queueViewportSync)
     window.visualViewport?.addEventListener('resize', queueViewportSync)
     window.visualViewport?.addEventListener('scroll', queueViewportSync)
 
@@ -142,6 +146,7 @@ export default function App() {
       })
       window.removeEventListener('resize', queueViewportSync)
       window.removeEventListener('orientationchange', queueViewportSync)
+      window.removeEventListener('pageshow', queueViewportSync)
       window.visualViewport?.removeEventListener('resize', queueViewportSync)
       window.visualViewport?.removeEventListener('scroll', queueViewportSync)
     }
