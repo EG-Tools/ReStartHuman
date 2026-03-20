@@ -621,6 +621,8 @@ p {
 
 .modal-panel {
   width: min(100%, 760px);
+  display: flex;
+  flex-direction: column;
 }
 
 .slot-list {
@@ -1529,7 +1531,9 @@ body {
 
 .settings-modal {
   width: min(100%, 540px);
+  height: min(calc(var(--app-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px), 100%);
   max-height: calc(var(--app-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
+  overflow: hidden;
 }
 
 .settings-modal-header {
@@ -1540,6 +1544,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.settings-modal .support-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
 }
 
 .support-panel-header {

@@ -59,10 +59,6 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
               <span>이메일</span>
               <strong>Lyrikey@Naver.com</strong>
             </div>
-            <div className="support-option-row">
-              <span>연락처</span>
-              <strong>이메일 문의</strong>
-            </div>
           </div>
 
           <p className="support-note">
