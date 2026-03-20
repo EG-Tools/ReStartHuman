@@ -506,6 +506,10 @@ p {
   vertical-align: top;
 }
 
+.result-table tbody td {
+  vertical-align: middle;
+}
+
 .result-table thead {
   background: rgba(13, 111, 115, 0.08);
 }
@@ -1233,12 +1237,13 @@ p {
 }
 
 .table-edit-inline {
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .table-edit-suffix {
-  padding-top: 10px;
+  align-self: center;
+  padding-top: 0;
 }
 
 .table-edit-action {
@@ -1332,7 +1337,8 @@ p {
   }
 
   .table-edit-suffix {
-    padding-top: 9px;
+    align-self: center;
+    padding-top: 0;
     font-size: 0.76rem;
   }
 
@@ -1530,20 +1536,20 @@ body {
   font-size: clamp(1.8rem, 6vw, 2.5rem);
 }
 
-.question-household .toggle-group-grid {
+.question-household .household-choice-block .toggle-group-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.question-household .toggle-card {
+.question-household .household-choice-block .toggle-card {
   min-height: auto;
   padding: 18px 14px;
 }
 
-.question-household .toggle-card-description {
+.question-household .household-choice-block .toggle-card-description {
   display: none;
 }
 
-.question-household .toggle-card-label {
+.question-household .household-choice-block .toggle-card-label {
   text-align: center;
 }
 
@@ -1568,7 +1574,7 @@ body {
     width: auto;
   }
 
-  .question-household .toggle-group-grid {
+  .question-household .household-choice-block .toggle-group-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

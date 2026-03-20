@@ -190,20 +190,30 @@ export function QuestionScreen({
     switch (question.id) {
       case 'household':
         return (
-          <ChoiceQuestion
-            value={formData.householdType}
-            options={householdOptions}
-            onChange={(value) => update('householdType', value)}
-          />
+          <div className="question-stack">
+            <section className="question-block household-choice-block">
+              <div className="question-block-header">
+                <h2>가구</h2>
+              </div>
+              <ChoiceQuestion
+                value={formData.householdType}
+                options={householdOptions}
+                onChange={(value) => update('householdType', value)}
+              />
+            </section>
+            <section className="question-block housing-choice-block">
+              <div className="question-block-header">
+                <h2>주거 형태</h2>
+              </div>
+              <ChoiceQuestion
+                value={formData.housingType}
+                options={housingOptions}
+                onChange={(value) => update('housingType', value)}
+              />
+            </section>
+          </div>
         )
-      case 'housingType':
-        return (
-          <ChoiceQuestion
-            value={formData.housingType}
-            options={housingOptions}
-            onChange={(value) => update('housingType', value)}
-          />
-        )
+
       case 'housingDetails':
         return (
           <div className="question-stack">

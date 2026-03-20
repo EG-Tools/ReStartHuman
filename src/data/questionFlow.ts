@@ -8,12 +8,6 @@ export const questionFlow: QuestionStep[] = [
     visibility: () => true,
   },
   {
-    id: 'housingType',
-    title: '현재 집 형태를 선택해 주세요.',
-    description: '주거 형태에 따라 뒤 입력과 세금 추정 구조가 달라집니다.',
-    visibility: () => true,
-  },
-  {
     id: 'housingDetails',
     title: '주거 상세 정보를 입력해 주세요.',
     description: '선택한 주거 형태에 필요한 항목만 보여줍니다.',
