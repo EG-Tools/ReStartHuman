@@ -1817,15 +1817,18 @@ body {
 }
 
 .result-table tbody tr.result-category-tax td {
-  background: rgba(60, 31, 34, 0.36);
+  background: #4b3235;
+  color: #f0d7d2;
 }
 
 .result-table tbody tr.result-category-essential td {
-  background: rgba(66, 54, 24, 0.34);
+  background: #574824;
+  color: #efe3b7;
 }
 
 .result-table tbody tr.result-category-outcome td {
-  background: rgba(16, 59, 50, 0.34);
+  background: #1b4a40;
+  color: #c8ecdf;
 }
 
 .result-table tbody tr.result-category-tax td:first-child,
@@ -1835,22 +1838,7 @@ body {
   left: 0;
   z-index: 2;
   font-weight: 800;
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
-}
-
-.result-table tbody tr.result-category-tax td:first-child {
-  background: rgba(60, 31, 34, 0.98);
-  color: #f1c5bd;
-}
-
-.result-table tbody tr.result-category-essential td:first-child {
-  background: rgba(66, 54, 24, 0.98);
-  color: #ecdfac;
-}
-
-.result-table tbody tr.result-category-outcome td:first-child {
-  background: rgba(16, 59, 50, 0.98);
-  color: #bae7d8;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
 }
 /* Disabled input state */
 .input-card.is-disabled {

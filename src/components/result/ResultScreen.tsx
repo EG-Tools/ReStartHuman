@@ -235,9 +235,11 @@ function SummaryCards({ result }: { result: RetireCalcResult }) {
 function CashFlowChart({
   result,
   inflationEnabled,
+  inflationRateAnnual,
 }: {
   result: RetireCalcResult
   inflationEnabled: boolean
+  inflationRateAnnual: number
 }) {
   const points =
     result.cashBalanceTimeline.length > 0
@@ -257,6 +259,31 @@ function CashFlowChart({
   const chartWidth = width - paddingLeft - paddingRight
   const chartHeight = height - paddingTop - paddingBottom
   const chartFloorY = height - paddingBottom
+  const displayedInflationRate = Math.round((inflationEnabled ? inflationRateAnnual : 0) * 100)
+  const palette =
+    result.riskLevel === 'deficit'
+      ? {
+          area: 'rgba(150, 67, 72, 0.26)',
+          line: '#ff9aa3',
+          dot: '#ffe1e4',
+          end: '#ff9aa3',
+        }
+      : result.riskLevel === 'neutral'
+        ? {
+            area: 'rgba(132, 110, 54, 0.24)',
+            line: '#e6ca77',
+            dot: '#fff1c7',
+            end: '#e6ca77',
+          }
+        : {
+            area: 'rgba(56, 112, 91, 0.28)',
+            line: '#78d5b0',
+            dot: '#e4fff4',
+            end: '#78d5b0',
+          }
+  const gridColor = 'rgba(227, 236, 240, 0.12)'
+  const labelColor = 'rgba(214, 225, 229, 0.82)'
+  const tickColor = 'rgba(227, 236, 240, 0.16)'
   const getX = (index: number) =>
     paddingLeft + (index * chartWidth) / Math.max(points.length - 1, 1)
   const getY = (balance: number) =>
@@ -305,8 +332,8 @@ function CashFlowChart({
         </div>
         <div className="cashflow-hero-meta">
           <span>시작 {formatCompactCurrency(result.startingCashReserve)}</span>
-          <span>{inflationEnabled ? '물가반영 On' : '물가반영 Off'}</span>
-          <span>10년 후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
+          <span>10년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
+          <span>물가반영 {displayedInflationRate}%</span>
         </div>
       </div>
 
@@ -324,15 +351,26 @@ function CashFlowChart({
               y1={tick.y}
               x2={width - paddingRight}
               y2={tick.y}
+              style={{ stroke: gridColor }}
             />
-            <text className="cashflow-grid-label" x={0} y={tick.y + 4}>
+            <text className="cashflow-grid-label" x={0} y={tick.y + 4} style={{ fill: labelColor }}>
               {formatCompactCurrency(tick.value)}
             </text>
           </g>
         ))}
 
-        <path className="cashflow-chart-area" d={areaPath} />
-        <path className="cashflow-chart-line" d={linePath} />
+        <path className="cashflow-chart-area" d={areaPath} style={{ fill: palette.area }} />
+        <path
+          className="cashflow-chart-line"
+          d={linePath}
+          style={{
+            stroke: palette.line,
+            fill: 'none',
+            strokeWidth: 3,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+          }}
+        />
 
         {xTicks.map((tick) => (
           <line
@@ -342,6 +380,7 @@ function CashFlowChart({
             y1={chartFloorY}
             x2={tick.x}
             y2={chartFloorY + 6}
+            style={{ stroke: tickColor }}
           />
         ))}
 
@@ -352,6 +391,11 @@ function CashFlowChart({
             cx={point.x}
             cy={point.y}
             r={index === coordinates.length - 1 ? 4.5 : 3}
+            style={{
+              fill: index === coordinates.length - 1 ? palette.end : palette.dot,
+              stroke: palette.line,
+              strokeWidth: 2,
+            }}
           />
         ))}
       </svg>
@@ -1034,7 +1078,7 @@ export function ResultScreen({
           </div>
         </div>
 
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} />
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} />
 
         <SummaryCards result={result} />
 
