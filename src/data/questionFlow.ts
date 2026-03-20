@@ -3,8 +3,8 @@
 export const questionFlow: QuestionStep[] = [
   {
     id: 'household',
-    title: '누구를 기준으로 계산할까요?',
-    description: '본인만 볼지, 부부 합산으로 볼지 먼저 정합니다.',
+    title: '계산 기준',
+    description: '',
     visibility: () => true,
   },
   {
@@ -67,4 +67,13 @@ export const questionFlow: QuestionStep[] = [
     description: '총액 한 번 입력 또는 세부 항목 입력 중에서 고를 수 있습니다.',
     visibility: () => true,
   },
+  {
+    id: 'cashReserve',
+    title: '지금 남아있는 현금을 입력해 주세요.',
+    description: '기본값 1억원을 시작점으로 10년 현금흐름 그래프에 반영합니다.',
+    visibility: () => true,
+  },
 ]
+
+
+

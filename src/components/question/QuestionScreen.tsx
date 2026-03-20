@@ -14,8 +14,8 @@ interface QuestionScreenProps {
 }
 
 const householdOptions = [
-  { value: 'single', label: '본인만', description: '혼자 기준으로 계산합니다.' },
-  { value: 'couple', label: '부부 합산', description: '가구 기준으로 함께 계산합니다.' },
+  { value: 'single', label: '1인가구' },
+  { value: 'couple', label: '부부합산' },
 ] as const
 
 const housingOptions = [
@@ -103,12 +103,12 @@ function QuestionLayout({
   const progress = ((questionIndex + 1) / totalQuestions) * 100
 
   return (
-    <section className="screen question-screen">
+    <section className={`screen question-screen question-${question.id}`}>
       <div className="screen-header">
         <div>
           <p className="eyebrow">질문 {questionIndex + 1}</p>
           <h1 className="screen-title">{question.title}</h1>
-          <p className="screen-copy">{question.description}</p>
+          {question.description ? <p className="screen-copy">{question.description}</p> : null}
         </div>
         <div className="progress-shell">
           <span className="progress-label">
@@ -712,6 +712,20 @@ export function QuestionScreen({
             )}
           </div>
         )
+      case 'cashReserve':
+        return (
+          <NumberFields
+            fields={[
+              {
+                key: 'startingCashReserve',
+                label: '지금 남아있는 현금',
+                value: formData.startingCashReserve,
+                onChange: (value) => update('startingCashReserve', value),
+                helperText: '기본값 1억원이며, 결과 상단 10년 현금흐름 그래프의 시작점이 됩니다.',
+              },
+            ]}
+          />
+        )
       default:
         return null
     }
@@ -729,3 +743,6 @@ export function QuestionScreen({
     </QuestionLayout>
   )
 }
+
+
+

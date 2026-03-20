@@ -1,6 +1,7 @@
 ﻿import { policyConfig } from '../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
+  CashBalancePoint,
   ComprehensiveTaxPersonBreakdown,
   IsaTaxBreakdown,
   IsaType,
@@ -29,6 +30,12 @@ interface ComprehensiveTaxCalculation {
   baseAnnual: number
   thresholdAnnual: number
   breakdown: ComprehensiveTaxPersonBreakdown[]
+}
+
+interface CashProjection {
+  cumulativeNetChange: number
+  endingBalance: number
+  timeline: CashBalancePoint[]
 }
 
 const roundCurrency = (value: number) => Math.round(value)
@@ -110,6 +117,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
     formData.inflationRateAnnual,
     policyConfig.inflation.defaultAnnualRate,
   ),
+  startingCashReserve: sanitizeMoney(formData.startingCashReserve),
 })
 
 const toMonthly = (annualValue: number) => roundCurrency(annualValue / 12)
@@ -577,41 +585,50 @@ const estimateHealthInsurance = (
   }
 }
 
-const calculateTenYearProjection = (
+const calculateCashProjection = (
   formData: RetireCalcFormData,
   totalIncomeMonthly: number,
   totalExpenseMonthly: number,
   healthInsuranceMonthly: number,
   holdingTaxMonthly: number,
   comprehensiveTaxImpactAnnual: number,
-) => {
-  if (!formData.inflationEnabled) {
-    const monthlySurplus =
-      totalIncomeMonthly -
-      totalExpenseMonthly -
-      healthInsuranceMonthly -
-      holdingTaxMonthly -
-      comprehensiveTaxImpactAnnual / 12
+  projectionYears = 10,
+): CashProjection => {
+  let cumulativeNetChange = 0
+  let balance = formData.startingCashReserve
+  const timeline: CashBalancePoint[] = [
+    {
+      year: 0,
+      balance: roundCurrency(balance),
+    },
+  ]
 
-    return roundCurrency(monthlySurplus * 12 * formData.simulationYears)
-  }
-
-  let cumulative = 0
-
-  for (let yearIndex = 0; yearIndex < formData.simulationYears; yearIndex += 1) {
-    const inflationMultiplier = (1 + formData.inflationRateAnnual) ** yearIndex
+  for (let yearIndex = 0; yearIndex < projectionYears; yearIndex += 1) {
+    const inflationMultiplier = formData.inflationEnabled
+      ? (1 + formData.inflationRateAnnual) ** yearIndex
+      : 1
     const projectedExpenses = totalExpenseMonthly * inflationMultiplier
-    const projectedRequired = healthInsuranceMonthly + holdingTaxMonthly
     const projectedMonthlySurplus =
       totalIncomeMonthly -
       projectedExpenses -
-      projectedRequired -
+      healthInsuranceMonthly -
+      holdingTaxMonthly -
       comprehensiveTaxImpactAnnual / 12
+    const annualNetChange = roundCurrency(projectedMonthlySurplus * 12)
 
-    cumulative += projectedMonthlySurplus * 12
+    cumulativeNetChange += annualNetChange
+    balance += annualNetChange
+    timeline.push({
+      year: yearIndex + 1,
+      balance: roundCurrency(balance),
+    })
   }
 
-  return roundCurrency(cumulative)
+  return {
+    cumulativeNetChange: roundCurrency(cumulativeNetChange),
+    endingBalance: roundCurrency(balance),
+    timeline,
+  }
 }
 
 export const calculateRetireScenario = (
@@ -689,7 +706,7 @@ export const calculateRetireScenario = (
     monthlyUsableCash - expenses.totalExpenseMonthly,
   )
   const yearlySurplusOrDeficit = roundCurrency(monthlySurplusOrDeficit * 12)
-  const tenYearSurplusOrDeficit = calculateTenYearProjection(
+  const cashProjection = calculateCashProjection(
     formData,
     totalIncomeMonthly,
     expenses.totalExpenseMonthly,
@@ -697,6 +714,7 @@ export const calculateRetireScenario = (
     holdingTax.monthly,
     comprehensiveTax.impactAnnual,
   )
+  const tenYearSurplusOrDeficit = cashProjection.cumulativeNetChange
 
   return {
     policyBaseDate: policyConfig.policyBaseDate,
@@ -750,6 +768,9 @@ export const calculateRetireScenario = (
     monthlySurplusOrDeficit,
     yearlySurplusOrDeficit,
     tenYearSurplusOrDeficit,
+    startingCashReserve: formData.startingCashReserve,
+    cashBalanceAfterTenYears: cashProjection.endingBalance,
+    cashBalanceTimeline: cashProjection.timeline,
     riskLevel:
       monthlySurplusOrDeficit > 0
         ? 'surplus'
@@ -759,6 +780,11 @@ export const calculateRetireScenario = (
     loanNotice: formData.hasLoan,
   }
 }
+
+
+
+
+
 
 
 

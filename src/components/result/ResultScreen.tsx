@@ -166,6 +166,29 @@ const splitSummaryValue = (value: string) => {
   }
 }
 
+function InflationSwitch({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean
+  onToggle: (nextValue: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={enabled ? '물가반영 On' : '물가미반영 Off'}
+      className={`inflation-toggle ${enabled ? 'is-on' : 'is-off'}`}
+      onClick={() => onToggle(!enabled)}
+    >
+      <span className="inflation-toggle-copy">{enabled ? 'On' : 'Off'}</span>
+      <span className="inflation-toggle-track" aria-hidden="true">
+        <span className="inflation-toggle-thumb" />
+      </span>
+    </button>
+  )
+}
 function SummaryCards({ result }: { result: RetireCalcResult }) {
   const cards = [
     {
@@ -209,6 +232,97 @@ function SummaryCards({ result }: { result: RetireCalcResult }) {
   )
 }
 
+function CashFlowChart({
+  result,
+  inflationEnabled,
+}: {
+  result: RetireCalcResult
+  inflationEnabled: boolean
+}) {
+  const points =
+    result.cashBalanceTimeline.length > 0
+      ? result.cashBalanceTimeline
+      : [{ year: 0, balance: result.startingCashReserve }]
+  const width = 360
+  const height = 160
+  const paddingX = 18
+  const paddingY = 18
+  const balances = points.map((point) => point.balance)
+  const minBalance = Math.min(...balances)
+  const maxBalance = Math.max(...balances)
+  const range = maxBalance - minBalance || 1
+  const baselineY = height - paddingY
+  const coordinates = points.map((point, index) => {
+    const x =
+      paddingX +
+      (index * (width - paddingX * 2)) / Math.max(points.length - 1, 1)
+    const y =
+      paddingY +
+      (1 - (point.balance - minBalance) / range) * (height - paddingY * 2)
+
+    return {
+      ...point,
+      x,
+      y,
+    }
+  })
+  const linePath = coordinates
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ')
+  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} ${baselineY} L ${coordinates[0].x} ${baselineY} Z`
+  const endingBalance =
+    coordinates[coordinates.length - 1]?.balance ?? result.startingCashReserve
+
+  return (
+    <section className={`result-panel cashflow-hero tone-${result.riskLevel}`}>
+      <div className="cashflow-hero-header">
+        <div>
+          <p className="cashflow-hero-eyebrow">10년 현금흐름</p>
+          <h2>{formatCompactCurrency(endingBalance)}</h2>
+          <p className="cashflow-hero-copy">
+            남아있는 현금을 시작점으로 10년 뒤 잔액이 어떻게 변하는지 보여줍니다.
+          </p>
+        </div>
+        <div className="cashflow-hero-meta">
+          <span>시작 {formatCompactCurrency(result.startingCashReserve)}</span>
+          <span>{inflationEnabled ? '물가반영 On' : '물가반영 Off'}</span>
+          <span>10년 후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
+        </div>
+      </div>
+
+      <svg
+        className="cashflow-chart"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="10년 현금흐름 그래프"
+      >
+        <path className="cashflow-chart-area" d={areaPath} />
+        <path className="cashflow-chart-line" d={linePath} />
+        {coordinates.map((point, index) => (
+          <circle
+            key={point.year}
+            className={index === coordinates.length - 1 ? 'cashflow-chart-dot is-end' : 'cashflow-chart-dot'}
+            cx={point.x}
+            cy={point.y}
+            r={index === coordinates.length - 1 ? 4.5 : 3}
+          />
+        ))}
+      </svg>
+
+      <div className="cashflow-axis">
+        <span>지금</span>
+        <span>5년</span>
+        <span>10년</span>
+      </div>
+    </section>
+  )
+}
+const splitResultItemLabel = (value: string) =>
+  value
+    .split(/\s+/)
+    .flatMap((word) => word.match(/.{1,2}/g) ?? [word])
+    .filter((chunk) => chunk.length > 0)
+
 function ResultTable({ rows }: { rows: ResultRow[] }) {
   return (
     <div className="table-shell">
@@ -228,7 +342,13 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
           {rows.map((row) => (
             <tr key={`${row.category}-${row.item}`}>
               <td>{row.category}</td>
-              <td>{row.item}</td>
+              <td className="result-item-cell">
+                <span className="result-item-label" aria-label={row.item}>
+                  {splitResultItemLabel(row.item).map((chunk, index) => (
+                    <span key={`${row.item}-${index}`}>{chunk}</span>
+                  ))}
+                </span>
+              </td>
               <td className="result-input-cell">{row.input}</td>
               <td>{row.monthly}</td>
               <td>{row.annual}</td>
@@ -536,7 +656,7 @@ export function ResultScreen({
     formData.otherFixedMonthly
   const fixedExpenseAnnualBase = fixedExpenseMonthlyBase * 12
   const captureRef = useRef<HTMLDivElement | null>(null)
-  const [exportState, setExportState] = useState<'idle' | 'saving' | 'sharing'>('idle')
+  const [exportState, setExportState] = useState<'idle' | 'sharing'>('idle')
   const [exportMessage, setExportMessage] = useState<string | null>(null)
 
   const createResultImage = async () => {
@@ -583,20 +703,6 @@ export function ResultScreen({
     window.setTimeout(() => {
       URL.revokeObjectURL(url)
     }, 1000)
-  }
-
-  const handleSaveImage = async () => {
-    try {
-      setExportState('saving')
-      setExportMessage(null)
-      const blob = await createResultImage()
-      downloadResultImage(blob)
-      setExportMessage('결과 이미지를 저장했습니다.')
-    } catch {
-      setExportMessage('결과 이미지를 저장하지 못했습니다.')
-    } finally {
-      setExportState('idle')
-    }
   }
 
   const handleShareImage = async () => {
@@ -766,7 +872,7 @@ export function ResultScreen({
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(
-        result.totalIncomeMonthly * 12 * formData.simulationYears,
+        result.totalIncomeMonthly * 12 * 10,
       ),
       note: '연금 수령액 포함 가능',
     },
@@ -845,7 +951,7 @@ export function ResultScreen({
     },
     {
       category: '결과',
-      item: '월 흑자 / 적자',
+      item: '월 흑자적자',
       input: `월 총지출 ${formatCompactCurrency(result.totalExpenseMonthly)}`,
       monthly: formatSignedCompactCurrency(result.monthlySurplusOrDeficit),
       annual: formatSignedCompactCurrency(result.yearlySurplusOrDeficit),
@@ -866,36 +972,24 @@ export function ResultScreen({
           </span>
         </div>
 
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} />
+
         <SummaryCards result={result} />
 
         <section className="result-panel projection-panel">
-          <div className="panel-header">
-            <div>
-              <div className="title-with-help">
-                <h2>물가상승률 옵션</h2>
-                <HelpPopover
-                  detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 재산세는 고정으로 둡니다."
-                  label="물가반영 설명 보기"
-                  align="left"
-                />
-              </div>
+          <div className="panel-header projection-header">
+            <div className="title-with-help">
+              <h2>물가상승율</h2>
+              <HelpPopover
+                detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 재산세는 고정으로 둡니다."
+                label="물가반영 설명 보기"
+                align="left"
+              />
             </div>
-            <div className="chip-row">
-              <button
-                type="button"
-                className={`chip ${formData.inflationEnabled ? 'is-active' : ''}`.trim()}
-                onClick={() => onPatchFormData({ inflationEnabled: true })}
-              >
-                물가 반영
-              </button>
-              <button
-                type="button"
-                className={`chip ${formData.inflationEnabled ? '' : 'is-active'}`.trim()}
-                onClick={() => onPatchFormData({ inflationEnabled: false })}
-              >
-                물가 미반영
-              </button>
-            </div>
+            <InflationSwitch
+              enabled={formData.inflationEnabled}
+              onToggle={(nextValue) => onPatchFormData({ inflationEnabled: nextValue })}
+            />
           </div>
 
           <div className="field-grid field-grid-2">
@@ -908,7 +1002,7 @@ export function ResultScreen({
               suffix="년"
             />
             <NumericInput
-              label="연 물가상승률"
+              label="상승률"
               value={Math.round(formData.inflationRateAnnual * 100)}
               onChange={(value) => onPatchFormData({ inflationRateAnnual: value / 100 })}
               step={0.5}
@@ -928,6 +1022,21 @@ export function ResultScreen({
           <ResultTable rows={rows} />
         </section>
       </div>
+
+      <div className="footer-actions footer-actions-wrap result-actions">
+        <PrimaryButton variant="secondary" onClick={onEditAnswers}>
+          수정
+        </PrimaryButton>
+        <PrimaryButton onClick={onOpenSaveSlots}>저장</PrimaryButton>
+        <PrimaryButton onClick={handleShareImage} disabled={exportState !== 'idle'}>
+          {exportState === 'sharing' ? '공유 중...' : '공유'}
+        </PrimaryButton>
+        <PrimaryButton variant="ghost" onClick={onStartOver}>
+          처음으로
+        </PrimaryButton>
+      </div>
+
+      {exportMessage ? <p className="action-feedback">{exportMessage}</p> : null}
 
       <details className="help-drawer result-panel">
         <summary className="help-drawer-toggle">
@@ -964,31 +1073,14 @@ export function ResultScreen({
           </div>
         </div>
       </details>
-
-      {exportMessage ? <p className="action-feedback">{exportMessage}</p> : null}
-
-      <div className="footer-actions footer-actions-wrap">
-        <PrimaryButton
-          variant="secondary"
-          onClick={handleSaveImage}
-          disabled={exportState !== 'idle'}
-        >
-          {exportState === 'saving' ? '이미지 저장 중...' : '이미지 저장'}
-        </PrimaryButton>
-        <PrimaryButton onClick={handleShareImage} disabled={exportState !== 'idle'}>
-          {exportState === 'sharing' ? '공유 준비 중...' : '공유'}
-        </PrimaryButton>
-        <PrimaryButton variant="secondary" onClick={onEditAnswers}>
-          수정
-        </PrimaryButton>
-        <PrimaryButton onClick={onOpenSaveSlots}>저장/불러오기</PrimaryButton>
-        <PrimaryButton variant="ghost" onClick={onStartOver}>
-          처음부터
-        </PrimaryButton>
-      </div>
     </section>
   )
 }
+
+
+
+
+
 
 
 
