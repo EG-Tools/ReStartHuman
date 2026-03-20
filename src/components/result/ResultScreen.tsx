@@ -474,10 +474,28 @@ function CashFlowChart({
     </section>
   )
 }
+const splitResultItemWord = (word: string) => {
+  if (!word) {
+    return []
+  }
+
+  if (/^[A-Za-z0-9]+$/.test(word)) {
+    return [word]
+  }
+
+  const chars = Array.from(word)
+
+  if (chars.length <= 3) {
+    return [word]
+  }
+
+  return [chars.slice(0, 2).join(''), chars.slice(2).join('')]
+}
+
 const splitResultItemLabel = (value: string) =>
   value
-    .split(/\s+/)
-    .flatMap((word) => word.match(/.{1,2}/g) ?? [word])
+    .split(/[\s/]+/)
+    .flatMap((word) => splitResultItemWord(word.trim()))
     .filter((chunk) => chunk.length > 0)
 
 const getResultCategoryClassName = (category: string) => {
