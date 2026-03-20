@@ -38,7 +38,6 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
         <details className="help-drawer note-panel start-help-drawer">
           <summary className="help-drawer-toggle">
             <span>도움말</span>
-            <span className="help-drawer-toggle-copy">눌러서 열기 / 닫기</span>
           </summary>
           <div className="help-drawer-body">
             <div className="notice-stack help-drawer-stack">

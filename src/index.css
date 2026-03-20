@@ -1491,6 +1491,7 @@ body {
 
 .start-screen {
   justify-content: flex-start;
+  gap: 12px;
 }
 
 .start-topbar {
@@ -1532,8 +1533,8 @@ body {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  justify-content: center;
-  gap: 24px;
+  justify-content: flex-start;
+  gap: 16px;
 }
 
 .settings-modal {
@@ -1625,9 +1626,9 @@ body {
 .start-hero-panel {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
-  height: clamp(320px, 48vh, 440px);
+  height: clamp(344px, 50vh, 468px);
   padding: 0;
   overflow: hidden;
   text-align: left;
@@ -1636,13 +1637,13 @@ body {
 
 .start-hero-image {
   display: block;
-  width: 100%;
+  width: calc(100% + 52px);
   max-width: none;
   height: auto;
-  align-self: center;
+  align-self: flex-start;
   filter: saturate(0.96) contrast(1.03);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 74%, rgba(0, 0, 0, 0.18) 92%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 74%, rgba(0, 0, 0, 0.18) 92%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 76%, rgba(0, 0, 0, 0.18) 92%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 76%, rgba(0, 0, 0, 0.18) 92%, rgba(0, 0, 0, 0) 100%);
 }
 
 .start-hero-overlay {
@@ -1650,8 +1651,8 @@ body {
   inset: 0;
   display: flex;
   align-items: flex-end;
-  padding: 26px;
-  background: linear-gradient(180deg, rgba(6, 10, 12, 0) 34%, rgba(6, 10, 12, 0.08) 62%, rgba(6, 10, 12, 0.64) 100%);
+  padding: 24px 26px 26px;
+  background: linear-gradient(180deg, rgba(6, 10, 12, 0) 38%, rgba(6, 10, 12, 0.08) 64%, rgba(6, 10, 12, 0.62) 100%);
 }
 
 .start-hero-panel .hero-title {
@@ -2444,11 +2445,11 @@ body {
   }
 
   .start-hero-panel {
-    height: 240px;
+    height: 252px;
   }
 
   .start-hero-image {
-    width: 100%;
+    width: calc(100% + 28px);
   }
 
   .start-hero-overlay {
