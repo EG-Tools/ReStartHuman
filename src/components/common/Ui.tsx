@@ -133,6 +133,7 @@ interface NumericInputProps {
   min?: number
   step?: number
   display?: 'currency' | 'number'
+  disabled?: boolean
 }
 
 export function NumericInput({
@@ -144,6 +145,7 @@ export function NumericInput({
   min = 0,
   step,
   display = 'currency',
+  disabled = false,
 }: NumericInputProps) {
   const isCurrency = display === 'currency'
   const displayValue = isCurrency ? value / MANWON : value
@@ -152,7 +154,7 @@ export function NumericInput({
   const resolvedSuffix = suffix ?? (isCurrency ? '만원' : undefined)
 
   return (
-    <label className="input-card">
+    <label className={`input-card${disabled ? ' is-disabled' : ''}`}>
       <span className="input-card-label">{label}</span>
       <div className="input-inline">
         <div className="input-shell">
@@ -163,6 +165,7 @@ export function NumericInput({
             min={min}
             step={resolvedStep}
             value={Number.isFinite(displayValue) ? displayValue : 0}
+            disabled={disabled}
             onWheel={(event) => {
               if (document.activeElement === event.currentTarget) {
                 event.currentTarget.blur()
@@ -191,6 +194,7 @@ export interface NumberField {
   min?: number
   step?: number
   display?: 'currency' | 'number'
+  disabled?: boolean
 }
 
 export function NumberFields({
@@ -209,5 +213,4 @@ export function NumberFields({
     </div>
   )
 }
-
 

@@ -1816,9 +1816,21 @@ body {
   color: #ffd2c6;
 }
 
-.result-table tbody td.result-category-tax,
-.result-table tbody td.result-category-essential,
-.result-table tbody td.result-category-outcome {
+.result-table tbody tr.result-category-tax td {
+  background: rgba(60, 31, 34, 0.36);
+}
+
+.result-table tbody tr.result-category-essential td {
+  background: rgba(66, 54, 24, 0.34);
+}
+
+.result-table tbody tr.result-category-outcome td {
+  background: rgba(16, 59, 50, 0.34);
+}
+
+.result-table tbody tr.result-category-tax td:first-child,
+.result-table tbody tr.result-category-essential td:first-child,
+.result-table tbody tr.result-category-outcome td:first-child {
   position: sticky;
   left: 0;
   z-index: 2;
@@ -1826,17 +1838,36 @@ body {
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
-.result-table tbody td.result-category-tax {
+.result-table tbody tr.result-category-tax td:first-child {
   background: rgba(60, 31, 34, 0.98);
   color: #f1c5bd;
 }
 
-.result-table tbody td.result-category-essential {
+.result-table tbody tr.result-category-essential td:first-child {
   background: rgba(66, 54, 24, 0.98);
   color: #ecdfac;
 }
 
-.result-table tbody td.result-category-outcome {
+.result-table tbody tr.result-category-outcome td:first-child {
   background: rgba(16, 59, 50, 0.98);
   color: #bae7d8;
 }
+/* Disabled input state */
+.input-card.is-disabled {
+  opacity: 0.76;
+}
+
+.input-card.is-disabled .input-shell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.input-card.is-disabled .input-control {
+  color: rgba(216, 226, 230, 0.58);
+  -webkit-text-fill-color: rgba(216, 226, 230, 0.58);
+}
+
+.input-card.is-disabled .input-preview {
+  color: rgba(216, 226, 230, 0.68);
+}
+
