@@ -32,6 +32,9 @@ export interface RetireCalcFormData {
   householdType: HouseholdType
   simulationYears: number
 
+  hasChildren: boolean
+  childCount: number
+
   housingType: HousingType
   homeMarketValue: number
   homeOfficialValue: number
@@ -220,5 +223,3 @@ export interface QuestionStep {
   description: string
   visibility: (formData: RetireCalcFormData) => boolean
 }
-
-
