@@ -19,6 +19,12 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
       <div className="start-main">
         <div className="hero-panel start-hero-panel">
           <img
+            className="start-hero-backdrop"
+            src={startHeroImage}
+            alt=""
+            aria-hidden="true"
+          />
+          <img
             className="start-hero-image"
             src={startHeroImage}
             alt="Re Start Human main screen illustration"
