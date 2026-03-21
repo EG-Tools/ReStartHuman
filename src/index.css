@@ -544,13 +544,18 @@ p {
 .result-table th:nth-child(6),
 .result-table td:nth-child(6) {
   white-space: nowrap;
+  text-align: center;
 }
 
 .note-cell {
-  display: inline-flex;
+  display: flex;
   align-items: flex-start;
+  justify-content: center;
   gap: 8px;
+  width: 100%;
   max-width: 220px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .note-popover {
@@ -2541,14 +2546,14 @@ body {
   }
 
   .result-screen {
-    --landscape-result-input-width: 62px;
+    --landscape-result-input-width: 72px;
   }
 
   .result-screen .result-input-cell,
   .result-screen .table-edit-cluster {
-    width: 82px;
-    min-width: 82px;
-    max-width: 82px;
+    width: 92px;
+    min-width: 92px;
+    max-width: 92px;
   }
 
   .result-screen .result-input-cell {
@@ -2572,13 +2577,13 @@ body {
     text-align: right;
   }
 
-  .result-screen .table-edit-cluster > .table-edit-group {
+  .result-screen .table-edit-group-market {
     width: fit-content;
     justify-self: end;
   }
 
-  .result-screen .table-edit-group .table-edit-stack,
-  .result-screen .table-edit-group .table-edit-inline {
+  .result-screen .table-edit-group-market .table-edit-stack,
+  .result-screen .table-edit-group-market .table-edit-inline {
     width: fit-content;
     justify-self: end;
   }
