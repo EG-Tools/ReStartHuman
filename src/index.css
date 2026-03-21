@@ -534,17 +534,17 @@ p {
 
 .result-table th:nth-child(4),
 .result-table th:nth-child(5),
-.result-table th:nth-child(6),
 .result-table td:nth-child(4),
 .result-table td:nth-child(5),
-.result-table td:nth-child(6) {
-  min-width: 96px;
-}
-
 .result-table th:nth-child(3),
 .result-table td:nth-child(3) {
   width: 106px;
   min-width: 106px;
+}
+
+.result-table th:nth-child(6),
+.result-table td:nth-child(6) {
+  min-width: 96px;
 }
 
 .result-table th:nth-child(6),
@@ -882,8 +882,11 @@ p {
 .summary-value {
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
   gap: 2px;
   flex-wrap: wrap;
+  width: 100%;
+  text-align: right;
 }
 
 .summary-value-unit {
@@ -2751,21 +2754,13 @@ body {
   }
 
   .result-table th:nth-child(3),
-  .result-table td:nth-child(3) {
-    width: 54px;
-    min-width: 54px;
-  }
-
+  .result-table td:nth-child(3),
   .result-table th:nth-child(4),
-  .result-table td:nth-child(4) {
-    width: 64px;
-    min-width: 64px;
-  }
-
+  .result-table td:nth-child(4),
   .result-table th:nth-child(5),
   .result-table td:nth-child(5) {
-    width: 64px;
-    min-width: 64px;
+    width: 70px;
+    min-width: 70px;
   }
 
   .result-table th:nth-child(1),
@@ -2777,15 +2772,15 @@ body {
 
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 92px;
-    min-width: 92px;
+    width: 102px;
+    min-width: 102px;
   }
 
   .result-table th:nth-child(6),
   .result-table td:nth-child(6) {
-    width: 84px;
-    min-width: 84px;
-    padding-right: 0;
+    width: 96px;
+    min-width: 96px;
+    padding-right: 2px;
   }
 
   .result-table tbody td:first-child,
@@ -2795,19 +2790,19 @@ body {
 
   .result-table tbody td:nth-child(6) {
     text-align: right;
-    padding-right: 0;
+    padding-right: 2px;
   }
 
   .result-table thead th:nth-child(6) {
-    padding-right: 0;
+    padding-right: 2px;
   }
 
   .result-table tbody .note-cell {
     justify-content: flex-end;
-    width: calc(100% + 10px);
+    width: 100%;
     max-width: none;
     margin-left: auto;
-    margin-right: -10px;
+    margin-right: 0;
     padding-right: 0;
     text-align: right;
   }
