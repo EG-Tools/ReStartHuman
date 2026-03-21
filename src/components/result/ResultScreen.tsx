@@ -1199,47 +1199,6 @@ export function ResultScreen({
       note: '세금 차감 전',
     },
     {
-      category: '지출',
-      item: '고정지출',
-      input: (
-        <FixedExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
-      ),
-      monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
-      annual: formatCompactCurrency(fixedExpenseAnnualBase),
-      tenYear: formatCompactCurrency(fixedExpenseAnnualBase * 10),
-      note: '차량 제외',
-    },
-    {
-      category: '지출',
-      item: '식비생활비',
-      input: (
-        <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
-      ),
-      monthly: formatCompactCurrency(result.livingExpenseMonthly),
-      annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
-      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * 10),
-      note:
-        formData.livingCostInputMode === 'detailed'
-          ? '세부 항목 합산'
-          : '총액 입력 사용',
-    },
-    {
-      category: '지출',
-      item: '차량유지비',
-      input: (
-        <InlineAmountInput
-          label="자동차 연간 유지비"
-          value={formData.carYearlyCost}
-          onChange={(value) => onPatchFormData({ carYearlyCost: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(result.carMonthlyConverted),
-      annual: formatCompactCurrency(formData.carYearlyCost),
-      tenYear: formatCompactCurrency(formData.carYearlyCost * 10),
-      note: '연간 ÷ 12',
-      noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
-    },
-    {
       category: '세금',
       item: '건강 보험료',
       input: (
@@ -1286,12 +1245,53 @@ export function ResultScreen({
     },
     {
       category: '결과',
-      item: '월별 순이익',
+      item: '월 실사용 가능액',
       input: '총 유입에서 건강보험료·보유세·종합소득세 반영',
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
       tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * 10),
       note: '생활비와 고정지출 차감 전',
+    },
+    {
+      category: '지출',
+      item: '고정지출',
+      input: (
+        <FixedExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+      ),
+      monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
+      annual: formatCompactCurrency(fixedExpenseAnnualBase),
+      tenYear: formatCompactCurrency(fixedExpenseAnnualBase * 10),
+      note: '차량 제외',
+    },
+    {
+      category: '지출',
+      item: '식비생활비',
+      input: (
+        <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+      ),
+      monthly: formatCompactCurrency(result.livingExpenseMonthly),
+      annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
+      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * 10),
+      note:
+        formData.livingCostInputMode === 'detailed'
+          ? '세부 항목 합산'
+          : '총액 입력 사용',
+    },
+    {
+      category: '지출',
+      item: '차량유지비',
+      input: (
+        <InlineAmountInput
+          label="자동차 연간 유지비"
+          value={formData.carYearlyCost}
+          onChange={(value) => onPatchFormData({ carYearlyCost: value })}
+        />
+      ),
+      monthly: formatCompactCurrency(result.carMonthlyConverted),
+      annual: formatCompactCurrency(formData.carYearlyCost),
+      tenYear: formatCompactCurrency(formData.carYearlyCost * 10),
+      note: '연간 ÷ 12',
+      noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
     },
     {
       category: '결과',
