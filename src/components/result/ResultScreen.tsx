@@ -218,10 +218,28 @@ const getComprehensiveTaxInput = (result: RetireCalcResult) => {
   return `${exceededLabels.join(' / ')} 기준 초과`
 }
 
-const getComprehensiveTaxNote = (result: RetireCalcResult) => {
-  const allocationSummary = result.comprehensiveTaxBreakdown
+const formatComprehensiveTaxAllocationSummary = (result: RetireCalcResult) =>
+  result.comprehensiveTaxBreakdown
+    .filter((item) => item.attributedDividendAnnual > 0)
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
     .join(', ')
+
+const getComprehensiveTaxZeroReason = (result: RetireCalcResult) => {
+  const exceededBreakdown = result.comprehensiveTaxBreakdown.filter((item) => item.exceedsThreshold)
+
+  if (exceededBreakdown.length === 0) {
+    return `인별 귀속 배당이 모두 ${formatCompactCurrency(result.comprehensiveTaxThresholdAnnual)} 이하라`
+  }
+
+  const exceededSummary = exceededBreakdown
+    .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
+    .join(', ')
+
+  return `${exceededSummary} 기준으로 인별 판정했고, 원천징수세액이 비교세액보다 크거나 같아`
+}
+
+const getComprehensiveTaxNote = (result: RetireCalcResult) => {
+  const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
   const additionalSummary = result.comprehensiveTaxBreakdown
     .filter((item) => item.additionalTaxAnnual > 0)
     .map((item) => `${item.label} 추가 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
@@ -232,7 +250,7 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
   }
 
   if (additionalSummary.length === 0) {
-    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 비교세액 구조 적용 결과 추가 납부는 0원`
+    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원`
   }
 
   return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
@@ -937,7 +955,7 @@ export function ResultScreen({
       result.comprehensiveTaxIncluded
         ? result.comprehensiveTaxImpactAnnual > 0
           ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-          : '종합소득세는 대상 구간이지만 비교과세 구조로 추가 세 부담은 0으로 계산했습니다.'
+          : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
         : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
       result.healthInsuranceMonthly >= 1_000_000
         ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
