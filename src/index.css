@@ -2434,6 +2434,11 @@ body {
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
+  .start-screen {
+    padding-top: 10px;
+    gap: 10px;
+  }
+
   .start-hero-panel {
     height: clamp(540px, 74svh, 780px);
   }
@@ -2496,7 +2501,7 @@ body {
   }
 
   .start-hero-image {
-    object-position: center 20%;
+    object-position: center 0%;
     transform: none;
   }
 
