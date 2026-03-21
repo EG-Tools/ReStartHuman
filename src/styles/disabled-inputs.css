@@ -1,0 +1,29 @@
+/* Disabled input state */
+.input-card.is-disabled {
+  opacity: 0.76;
+}
+
+.input-card.is-disabled .input-shell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.input-card.is-disabled .input-control {
+  color: rgba(216, 226, 230, 0.58);
+  -webkit-text-fill-color: rgba(216, 226, 230, 0.58);
+}
+
+.input-card.is-disabled .input-preview {
+  color: rgba(216, 226, 230, 0.68);
+}
+
+
+
+@media (max-width: 640px) {
+  .slot-card-header p {
+    white-space: normal;
+  }
+}
+
+
+
