@@ -1190,7 +1190,7 @@ export function ResultScreen({
       note: '월 기준 유입',
     },
     {
-      category: '유입',
+      category: '결과',
       item: '총 유입',
       input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
