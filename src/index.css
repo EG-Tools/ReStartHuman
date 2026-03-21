@@ -1325,6 +1325,7 @@ p {
   gap: 2px;
   line-height: 1.06;
   font-weight: 700;
+  justify-items: center;
 }
 
 .result-item-label span {
@@ -1344,9 +1345,41 @@ p {
   width: 120px;
 }
 
+.result-table tbody td:first-child,
+.result-item-cell {
+  text-align: center;
+}
+
+.result-table tbody td:nth-child(2) {
+  text-align: right;
+}
+
+.result-table tbody td:nth-child(6) {
+  text-align: right;
+}
+
 .table-edit-inline {
   align-items: center;
   flex-wrap: wrap;
+}
+
+.result-table tbody td:nth-child(2) .table-edit-stack,
+.result-table tbody td:nth-child(2) .table-edit-group,
+.result-table tbody td:nth-child(2) .table-edit-cluster {
+  margin-left: auto;
+  align-items: flex-end;
+  justify-items: end;
+  text-align: right;
+}
+
+.result-table tbody td:nth-child(2) .table-edit-inline {
+  justify-content: flex-end;
+}
+
+.result-table tbody td:nth-child(2) .table-edit-input,
+.result-table tbody td:nth-child(2) .table-edit-label,
+.result-table tbody td:nth-child(2) .table-edit-suffix {
+  text-align: right;
 }
 
 .table-edit-suffix {
@@ -1361,6 +1394,15 @@ p {
 
 .note-cell {
   max-width: 152px;
+}
+
+.result-table tbody .note-cell {
+  justify-content: flex-end;
+  width: 100%;
+  max-width: none;
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
 }
 
 .result-actions {
@@ -2236,6 +2278,21 @@ body {
   z-index: 2;
   font-weight: 800;
   box-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
+}
+
+.result-table tbody tr.result-category-tax td:first-child {
+  background: #24191b;
+  color: #e5cfca;
+}
+
+.result-table tbody tr.result-category-expense td:first-child {
+  background: #24182f;
+  color: #dccff0;
+}
+
+.result-table tbody tr.result-category-outcome td:first-child {
+  background: #0e2923;
+  color: #bfe2d6;
 }
 .projection-inline-row {
   display: grid;
