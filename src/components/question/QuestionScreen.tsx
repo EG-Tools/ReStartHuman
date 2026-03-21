@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
+import { ChoiceQuestion, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
 
@@ -14,6 +14,21 @@ interface QuestionScreenProps {
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
   headerAction?: ReactNode
 }
+
+interface QuestionNumberFieldConfig {
+  key: string
+  label: string
+  value: number
+  onChange: (value: number) => void
+  helperText?: string
+  disabled?: boolean
+  display?: 'currency' | 'number'
+  suffix?: string
+  min?: number
+  step?: number
+}
+
+const MANWON = 10_000
 
 const householdOptions = [
   { value: 'single', label: '1인가구' },
@@ -152,6 +167,113 @@ function QuestionLayout({
   )
 }
 
+function QuestionNumberFields({
+  columns = 1,
+  fields,
+}: {
+  columns?: number
+  fields: QuestionNumberFieldConfig[]
+}) {
+  return (
+    <div
+      className="question-stack"
+      style={{
+        display: 'grid',
+        gridTemplateColumns:
+          columns > 1 ? 'repeat(auto-fit, minmax(240px, 1fr))' : 'minmax(0, 1fr)',
+        gap: '12px',
+      }}
+    >
+      {fields.map((field) => {
+        const isCurrency = field.display !== 'number'
+        const displayValue = Number.isFinite(field.value)
+          ? isCurrency
+            ? Math.round(field.value / MANWON)
+            : field.value
+          : 0
+        const suffix = field.suffix ?? (isCurrency ? '만원' : '')
+        const conversionText = isCurrency
+          ? `환산 ${field.value > 0 ? formatCompactCurrency(field.value) : '0원'}`
+          : field.helperText
+
+        return (
+          <section key={field.key} className="question-block">
+            <div className="question-block-header">
+              <h2>{field.label}</h2>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                gap: '10px',
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <input
+                  className="input-control"
+                  type="number"
+                  inputMode="decimal"
+                  min={field.min ?? 0}
+                  step={field.step ?? 1}
+                  disabled={field.disabled}
+                  value={displayValue}
+                  onWheel={(event) => {
+                    if (document.activeElement === event.currentTarget) {
+                      event.currentTarget.blur()
+                    }
+                  }}
+                  onChange={(event) => {
+                    const rawValue = Number(event.target.value) || 0
+                    field.onChange(isCurrency ? rawValue * MANWON : rawValue)
+                  }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {suffix ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    minWidth: isCurrency ? '132px' : '56px',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: '4px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      minHeight: '18px',
+                      fontSize: '12px',
+                      lineHeight: 1.2,
+                      color: 'rgba(214, 225, 229, 0.74)',
+                      textAlign: 'right',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {conversionText ?? ''}
+                  </span>
+                  <span className="input-suffix">{suffix}</span>
+                </div>
+              ) : null}
+            </div>
+
+            {field.helperText && isCurrency ? (
+              <p className="screen-copy" style={{ marginTop: '8px' }}>
+                {field.helperText}
+              </p>
+            ) : null}
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
 export function QuestionScreen({
   question,
   questionIndex,
@@ -218,6 +340,43 @@ export function QuestionScreen({
                 onChange={(value) => update('householdType', value)}
               />
             </section>
+            <section className="question-block">
+              <div className="question-block-header">
+                <h2>자녀가 있나요?</h2>
+              </div>
+              <ChoiceQuestion
+                value={formData.hasChildren ? 'yes' : 'no'}
+                options={yesNoOptions}
+                onChange={(value) =>
+                  onPatchFormData({
+                    hasChildren: value === 'yes',
+                    childCount:
+                      value === 'yes'
+                        ? Math.max(formData.childCount || 1, 1)
+                        : 0,
+                  })
+                }
+              />
+              <p className="screen-copy" style={{ marginTop: '10px' }}>
+                현재는 참고용으로 저장되며 기본 계산에는 아직 직접 반영하지 않습니다.
+              </p>
+            </section>
+            {formData.hasChildren ? (
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'childCount',
+                    label: '자녀 수',
+                    value: Math.max(formData.childCount || 1, 1),
+                    onChange: (value) => update('childCount', Math.max(value, 1)),
+                    display: 'number',
+                    suffix: '명',
+                    min: 1,
+                    step: 1,
+                  },
+                ]}
+              />
+            ) : null}
             <section className="question-block housing-choice-block">
               <div className="question-block-header">
                 <h2>주거 형태</h2>
@@ -236,7 +395,7 @@ export function QuestionScreen({
           <div className="question-stack">
             {formData.housingType === 'own' ? (
               <>
-                <NumberFields
+                <QuestionNumberFields
                   columns={2}
                   fields={[
                     {
@@ -267,7 +426,7 @@ export function QuestionScreen({
 
             {formData.housingType === 'jeonse' ? (
               <>
-                <NumberFields
+                <QuestionNumberFields
                   fields={[
                     {
                       key: 'jeonseDeposit',
@@ -285,7 +444,7 @@ export function QuestionScreen({
 
             {formData.housingType === 'monthlyRent' ? (
               <>
-                <NumberFields
+                <QuestionNumberFields
                   columns={2}
                   fields={[
                     {
@@ -308,8 +467,7 @@ export function QuestionScreen({
                   (value) => update('maintenanceIncludedInRent', value),
                 )}
                 {!formData.maintenanceIncludedInRent ? (
-                  <NumberFields
-                    columns={2}
+                  <QuestionNumberFields
                     fields={[
                       {
                         key: 'monthlyMaintenanceFee',
@@ -326,7 +484,7 @@ export function QuestionScreen({
         )
       case 'assets':
         return (
-          <NumberFields
+          <QuestionNumberFields
             columns={2}
             fields={[
               {
@@ -358,7 +516,7 @@ export function QuestionScreen({
               options={dividendModeOptions}
               onChange={(value) => update('dividendInputMode', value)}
             />
-            <NumberFields
+            <QuestionNumberFields
               columns={2}
               fields={[
                 {
@@ -375,10 +533,10 @@ export function QuestionScreen({
                 },
                 {
                   key: 'pensionMonthlyAmount',
-                  label: '국민연금 예상 금액',
+                  label: '연금 월 실수령액',
                   value: formData.pensionMonthlyAmount,
                   onChange: (value) => update('pensionMonthlyAmount', value),
-                  helperText: '월 예상 수령액',
+                  helperText: '세후 기준, 실제 통장에 들어오는 금액을 입력합니다.',
                 },
               ]}
             />
@@ -414,8 +572,7 @@ export function QuestionScreen({
               </section>
             )}
             {formData.householdType === 'couple' && formData.dividendOwnershipType === 'split' ? (
-              <NumberFields
-                columns={2}
+              <QuestionNumberFields
                 fields={[
                   {
                     key: 'myAnnualDividendAttributed',
@@ -482,8 +639,7 @@ export function QuestionScreen({
                   </section>
                 )}
                 {formData.householdType === 'couple' && formData.isaOwnershipType === 'split' ? (
-                  <NumberFields
-                    columns={2}
+                  <QuestionNumberFields
                     fields={[
                       {
                         key: 'myAnnualIsaDividendAttributed',
@@ -567,7 +723,7 @@ export function QuestionScreen({
       case 'income':
         return (
           <div className="question-stack">
-            <NumberFields
+            <QuestionNumberFields
               fields={[
                 {
                   key: 'otherIncomeMonthly',
@@ -592,7 +748,7 @@ export function QuestionScreen({
               options={healthInsuranceOptions}
               onChange={(value) => update('healthInsuranceType', value)}
             />
-            <NumberFields
+            <QuestionNumberFields
               fields={[
                 {
                   key: 'salaryMonthly',
@@ -619,7 +775,7 @@ export function QuestionScreen({
         )
       case 'fixedExpenses':
         return (
-          <NumberFields
+          <QuestionNumberFields
             columns={2}
             fields={[
               {
@@ -670,7 +826,7 @@ export function QuestionScreen({
               onChange={(value) => update('livingCostInputMode', value)}
             />
             {formData.livingCostInputMode === 'total' ? (
-              <NumberFields
+              <QuestionNumberFields
                 fields={[
                   {
                     key: 'livingCostMonthlyTotal',
@@ -681,7 +837,7 @@ export function QuestionScreen({
                 ]}
               />
             ) : (
-              <NumberFields
+              <QuestionNumberFields
                 columns={2}
                 fields={[
                   {
@@ -721,7 +877,7 @@ export function QuestionScreen({
         )
       case 'cashReserve':
         return (
-          <NumberFields
+          <QuestionNumberFields
             columns={2}
             fields={[
               {
@@ -764,4 +920,3 @@ export function QuestionScreen({
     </QuestionLayout>
   )
 }
-
