@@ -2572,6 +2572,17 @@ body {
     text-align: right;
   }
 
+  .result-screen .table-edit-cluster > .table-edit-group {
+    width: fit-content;
+    justify-self: end;
+  }
+
+  .result-screen .table-edit-group .table-edit-stack,
+  .result-screen .table-edit-group .table-edit-inline {
+    width: fit-content;
+    justify-self: end;
+  }
+
   .result-screen .table-edit-inline {
     display: grid;
     grid-template-columns: minmax(0, var(--landscape-result-input-width)) auto;
