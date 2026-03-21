@@ -2760,6 +2760,18 @@ body {
     background: rgba(14, 21, 25, 0.98);
   }
 
+  .result-table tbody tr.result-category-tax td:first-child {
+    background: #24191b;
+  }
+
+  .result-table tbody tr.result-category-expense td:first-child {
+    background: #24182f;
+  }
+
+  .result-table tbody tr.result-category-outcome td:first-child {
+    background: #0e2923;
+  }
+
   .result-table thead th:first-child {
     background: rgba(18, 35, 39, 0.98);
   }
