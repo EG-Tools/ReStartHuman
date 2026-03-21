@@ -2551,16 +2551,22 @@ body {
     max-width: 72px;
   }
 
+  .result-screen .result-input-cell {
+    text-align: right;
+  }
+
   .result-screen .table-edit-stack,
   .result-screen .table-edit-group {
     width: 100%;
     min-width: 0;
+    margin-left: auto;
   }
 
   .result-screen .table-edit-inline {
     display: grid;
     grid-template-columns: minmax(0, var(--landscape-result-input-width)) auto;
     align-items: center;
+    justify-content: end;
     column-gap: 4px;
     row-gap: 4px;
   }
@@ -2571,8 +2577,12 @@ body {
     max-width: var(--landscape-result-input-width);
   }
 
+  .result-screen .table-edit-input {
+    text-align: right;
+  }
+
   .result-screen .table-edit-suffix {
-    justify-self: start;
+    justify-self: end;
   }
 
   .result-screen .table-edit-action {
@@ -2603,8 +2613,8 @@ body {
   }
 
   .result-table {
-    width: 800px;
-    min-width: 800px;
+    width: 740px;
+    min-width: 740px;
     table-layout: fixed;
     font-size: 0.84rem;
   }
@@ -2615,13 +2625,21 @@ body {
   }
 
   .result-table th:nth-child(3),
+  .result-table td:nth-child(3) {
+    width: 54px;
+    min-width: 54px;
+  }
+
   .result-table th:nth-child(4),
+  .result-table td:nth-child(4) {
+    width: 64px;
+    min-width: 64px;
+  }
+
   .result-table th:nth-child(5),
-  .result-table td:nth-child(3),
-  .result-table td:nth-child(4),
   .result-table td:nth-child(5) {
-    width: 84px;
-    min-width: 84px;
+    width: 74px;
+    min-width: 74px;
   }
 
   .result-table th:nth-child(2),
