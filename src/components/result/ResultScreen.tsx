@@ -377,24 +377,22 @@ const CashFlowChart = memo(function CashFlowChart({
   const palette =
     result.riskLevel === 'deficit'
       ? {
-          area: 'rgba(150, 67, 72, 0.26)',
+          areaStart: 'rgba(255, 146, 156, 0.12)',
+          areaEnd: 'rgba(150, 67, 72, 0.42)',
           line: '#ff9aa3',
-          dot: '#ffe1e4',
-          end: '#ff9aa3',
         }
       : result.riskLevel === 'neutral'
         ? {
-            area: 'rgba(132, 110, 54, 0.24)',
+            areaStart: 'rgba(243, 221, 128, 0.12)',
+            areaEnd: 'rgba(132, 110, 54, 0.4)',
             line: '#e6ca77',
-            dot: '#fff1c7',
-            end: '#e6ca77',
           }
         : {
-            area: 'rgba(56, 112, 91, 0.28)',
+            areaStart: 'rgba(133, 236, 186, 0.1)',
+            areaEnd: 'rgba(56, 112, 91, 0.46)',
             line: '#78d5b0',
-            dot: '#e4fff4',
-            end: '#78d5b0',
           }
+  const gradientId = `cashflow-area-${result.riskLevel}`
   const gridColor = 'rgba(227, 236, 240, 0.12)'
   const labelColor = 'rgba(214, 225, 229, 0.82)'
   const tickColor = 'rgba(227, 236, 240, 0.16)'
@@ -455,8 +453,15 @@ const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="10년 현금흐름 그래프"
+        aria-label="10-year cashflow chart"
       >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={palette.areaStart} />
+            <stop offset="100%" stopColor={palette.areaEnd} />
+          </linearGradient>
+        </defs>
+
         {yTicks.map((tick) => (
           <g key={`y-tick-${tick.key}`}>
             <line
@@ -473,7 +478,7 @@ const CashFlowChart = memo(function CashFlowChart({
           </g>
         ))}
 
-        <path className="cashflow-chart-area" d={areaPath} style={{ fill: palette.area }} />
+        <path className="cashflow-chart-area" d={areaPath} style={{ fill: `url(#${gradientId})` }} />
         <path
           className="cashflow-chart-line"
           d={linePath}
@@ -498,20 +503,6 @@ const CashFlowChart = memo(function CashFlowChart({
           />
         ))}
 
-        {coordinates.map((point, index) => (
-          <circle
-            key={point.year}
-            className={index === coordinates.length - 1 ? 'cashflow-chart-dot is-end' : 'cashflow-chart-dot'}
-            cx={point.x}
-            cy={point.y}
-            r={index === coordinates.length - 1 ? 4.5 : 3}
-            style={{
-              fill: index === coordinates.length - 1 ? palette.end : palette.dot,
-              stroke: palette.line,
-              strokeWidth: 2,
-            }}
-          />
-        ))}
       </svg>
 
       <div className="cashflow-axis">
