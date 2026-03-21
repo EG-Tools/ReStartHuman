@@ -227,7 +227,7 @@ function QuestionNumberFields({
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-end',
+                alignItems: 'center',
                 gap: '10px',
               }}
             >
@@ -252,6 +252,9 @@ function QuestionNumberFields({
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
+                    backgroundColor: 'rgba(227, 236, 240, 0.1)',
+                    borderColor: 'rgba(227, 236, 240, 0.24)',
+                    color: '#f4fbfd',
                   }}
                 />
               </div>
@@ -261,12 +264,21 @@ function QuestionNumberFields({
                   style={{
                     display: 'flex',
                     minWidth: isCurrency ? '76px' : '56px',
-                    alignItems: 'flex-end',
+                    alignItems: 'center',
                     justifyContent: 'flex-end',
                     flexShrink: 0,
                   }}
                 >
-                  <span className="input-suffix">{suffix}</span>
+                  <span
+                    className="input-suffix"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {suffix}
+                  </span>
                 </div>
               ) : null}
             </div>
