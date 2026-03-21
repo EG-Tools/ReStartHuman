@@ -2647,7 +2647,7 @@ body {
     max-width: calc(100% + 8px);
     margin-left: -8px;
     margin-right: 0;
-    padding-right: calc(2px + env(safe-area-inset-right));
+    padding-right: 0;
     padding-bottom: 4px;
     overflow-x: auto;
     overflow-y: hidden;
@@ -2666,6 +2666,12 @@ body {
   .result-table th,
   .result-table td {
     padding: 9px 6px;
+  }
+
+  .result-table thead th {
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .result-table th:nth-child(3),
@@ -2701,8 +2707,9 @@ body {
 
   .result-table th:nth-child(6),
   .result-table td:nth-child(6) {
-    width: 92px;
-    min-width: 92px;
+    width: 84px;
+    min-width: 84px;
+    padding-right: 0;
   }
 
   .result-table tbody td:first-child,
@@ -2712,11 +2719,11 @@ body {
 
   .result-table tbody td:nth-child(6) {
     text-align: right;
-    padding-right: 2px;
+    padding-right: 0;
   }
 
   .result-table thead th:nth-child(6) {
-    padding-right: 2px;
+    padding-right: 0;
   }
 
   .result-table tbody .note-cell {
@@ -2725,6 +2732,7 @@ body {
     max-width: none;
     margin-left: auto;
     margin-right: 0;
+    padding-right: 0;
     text-align: right;
   }
 
