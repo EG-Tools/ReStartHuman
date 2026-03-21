@@ -553,7 +553,7 @@ const getResultCategoryClassName = (category: string) => {
   }
 }
 
-function ResultTable({ rows }: { rows: ResultRow[] }) {
+const ResultTable = memo(function ResultTable({ rows }: { rows: ResultRow[] }) {
   return (
     <div className="table-shell">
       <table className="result-table">
@@ -600,7 +600,7 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
       </table>
     </div>
   )
-}
+})
 
 const ResultInterpretation = memo(function ResultInterpretation({
   items,
@@ -1118,7 +1118,7 @@ export function ResultScreen({
         ? '전세 보증금'
         : '보증금 / 월세'
 
-  const rows: ResultRow[] = [
+  const rows = useMemo<ResultRow[]>(() => [
     {
       category: '기본',
       item: '가구',
@@ -1302,7 +1302,19 @@ export function ResultScreen({
       tenYear: formatSignedCompactCurrency(result.tenYearSurplusOrDeficit),
       note: `위험도: ${getRiskLabel(result.riskLevel)}`,
     },
-  ]
+  ],
+    [
+      dividendBasisLabel,
+      fixedExpenseAnnualBase,
+      fixedExpenseMonthlyBase,
+      formData,
+      householdSummary,
+      housingRowLabel,
+      housingRowNote,
+      onPatchFormData,
+      result,
+    ],
+  )
 
   return (
     <section className="screen result-screen">
