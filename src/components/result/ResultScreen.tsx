@@ -568,12 +568,12 @@ function ResultTable({ rows }: { rows: ResultRow[] }) {
       <table className="result-table">
         <thead>
           <tr>
-            <th>구분</th>
-            <th>입력값</th>
-            <th>월 기준</th>
-            <th>1 년 결과</th>
-            <th>10 년 결과</th>
-            <th>비고</th>
+            <th><span className="result-head-text">구분</span></th>
+            <th><span className="result-head-text">입력값</span></th>
+            <th><span className="result-head-text">월 기준</span></th>
+            <th><span className="result-head-text">1년 결과</span></th>
+            <th><span className="result-head-text">10년 결과</span></th>
+            <th><span className="result-head-text">비고</span></th>
           </tr>
         </thead>
         <tbody>

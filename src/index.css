@@ -551,6 +551,12 @@ p {
   text-align: center;
 }
 
+.result-head-text {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
 .note-cell {
   display: flex;
   align-items: flex-start;
@@ -2674,6 +2680,12 @@ body {
     padding-right: 0;
   }
 
+  .result-table thead th .result-head-text {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
   .result-table th:nth-child(3),
   .result-table td:nth-child(3) {
     width: 54px;
@@ -2728,10 +2740,10 @@ body {
 
   .result-table tbody .note-cell {
     justify-content: flex-end;
-    width: 100%;
+    width: calc(100% + 10px);
     max-width: none;
     margin-left: auto;
-    margin-right: 0;
+    margin-right: -10px;
     padding-right: 0;
     text-align: right;
   }
