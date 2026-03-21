@@ -2495,9 +2495,60 @@ body {
     min-width: 0;
   }
 
+  .table-shell {
+    margin-inline: -8px;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+  }
+
+  .result-table {
+    min-width: 700px;
+    font-size: 0.9rem;
+  }
+
+  .result-table th,
+  .result-table td {
+    padding: 12px 10px;
+  }
+
+  .result-table th:first-child,
+  .result-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: rgba(14, 21, 25, 0.98);
+  }
+
+  .result-table thead th:first-child {
+    background: rgba(18, 35, 39, 0.98);
+  }
+
   .start-screen {
     overflow-y: auto;
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .start-topbar {
+    width: min(100%, clamp(240px, 33vw, 320px));
+    margin-inline: auto;
+    gap: 8px;
+  }
+
+  .version-badge {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+
+  .app-options-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .settings-icon {
+    width: 16px;
+    height: 16px;
   }
 
   .start-main {
