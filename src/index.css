@@ -2496,7 +2496,15 @@ body {
   }
 
   .start-main {
+    width: min(100%, clamp(280px, 36vw, 360px));
+    margin-inline: auto;
     gap: 10px;
+  }
+
+  .start-hero-panel,
+  .start-actions-compact,
+  .start-help-drawer {
+    width: 100%;
   }
 
   .start-actions-compact {
