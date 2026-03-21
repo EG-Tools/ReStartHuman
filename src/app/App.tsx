@@ -137,7 +137,7 @@ export default function App() {
     const syncViewportSize = () => {
       const visualViewport = window.visualViewport
       const viewportWidth = Math.round(
-        visualViewport?.width || document.documentElement.clientWidth || window.innerWidth,
+        Math.max(window.innerWidth, document.documentElement.clientWidth || 0),
       )
       const viewportHeight = Math.round(
         visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
