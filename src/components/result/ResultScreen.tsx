@@ -485,7 +485,7 @@ const CashFlowChart = memo(function CashFlowChart({
           style={{
             stroke: palette.line,
             fill: 'none',
-            strokeWidth: 3,
+            strokeWidth: 2.2,
             strokeLinecap: 'round',
             strokeLinejoin: 'round',
           }}
