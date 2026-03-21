@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ChoiceQuestion, PrimaryButton, ProgressBar } from '../common/Ui'
+import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
 
@@ -198,8 +198,30 @@ function QuestionNumberFields({
 
         return (
           <section key={field.key} className="question-block">
-            <div className="question-block-header">
+            <div
+              className="question-block-header"
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
               <h2>{field.label}</h2>
+              {isCurrency ? (
+                <span
+                  style={{
+                    fontSize: '12px',
+                    lineHeight: 1.2,
+                    color: 'rgba(214, 225, 229, 0.74)',
+                    textAlign: 'right',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {conversionText}
+                </span>
+              ) : null}
             </div>
 
             <div
@@ -238,25 +260,12 @@ function QuestionNumberFields({
                 <div
                   style={{
                     display: 'flex',
-                    minWidth: isCurrency ? '132px' : '56px',
-                    flexDirection: 'column',
+                    minWidth: isCurrency ? '76px' : '56px',
                     alignItems: 'flex-end',
-                    gap: '4px',
+                    justifyContent: 'flex-end',
                     flexShrink: 0,
                   }}
                 >
-                  <span
-                    style={{
-                      minHeight: '18px',
-                      fontSize: '12px',
-                      lineHeight: 1.2,
-                      color: 'rgba(214, 225, 229, 0.74)',
-                      textAlign: 'right',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {conversionText ?? ''}
-                  </span>
                   <span className="input-suffix">{suffix}</span>
                 </div>
               ) : null}
@@ -362,7 +371,7 @@ export function QuestionScreen({
               </p>
             </section>
             {(formData.hasChildren ?? false) ? (
-              <QuestionNumberFields
+              <NumberFields
                 fields={[
                   {
                     key: 'childCount',
