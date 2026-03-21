@@ -2496,8 +2496,8 @@ body {
   }
 
   .start-hero-image {
-    object-position: center 54%;
-    transform: scale(1.01);
+    object-position: center 20%;
+    transform: none;
   }
 
   .start-hero-overlay {
