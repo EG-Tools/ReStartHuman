@@ -2479,14 +2479,30 @@ body {
   .question-screen .sticky-footer,
   .result-screen-header,
   .result-capture {
-    padding-inline: 6px;
+    padding-left: calc(6px + env(safe-area-inset-left));
+    padding-right: calc(6px + env(safe-area-inset-right));
+  }
+
+  .question-screen {
+    min-height: var(--app-height);
+    height: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .question-screen .question-body {
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow: visible;
   }
 
   .question-screen .sticky-footer {
+    position: static;
+    margin-top: 8px;
     padding-top: 10px;
-    padding-right: 6px;
+    padding-right: calc(6px + env(safe-area-inset-right));
     padding-bottom: calc(6px + env(safe-area-inset-bottom));
-    padding-left: 6px;
+    padding-left: calc(6px + env(safe-area-inset-left));
   }
 
   .result-screen .result-input-cell,
@@ -2548,7 +2564,8 @@ body {
   }
 
   .start-topbar {
-    width: min(100%, calc(var(--app-width) - 24px), 760px);
+    width: calc(var(--app-width) - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px);
+    max-width: 880px;
     margin-inline: auto;
     gap: 8px;
   }
@@ -2569,11 +2586,12 @@ body {
   }
 
   .start-main {
-    width: min(100%, calc(var(--app-width) - 24px), 760px);
+    width: calc(var(--app-width) - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px);
+    max-width: 880px;
     flex: 0 0 auto;
     min-height: auto;
     margin-inline: auto;
-    gap: 6px;
+    gap: 8px;
   }
 
   .start-hero-panel,
@@ -2600,7 +2618,7 @@ body {
   }
 
   .start-hero-panel {
-    height: clamp(150px, calc(var(--app-height) - 214px), 236px);
+    height: clamp(260px, 52vw, 430px);
     border-radius: 24px;
     background: rgba(4, 8, 10, 0.98);
   }
@@ -2620,14 +2638,14 @@ body {
   .start-hero-image {
     position: relative;
     z-index: 1;
-    width: clamp(250px, 56vw, 420px);
-    max-width: none;
-    height: auto;
-    min-height: 100%;
-    object-fit: cover;
-    object-position: center 34%;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+    object-position: center 50%;
     filter: saturate(0.98) contrast(1.04);
-    transform: translateY(-10%);
+    transform: none;
   }
 
   .start-hero-overlay {
