@@ -2035,8 +2035,22 @@ body {
   display: none;
 }
 
+.question-screen .field-grid,
+.question-screen .field-grid > *,
+.question-screen .input-card,
+.question-screen .input-inline,
+.question-screen .input-shell {
+  min-width: 0;
+}
+
 .question-screen .input-card {
   background: rgba(12, 18, 22, 0.9);
+}
+
+.question-screen .input-card-label,
+.question-screen .input-preview {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .question-screen .input-shell,
