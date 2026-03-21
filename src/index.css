@@ -2547,4 +2547,9 @@ body {
   .start-hero-overlay {
     padding: 14px;
   }
+
+  .start-hero-panel .hero-title {
+    font-size: clamp(1.35rem, 3.2vw, 2rem);
+    line-height: 1;
+  }
 }
