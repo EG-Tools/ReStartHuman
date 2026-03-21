@@ -2554,14 +2554,14 @@ body {
   }
 
   .result-table {
-    width: 908px;
-    min-width: 908px;
-    font-size: 0.86rem;
+    width: 840px;
+    min-width: 840px;
+    font-size: 0.84rem;
   }
 
   .result-table th,
   .result-table td {
-    padding: 10px 8px;
+    padding: 9px 6px;
   }
 
   .result-table th:nth-child(3),
@@ -2574,10 +2574,20 @@ body {
     min-width: 84px;
   }
 
+  .result-table th:nth-child(2),
+  .result-table td:nth-child(2) {
+    width: 96px;
+    min-width: 96px;
+  }
+
   .result-table th:nth-child(6),
   .result-table td:nth-child(6) {
-    width: 108px;
-    min-width: 108px;
+    width: 92px;
+    min-width: 92px;
+  }
+
+  .note-cell {
+    max-width: 92px;
   }
 
   .result-table th:first-child,
