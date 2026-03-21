@@ -547,6 +547,10 @@ p {
   text-align: center;
 }
 
+.result-table thead th:first-child {
+  text-align: center;
+}
+
 .note-cell {
   display: flex;
   align-items: flex-start;
@@ -2546,14 +2550,14 @@ body {
   }
 
   .result-screen {
-    --landscape-result-input-width: 72px;
+    --landscape-result-input-width: 62px;
   }
 
   .result-screen .result-input-cell,
   .result-screen .table-edit-cluster {
-    width: 92px;
-    min-width: 92px;
-    max-width: 92px;
+    width: 82px;
+    min-width: 82px;
+    max-width: 82px;
   }
 
   .result-screen .result-input-cell {
@@ -2653,8 +2657,8 @@ body {
   }
 
   .result-table {
-    width: 720px;
-    min-width: 720px;
+    width: 710px;
+    min-width: 710px;
     table-layout: fixed;
     font-size: 0.84rem;
   }
@@ -2691,14 +2695,30 @@ body {
 
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 92px;
-    min-width: 92px;
+    width: 82px;
+    min-width: 82px;
   }
 
   .result-table th:nth-child(6),
   .result-table td:nth-child(6) {
     width: 92px;
     min-width: 92px;
+  }
+
+  .result-table tbody td:first-child,
+  .result-item-cell {
+    text-align: center;
+  }
+
+  .result-table tbody td:nth-child(6) {
+    text-align: right;
+  }
+
+  .result-table tbody .note-cell {
+    justify-content: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: right;
   }
 
   .note-cell {
