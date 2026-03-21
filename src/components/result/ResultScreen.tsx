@@ -761,7 +761,7 @@ function HousingAmountEditor({
 }) {
   if (formData.housingType === 'own') {
     return (
-      <div className="table-edit-cluster">
+      <div className="table-edit-cluster table-edit-cluster-housing">
         <InlineLabeledAmountInput
           className="table-edit-group-market"
           caption="시가"
