@@ -4,6 +4,9 @@ export const defaultFormData: RetireCalcFormData = {
   householdType: 'single',
   simulationYears: 10,
 
+  hasChildren: false,
+  childCount: 0,
+
   housingType: 'own',
   homeMarketValue: 0,
   homeOfficialValue: 0,
@@ -74,5 +77,3 @@ export const defaultFormData: RetireCalcFormData = {
   startingCashReserve: 100_000_000,
   currentAge: 50,
 }
-
-
