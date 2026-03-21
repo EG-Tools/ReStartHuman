@@ -1,4 +1,6 @@
 import {
+  Suspense,
+  lazy,
   startTransition,
   useDeferredValue,
   useEffect,
@@ -9,8 +11,6 @@ import {
 } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { QuestionScreen } from '../components/question/QuestionScreen'
-import { ResultScreen } from '../components/result/ResultScreen'
-import { SaveSlotModal } from '../components/result/SaveSlotModal'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateRetireScenario } from '../engine/calculator'
@@ -41,6 +41,16 @@ const buildHistoryState = (
 })
 
 const defaultHistoryState = buildHistoryState(appRoutes.start, 0, null)
+
+const ResultScreen = lazy(async () => {
+  const module = await import('../components/result/ResultScreen')
+  return { default: module.ResultScreen }
+})
+
+const SaveSlotModal = lazy(async () => {
+  const module = await import('../components/result/SaveSlotModal')
+  return { default: module.SaveSlotModal }
+})
 
 const isAppHistoryState = (value: unknown): value is AppHistoryState => {
   if (!value || typeof value !== 'object') {
@@ -285,29 +295,33 @@ export default function App() {
           ) : null}
 
           {flow.route === appRoutes.result && result ? (
-            <ResultScreen
-              formData={formData}
-              result={result}
-              onEditAnswers={() => flow.goToQuestion(0)}
-              onStartOver={startOver}
-              onOpenSaveSlots={() => setSaveSlotMode('manage')}
-              onPatchFormData={patchFormData}
-              headerAction={renderOptionsButton()}
-            />
+            <Suspense fallback={<section className="screen result-screen" />}>
+              <ResultScreen
+                formData={formData}
+                result={result}
+                onEditAnswers={() => flow.goToQuestion(0)}
+                onStartOver={startOver}
+                onOpenSaveSlots={() => setSaveSlotMode('manage')}
+                onPatchFormData={patchFormData}
+                headerAction={renderOptionsButton()}
+              />
+            </Suspense>
           ) : null}
         </div>
       </div>
 
       {saveSlotMode ? (
-        <SaveSlotModal
-          mode={saveSlotMode}
-          slotCount={saveSlots.slotCount}
-          slotsById={saveSlots.slotsById}
-          onClose={() => setSaveSlotMode(null)}
-          onLoad={handleLoadSlot}
-          onSave={handleSaveSlot}
-          onDelete={handleDeleteSlot}
-        />
+        <Suspense fallback={null}>
+          <SaveSlotModal
+            mode={saveSlotMode}
+            slotCount={saveSlots.slotCount}
+            slotsById={saveSlots.slotsById}
+            onClose={() => setSaveSlotMode(null)}
+            onLoad={handleLoadSlot}
+            onSave={handleSaveSlot}
+            onDelete={handleDeleteSlot}
+          />
+        </Suspense>
       ) : null}
 
       {isOptionsOpen ? <AppOptionsModal onClose={() => setIsOptionsOpen(false)} /> : null}
