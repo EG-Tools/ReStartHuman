@@ -721,7 +721,7 @@ function InlineAmountInput({
             }}
           />
         </div>
-        <span className="table-edit-suffix">??</span>
+        <span className="table-edit-suffix">만원</span>
         {action ? <div className="table-edit-action">{action}</div> : null}
       </div>
     </div>

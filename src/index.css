@@ -2495,10 +2495,16 @@ body {
     min-width: 0;
   }
 
+  .start-screen {
+    overflow-y: auto;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
   .start-main {
-    width: min(100%, clamp(280px, 36vw, 360px));
+    width: min(100%, clamp(250px, 34vw, 340px));
+    min-height: 0;
     margin-inline: auto;
-    gap: 10px;
+    gap: 8px;
   }
 
   .start-hero-panel,
@@ -2516,8 +2522,16 @@ body {
     font-size: 0.88rem;
   }
 
+  .start-help-drawer .help-drawer-toggle {
+    padding: 14px 16px;
+  }
+
+  .start-help-drawer .help-drawer-body {
+    padding: 0 16px 16px;
+  }
+
   .start-hero-panel {
-    height: clamp(380px, 58svh, 500px);
+    height: clamp(170px, calc(var(--app-height) - 188px), 260px);
     border-radius: 24px;
   }
 
@@ -2530,6 +2544,6 @@ body {
   }
 
   .start-hero-overlay {
-    padding: 18px;
+    padding: 16px;
   }
 }
