@@ -2502,7 +2502,7 @@ body {
 
   .start-hero-image {
     object-position: center top;
-    transform: translateY(-100px);
+    transform: translateY(-42px);
   }
 
   .start-hero-overlay {
