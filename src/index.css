@@ -2485,19 +2485,22 @@ body {
 
   .question-screen {
     min-height: var(--app-height);
-    height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    height: var(--app-height);
+    overflow: hidden;
   }
 
   .question-screen .question-body {
-    flex: 0 0 auto;
-    min-height: auto;
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 16px;
   }
 
   .question-screen .sticky-footer {
     position: static;
+    flex: 0 0 auto;
     margin-top: 8px;
     padding-top: 10px;
     padding-right: calc(6px + env(safe-area-inset-right));
@@ -2564,8 +2567,7 @@ body {
   }
 
   .start-topbar {
-    width: calc(var(--app-width) - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px);
-    max-width: 880px;
+    width: min(100%, 880px);
     margin-inline: auto;
     gap: 8px;
   }
@@ -2586,12 +2588,11 @@ body {
   }
 
   .start-main {
-    width: calc(var(--app-width) - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px);
-    max-width: 880px;
+    width: min(100%, 880px);
     flex: 0 0 auto;
     min-height: auto;
     margin-inline: auto;
-    gap: 8px;
+    gap: 10px;
   }
 
   .start-hero-panel,
@@ -2618,7 +2619,7 @@ body {
   }
 
   .start-hero-panel {
-    height: clamp(260px, 52vw, 430px);
+    height: clamp(300px, 74vh, 560px);
     border-radius: 24px;
     background: rgba(4, 8, 10, 0.98);
   }
@@ -2642,8 +2643,8 @@ body {
     max-width: 100%;
     height: 100%;
     min-height: 0;
-    object-fit: contain;
-    object-position: center 50%;
+    object-fit: cover;
+    object-position: center 48%;
     filter: saturate(0.98) contrast(1.04);
     transform: none;
   }
