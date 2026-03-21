@@ -732,14 +732,16 @@ function InlineLabeledAmountInput({
   label,
   value,
   onChange,
+  className,
 }: {
   caption: string
   label: string
   value: number
   onChange: (value: number) => void
+  className?: string
 }) {
   return (
-    <div className="table-edit-group">
+    <div className={className ? `table-edit-group ${className}` : "table-edit-group"}>
       <span className="table-edit-label">{caption}</span>
       <InlineAmountInput
         label={label}
@@ -761,6 +763,7 @@ function HousingAmountEditor({
     return (
       <div className="table-edit-cluster">
         <InlineLabeledAmountInput
+          className="table-edit-group-market"
           caption="시가"
           label="주택 시가"
           value={formData.homeMarketValue}
