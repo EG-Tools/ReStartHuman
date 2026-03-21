@@ -2440,7 +2440,7 @@ body {
   }
 
   .start-hero-panel {
-    height: clamp(540px, 74svh, 780px);
+    height: clamp(525px, calc(74svh - 15px), 765px);
   }
 
   .start-hero-image {
@@ -2501,8 +2501,8 @@ body {
   }
 
   .start-hero-image {
-    object-position: center 0%;
-    transform: none;
+    object-position: center top;
+    transform: translateY(-100px);
   }
 
   .start-hero-overlay {
