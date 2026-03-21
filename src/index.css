@@ -2577,14 +2577,23 @@ body {
     text-align: right;
   }
 
+  .result-screen .table-edit-cluster-housing {
+    justify-items: end;
+  }
+
+  .result-screen .table-edit-cluster-housing > .table-edit-group,
   .result-screen .table-edit-group-market {
     width: fit-content;
+    min-width: 0;
     justify-self: end;
   }
 
+  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-stack,
+  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-inline,
   .result-screen .table-edit-group-market .table-edit-stack,
   .result-screen .table-edit-group-market .table-edit-inline {
     width: fit-content;
+    min-width: 0;
     justify-self: end;
   }
 
@@ -2639,8 +2648,8 @@ body {
   }
 
   .result-table {
-    width: 740px;
-    min-width: 740px;
+    width: 720px;
+    min-width: 720px;
     table-layout: fixed;
     font-size: 0.84rem;
   }
@@ -2668,10 +2677,17 @@ body {
     min-width: 64px;
   }
 
+  .result-table th:nth-child(1),
+  .result-table td:nth-child(1),
+  .result-item-cell {
+    width: 30px;
+    min-width: 30px;
+  }
+
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 82px;
-    min-width: 82px;
+    width: 92px;
+    min-width: 92px;
   }
 
   .result-table th:nth-child(6),
