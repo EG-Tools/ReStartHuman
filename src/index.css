@@ -2541,9 +2541,9 @@ body {
 
   .result-screen .result-input-cell,
   .result-screen .table-edit-cluster {
-    width: 96px;
-    min-width: 96px;
-    max-width: 96px;
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
   }
 
   .result-screen .table-edit-stack,
@@ -2598,8 +2598,8 @@ body {
   }
 
   .result-table {
-    width: 840px;
-    min-width: 840px;
+    width: 832px;
+    min-width: 832px;
     table-layout: fixed;
     font-size: 0.84rem;
   }
@@ -2621,8 +2621,8 @@ body {
 
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 96px;
-    min-width: 96px;
+    width: 88px;
+    min-width: 88px;
   }
 
   .result-table th:nth-child(6),
