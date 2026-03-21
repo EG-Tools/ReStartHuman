@@ -32,8 +32,8 @@ export interface RetireCalcFormData {
   householdType: HouseholdType
   simulationYears: number
 
-  hasChildren: boolean
-  childCount: number
+  hasChildren?: boolean
+  childCount?: number
 
   housingType: HousingType
   homeMarketValue: number

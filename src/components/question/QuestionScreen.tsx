@@ -345,14 +345,14 @@ export function QuestionScreen({
                 <h2>자녀가 있나요?</h2>
               </div>
               <ChoiceQuestion
-                value={formData.hasChildren ? 'yes' : 'no'}
+                value={(formData.hasChildren ?? false) ? 'yes' : 'no'}
                 options={yesNoOptions}
                 onChange={(value) =>
                   onPatchFormData({
                     hasChildren: value === 'yes',
                     childCount:
                       value === 'yes'
-                        ? Math.max(formData.childCount || 1, 1)
+                        ? Math.max(formData.childCount ?? 1, 1)
                         : 0,
                   })
                 }
@@ -361,13 +361,13 @@ export function QuestionScreen({
                 현재는 참고용으로 저장되며 기본 계산에는 아직 직접 반영하지 않습니다.
               </p>
             </section>
-            {formData.hasChildren ? (
+            {(formData.hasChildren ?? false) ? (
               <QuestionNumberFields
                 fields={[
                   {
                     key: 'childCount',
                     label: '자녀 수',
-                    value: Math.max(formData.childCount || 1, 1),
+                    value: Math.max(formData.childCount ?? 1, 1),
                     onChange: (value) => update('childCount', Math.max(value, 1)),
                     display: 'number',
                     suffix: '명',
