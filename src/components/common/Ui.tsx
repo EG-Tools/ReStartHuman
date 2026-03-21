@@ -1,7 +1,15 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 
 const MANWON = 10_000
+
+const formatDraftValue = (value: number) =>
+  Number.isFinite(value) && value !== 0 ? String(value) : ''
+
+const parseDraftValue = (draftValue: string, minValue: number) => {
+  const normalizedValue = Number(draftValue) || 0
+  return Math.max(normalizedValue, minValue)
+}
 
 export interface ToggleOption<T extends string> {
   value: T
@@ -153,10 +161,26 @@ export function NumericInput({
 }: NumericInputProps) {
   const isCurrency = display === 'currency'
   const displayValue = isCurrency ? value / MANWON : value
-  const inputValue = Number.isFinite(displayValue) && displayValue !== 0 ? displayValue : ''
-  const preview = helperText ?? (isCurrency ? `환산: ${formatCurrency(value)}` : undefined)
   const resolvedStep = step ?? 1
-  const resolvedSuffix = suffix ?? (isCurrency ? '만원' : undefined)
+  const resolvedSuffix = suffix ?? (isCurrency ? '\uB9CC\uC6D0' : undefined)
+  const [draftValue, setDraftValue] = useState(() => formatDraftValue(displayValue))
+  const isEditingRef = useRef(false)
+
+  useEffect(() => {
+    if (!isEditingRef.current) {
+      setDraftValue(formatDraftValue(displayValue))
+    }
+  }, [displayValue])
+
+  const committedDraftValue = parseDraftValue(draftValue, min)
+  const previewValue = isCurrency ? committedDraftValue * MANWON : committedDraftValue
+  const preview = helperText ?? (isCurrency ? `\uD658\uC0B0: ${formatCurrency(previewValue)}` : undefined)
+
+  const commitDraftValue = () => {
+    const nextValue = parseDraftValue(draftValue, min)
+    onChange(isCurrency ? nextValue * MANWON : nextValue)
+    setDraftValue(formatDraftValue(nextValue))
+  }
 
   return (
     <label className={`input-card${disabled ? ' is-disabled' : ''}`}>
@@ -169,9 +193,27 @@ export function NumericInput({
             inputMode="decimal"
             min={min}
             step={resolvedStep}
-            value={inputValue}
+            value={draftValue}
             placeholder="0"
-            onFocus={(event) => event.currentTarget.select()}
+            onFocus={(event) => {
+              isEditingRef.current = true
+              event.currentTarget.select()
+            }}
+            onBlur={() => {
+              isEditingRef.current = false
+              commitDraftValue()
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.currentTarget.blur()
+              }
+
+              if (event.key === 'Escape') {
+                isEditingRef.current = false
+                setDraftValue(formatDraftValue(displayValue))
+                event.currentTarget.blur()
+              }
+            }}
             disabled={disabled}
             onWheel={(event) => {
               if (document.activeElement === event.currentTarget) {
@@ -179,8 +221,7 @@ export function NumericInput({
               }
             }}
             onChange={(event) => {
-              const rawValue = Number(event.target.value) || 0
-              onChange(isCurrency ? rawValue * MANWON : rawValue)
+              setDraftValue(event.target.value)
             }}
           />
         </div>
@@ -190,7 +231,6 @@ export function NumericInput({
     </label>
   )
 }
-
 export interface NumberField {
   key: string
   label: string
