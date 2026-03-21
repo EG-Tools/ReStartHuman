@@ -309,6 +309,7 @@ export function QuestionScreen({
                 )}
                 {!formData.maintenanceIncludedInRent ? (
                   <NumberFields
+                    columns={2}
                     fields={[
                       {
                         key: 'monthlyMaintenanceFee',
@@ -414,6 +415,7 @@ export function QuestionScreen({
             )}
             {formData.householdType === 'couple' && formData.dividendOwnershipType === 'split' ? (
               <NumberFields
+                columns={2}
                 fields={[
                   {
                     key: 'myAnnualDividendAttributed',
@@ -481,6 +483,7 @@ export function QuestionScreen({
                 )}
                 {formData.householdType === 'couple' && formData.isaOwnershipType === 'split' ? (
                   <NumberFields
+                    columns={2}
                     fields={[
                       {
                         key: 'myAnnualIsaDividendAttributed',
