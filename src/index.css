@@ -2456,9 +2456,9 @@ body {
   .app-shell,
   .phone-stage,
   .device-frame {
-    width: var(--app-width);
-    min-width: var(--app-width);
-    max-width: var(--app-width);
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     min-height: var(--app-height);
     height: var(--app-height);
   }
@@ -2564,7 +2564,7 @@ body {
 
   .start-screen {
     min-height: var(--app-height);
-    height: auto;
+    height: var(--app-height);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
