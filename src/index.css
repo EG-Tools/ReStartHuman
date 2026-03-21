@@ -2501,10 +2501,11 @@ body {
   }
 
   .start-main {
-    width: min(100%, clamp(250px, 34vw, 340px));
-    min-height: 0;
+    width: min(100%, clamp(240px, 33vw, 320px));
+    flex: 0 0 auto;
+    min-height: auto;
     margin-inline: auto;
-    gap: 8px;
+    gap: 6px;
   }
 
   .start-hero-panel,
@@ -2514,24 +2515,24 @@ body {
   }
 
   .start-actions-compact {
-    gap: 8px;
+    gap: 6px;
   }
 
   .start-actions-compact .button {
-    padding: 10px 12px;
-    font-size: 0.88rem;
+    padding: 9px 10px;
+    font-size: 0.84rem;
   }
 
   .start-help-drawer .help-drawer-toggle {
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
 
   .start-help-drawer .help-drawer-body {
-    padding: 0 16px 16px;
+    padding: 0 14px 14px;
   }
 
   .start-hero-panel {
-    height: clamp(170px, calc(var(--app-height) - 188px), 260px);
+    height: clamp(120px, calc(var(--app-height) - 226px), 210px);
     border-radius: 24px;
   }
 
@@ -2544,6 +2545,6 @@ body {
   }
 
   .start-hero-overlay {
-    padding: 16px;
+    padding: 14px;
   }
 }
