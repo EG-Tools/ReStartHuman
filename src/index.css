@@ -2509,6 +2509,18 @@ body {
     padding-left: var(--landscape-edge-pad);
   }
 
+  .question-progress-shell,
+  .question-progress-shell.progress-shell {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .question-progress-shell .progress-bar,
+  .question-progress-shell .progress-bar-input {
+    width: 100%;
+  }
+
   .result-screen .result-input-cell,
   .result-screen .table-edit-cluster {
     width: 116px;
