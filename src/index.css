@@ -2556,14 +2556,14 @@ body {
   }
 
   .result-screen {
-    --landscape-result-input-width: 62px;
+    --landscape-result-input-width: 72px;
   }
 
   .result-screen .result-input-cell,
   .result-screen .table-edit-cluster {
-    width: 82px;
-    min-width: 82px;
-    max-width: 82px;
+    width: 92px;
+    min-width: 92px;
+    max-width: 92px;
   }
 
   .result-screen .result-input-cell {
@@ -2663,8 +2663,8 @@ body {
   }
 
   .result-table {
-    width: 710px;
-    min-width: 710px;
+    width: 720px;
+    min-width: 720px;
     table-layout: fixed;
     font-size: 0.84rem;
   }
@@ -2713,8 +2713,8 @@ body {
 
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 82px;
-    min-width: 82px;
+    width: 92px;
+    min-width: 92px;
   }
 
   .result-table th:nth-child(6),
