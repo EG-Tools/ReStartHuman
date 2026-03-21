@@ -2554,14 +2554,30 @@ body {
   }
 
   .result-table {
-    width: 980px;
-    min-width: 980px;
-    font-size: 0.9rem;
+    width: 908px;
+    min-width: 908px;
+    font-size: 0.86rem;
   }
 
   .result-table th,
   .result-table td {
-    padding: 12px 10px;
+    padding: 10px 8px;
+  }
+
+  .result-table th:nth-child(3),
+  .result-table th:nth-child(4),
+  .result-table th:nth-child(5),
+  .result-table td:nth-child(3),
+  .result-table td:nth-child(4),
+  .result-table td:nth-child(5) {
+    width: 84px;
+    min-width: 84px;
+  }
+
+  .result-table th:nth-child(6),
+  .result-table td:nth-child(6) {
+    width: 108px;
+    min-width: 108px;
   }
 
   .result-table th:first-child,
