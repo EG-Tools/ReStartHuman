@@ -2578,7 +2578,12 @@ body {
   }
 
   .result-screen .table-edit-cluster-housing {
+    width: fit-content;
+    min-width: 0;
+    max-width: none;
     justify-items: end;
+    margin-left: auto;
+    margin-right: 0;
   }
 
   .result-screen .table-edit-cluster-housing > .table-edit-group,
