@@ -2563,7 +2563,8 @@ body {
   }
 
   .start-screen {
-    height: var(--app-height);
+    min-height: var(--app-height);
+    height: auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
@@ -2623,7 +2624,7 @@ body {
   }
 
   .start-hero-panel {
-    height: clamp(360px, 92vh, 720px);
+    height: clamp(520px, 135vw, 980px);
     border-radius: 24px;
     background: rgba(4, 8, 10, 0.98);
   }
@@ -2650,7 +2651,7 @@ body {
     object-fit: contain;
     object-position: center 50%;
     filter: saturate(0.98) contrast(1.04);
-    transform: scale(1.3);
+    transform: scale(1.08);
     transform-origin: center center;
   }
 
