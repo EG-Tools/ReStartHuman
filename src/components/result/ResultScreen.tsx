@@ -208,7 +208,7 @@ const getIsaDividendNote = (result: RetireCalcResult) => {
   if (result.dividendInputMode === 'gross') {
     return result.isaTaxAnnual > 0
       ? `귀속: ${ownershipSummary}, ${limitSummary}, 총 비과세 반영 ${formatCompactCurrency(result.isaTaxFreeLimitApplied)}, 연 ${formatCompactCurrency(result.isaTaxAnnual)} 차감, 종합소득세 합산 제외`
-      : `귀속: ${ownershipSummary}, ${limitSummary}, 총 비과세 반영 ${formatCompactCurrency(result.isaTaxFreeLimitApplied)}, 초과분이 없어 추가 세금 없음, 종합소득세 합산 제외`
+      : `귀속: ${ownershipSummary}, ${limitSummary}, 총 비과세 반영 ${formatCompactCurrency(result.isaTaxFreeLimitApplied)}, 초과분이 없어 추가 세금 없음, 종합소득세 합산 제외. 한도를 조금 초과한 경우에도 반올림 기준에 따라 표시 세액이 0원으로 보일 수 있습니다.`
   }
 
   return `세후 입력 그대로 사용합니다. 귀속: ${ownershipSummary}, 참고 한도: ${limitSummary}. 세후 입력에서는 ISA 유형별 절세 차이를 다시 계산하지 않고, 종합소득세에도 합산하지 않습니다.`
