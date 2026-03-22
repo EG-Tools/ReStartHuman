@@ -66,8 +66,14 @@ const otherIncomeTypeOptions = [
   { value: 'none', label: '없음', description: '추가 월소득이 없습니다.' },
   { value: 'earned', label: '근로소득', description: '월 급여성 소득입니다.' },
   { value: 'business', label: '사업소득', description: '월 사업소득입니다.' },
-  { value: 'pension', label: '기타 연금', description: '기타 연금성 소득입니다.' },
+  { value: 'pension', label: '기타연금', description: '기타 연금성 소득입니다.' },
   { value: 'other', label: '기타', description: '그 외 월 현금유입입니다.' },
+] as const
+
+const otherIncomeTypeOptionRows = [
+  [otherIncomeTypeOptions[0]],
+  [otherIncomeTypeOptions[1], otherIncomeTypeOptions[2]],
+  [otherIncomeTypeOptions[3], otherIncomeTypeOptions[4]],
 ] as const
 
 const healthInsuranceOptions = [
@@ -84,15 +90,21 @@ const healthInsuranceOptions = [
   },
   {
     value: 'bothRegional',
-    label: '부부 모두 지역',
+    label: '부부모두지역',
     description: '지역가입자 구조와 같은 방식으로 추정합니다.',
   },
   {
     value: 'employeeWithDependentSpouse',
-    label: '직장 + 피부양 배우자',
+    label: '직장+피부양 배우자',
     description: '직장가입자 구조 중심으로 계산합니다.',
   },
   { value: 'other', label: '기타', description: '지역가입자 구조에 가깝게 추정합니다.' },
+] as const
+
+const healthInsuranceOptionRows = [
+  [healthInsuranceOptions[0], healthInsuranceOptions[1]],
+  [healthInsuranceOptions[3], healthInsuranceOptions[4]],
+  [healthInsuranceOptions[2], healthInsuranceOptions[5]],
 ] as const
 
 const livingCostModeOptions = [
@@ -228,10 +240,15 @@ function QuestionNumberFields({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '6px',
               }}
             >
-              <div style={{ flex: 1 }}>
+              <div className="input-shell" style={{
+                flex: 1,
+                backgroundColor: 'rgba(227, 236, 240, 0.12)',
+                border: '1px solid rgba(227, 236, 240, 0.22)',
+                borderRadius: '999px',
+              }}>
                 <input
                   className="input-control"
                   type="number"
@@ -252,34 +269,27 @@ function QuestionNumberFields({
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    backgroundColor: 'rgba(227, 236, 240, 0.1)',
-                    borderColor: 'rgba(227, 236, 240, 0.24)',
+                    background: 'transparent',
+                    border: 'none',
+                    boxShadow: 'none',
                     color: '#f4fbfd',
                   }}
                 />
               </div>
-
               {suffix ? (
-                <div
+                <span
+                  className="input-suffix"
                   style={{
-                    display: 'flex',
-                    minWidth: isCurrency ? '76px' : '56px',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'flex-end',
+                    lineHeight: 1,
                     flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    marginTop: '-1px',
                   }}
                 >
-                  <span
-                    className="input-suffix"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {suffix}
-                  </span>
-                </div>
+                  {suffix}
+                </span>
               ) : null}
             </div>
 
@@ -344,6 +354,23 @@ export function QuestionScreen({
         onChange={(nextValue) => onChange(nextValue === 'yes')}
       />
     </section>
+  )
+
+  const renderChoiceRows = <T extends string>(
+    value: T,
+    optionRows: readonly (readonly { value: T; label: string; description?: string }[])[],
+    onChange: (nextValue: T) => void,
+  ) => (
+    <div className="question-stack" style={{ gap: '10px' }}>
+      {optionRows.map((row, rowIndex) => (
+        <ChoiceQuestion
+          key={`row-${rowIndex}`}
+          value={value}
+          options={[...row]}
+          onChange={onChange}
+        />
+      ))}
+    </div>
   )
 
   const renderContent = () => {
@@ -754,21 +781,17 @@ export function QuestionScreen({
                 },
               ]}
             />
-            <ChoiceQuestion
-              value={formData.otherIncomeType}
-              options={otherIncomeTypeOptions}
-              onChange={(value) => update('otherIncomeType', value)}
-            />
+            {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
+              update('otherIncomeType', value),
+            )}
           </div>
         )
       case 'healthInsurance':
         return (
           <div className="question-stack">
-            <ChoiceQuestion
-              value={formData.healthInsuranceType}
-              options={healthInsuranceOptions}
-              onChange={(value) => update('healthInsuranceType', value)}
-            />
+            {renderChoiceRows(formData.healthInsuranceType, healthInsuranceOptionRows, (value) =>
+              update('healthInsuranceType', value),
+            )}
             <QuestionNumberFields
               fields={[
                 {
@@ -885,6 +908,16 @@ export function QuestionScreen({
                     value: formData.hobbyMonthly,
                     onChange: (value) => update('hobbyMonthly', value),
                   },
+                  ...((formData.hasChildren ?? false) && (formData.childCount ?? 0) > 0
+                    ? [
+                        {
+                          key: 'academyMonthly',
+                          label: '학원비',
+                          value: formData.academyMonthly ?? 0,
+                          onChange: (value: number) => update('academyMonthly', value),
+                        },
+                      ]
+                    : []),
                   {
                     key: 'otherLivingMonthly',
                     label: '기타 생활비',

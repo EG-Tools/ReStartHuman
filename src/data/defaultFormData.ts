@@ -70,6 +70,7 @@ export const defaultFormData: RetireCalcFormData = {
   necessitiesMonthly: 0,
   diningOutMonthly: 0,
   hobbyMonthly: 0,
+  academyMonthly: 0,
   otherLivingMonthly: 0,
 
   inflationEnabled: true,

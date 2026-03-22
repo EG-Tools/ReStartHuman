@@ -98,6 +98,7 @@ export interface RetireCalcFormData {
   necessitiesMonthly: number
   diningOutMonthly: number
   hobbyMonthly: number
+  academyMonthly?: number
   otherLivingMonthly: number
 
   inflationEnabled: boolean
