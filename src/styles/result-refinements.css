@@ -52,9 +52,6 @@
   box-shadow: var(--result-row-divider-shadow);
 }
 
-/* ------------------------------------------------------------------
-   1열 고정 잔재 제거
-------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
@@ -126,10 +123,10 @@
 
   --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 90px;
+  --result-col-3: 95px;
   --result-col-4: 105px;
   --result-col-5: 125px;
-  --result-col-6: 180px;
+  --result-col-6: 175px;
 
   --result-table-fixed-width: calc(
     var(--result-col-1) +
