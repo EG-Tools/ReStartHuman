@@ -365,7 +365,6 @@ const CashFlowChart = memo(function CashFlowChart({
   const paddingRight = 18
   const paddingTop = 18
   const paddingBottom = 24
-  const currentYear = new Date().getFullYear()
   const balances = points.map((point) => point.balance)
   const minBalance = Math.min(...balances)
   const maxBalance = Math.max(...balances)
