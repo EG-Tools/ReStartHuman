@@ -495,6 +495,12 @@ p {
   border-color: rgba(13, 111, 115, 0.28);
 }
 
+/* ------------------------------------------------------------------
+   결과표 공용 기본 스타일
+   실제 열 폭 / 패딩 / 글자 크기 / 비고 폭 / 입력칸 폭은
+   result-refinements.css 에서만 관리합니다.
+   base.css 는 공용 뼈대만 둡니다.
+------------------------------------------------------------------- */
 .table-shell {
   overflow-x: auto;
   border-radius: 18px;
@@ -502,17 +508,12 @@ p {
 }
 
 .result-table {
-  width: 100%;
   border-collapse: collapse;
-  min-width: 820px;
 }
 
 .result-table th,
 .result-table td {
-  padding: 14px;
   border-bottom: 1px solid rgba(82, 90, 98, 0.42);
-  text-align: left;
-  vertical-align: top;
 }
 
 .result-table th:not(:last-child),
@@ -532,49 +533,9 @@ p {
   white-space: nowrap;
 }
 
-.result-table th:nth-child(3),
-.result-table td:nth-child(3),
-.result-table th:nth-child(4),
-.result-table td:nth-child(4) {
-  width: 106px;
-  min-width: 106px;
-}
-
-.result-table th:nth-child(5),
-.result-table td:nth-child(5) {
-  width: 116px;
-  min-width: 116px;
-}
-
-.result-table th:nth-child(6),
-.result-table td:nth-child(6) {
-  min-width: 96px;
-}
-
-.result-table th:nth-child(6),
-.result-table td:nth-child(6) {
-  white-space: nowrap;
-  text-align: center;
-}
-
-.result-table thead th {
-  text-align: center;
-}
-
 .result-head-text {
   display: block;
   width: 100%;
-  text-align: center;
-}
-
-.note-cell {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 220px;
-  margin: 0 auto;
   text-align: center;
 }
 
@@ -774,15 +735,9 @@ p {
 
 
 
-
-.result-input-cell {
-  min-width: 220px;
-}
-
 .table-edit-cluster {
   display: grid;
   gap: 10px;
-  min-width: 220px;
 }
 
 .table-edit-group,
@@ -855,13 +810,6 @@ p {
   padding: 6px 10px;
   font-size: 0.78rem;
   font-weight: 700;
-}
-
-@media (max-width: 900px) {
-  .result-input-cell,
-  .table-edit-cluster {
-    min-width: 180px;
-  }
 }
 
 
@@ -1058,43 +1006,7 @@ p {
     display: block;
   }
 
-  .table-shell {
-    margin-inline: -8px;
-    padding-bottom: 4px;
-  }
-
-  .result-table {
-    min-width: 700px;
-    font-size: 0.9rem;
-  }
-
-  .result-table th,
-  .result-table td {
-    padding: 12px 10px;
-  }
-
-  .result-table th:first-child,
-  .result-table td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: rgba(255, 250, 241, 0.96);
-  }
-
-  .result-table thead th:first-child {
-    background: rgba(233, 244, 244, 0.98);
-  }
-
-  .result-input-cell,
-  .table-edit-cluster {
-    min-width: 160px;
-  }
-
-  .note-cell {
-    max-width: 160px;
-  }
-
-  .help-drawer-toggle {
+    .help-drawer-toggle {
     padding: 18px 20px;
     flex-wrap: wrap;
   }
@@ -1322,102 +1234,6 @@ p {
   text-align: right;
 }
 
-.result-table {
-  min-width: 680px;
-}
-
-.result-table th:nth-child(1),
-.result-table td:nth-child(1),
-.result-item-cell {
-  width: 72px;
-  min-width: 72px;
-}
-
-.result-item-label {
-  display: grid;
-  gap: 2px;
-  line-height: 1.06;
-  font-weight: 700;
-  justify-items: center;
-}
-
-.result-item-label span {
-  display: block;
-  white-space: nowrap;
-}
-
-.result-table th:nth-child(2),
-.result-table td:nth-child(2) {
-  width: 120px;
-  min-width: 120px;
-}
-
-.result-input-cell,
-.table-edit-cluster {
-  min-width: 120px;
-  width: 120px;
-}
-
-.result-table tbody td:first-child,
-.result-item-cell {
-  text-align: center;
-}
-
-.result-table tbody td:nth-child(2) {
-  text-align: right;
-}
-
-.result-table tbody td:nth-child(6) {
-  text-align: right;
-}
-
-.table-edit-inline {
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.result-table tbody td:nth-child(2) .table-edit-stack,
-.result-table tbody td:nth-child(2) .table-edit-group,
-.result-table tbody td:nth-child(2) .table-edit-cluster {
-  margin-left: auto;
-  align-items: flex-end;
-  justify-items: end;
-  text-align: right;
-}
-
-.result-table tbody td:nth-child(2) .table-edit-inline {
-  justify-content: flex-end;
-}
-
-.result-table tbody td:nth-child(2) .table-edit-input,
-.result-table tbody td:nth-child(2) .table-edit-label,
-.result-table tbody td:nth-child(2) .table-edit-suffix {
-  text-align: right;
-}
-
-.table-edit-suffix {
-  align-self: center;
-  padding-top: 0;
-}
-
-.table-edit-action {
-  width: 100%;
-  justify-content: flex-end;
-}
-
-.note-cell {
-  max-width: 152px;
-}
-
-.result-table tbody .note-cell {
-  justify-content: flex-end;
-  width: 100%;
-  max-width: none;
-  margin-left: auto;
-  margin-right: 0;
-  text-align: right;
-}
-
 .result-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1462,58 +1278,7 @@ p {
     font-size: 0.74rem;
   }
 
-  .result-table {
-    min-width: 620px;
-    font-size: 0.86rem;
-  }
-
-  .result-table th,
-  .result-table td {
-    padding: 10px 8px;
-  }
-
-  .result-table th:nth-child(1),
-  .result-table td:nth-child(1),
-  .result-item-cell {
-    width: 60px;
-    min-width: 60px;
-  }
-
-  .result-table th:nth-child(2),
-  .result-table td:nth-child(2),
-  .result-input-cell,
-  .table-edit-cluster {
-    width: 108px;
-    min-width: 108px;
-  }
-
-  .table-edit-inline {
-    gap: 6px;
-  }
-
-  .table-edit-field {
-    padding: 0 8px;
-  }
-
-  .table-edit-input {
-    font-size: 0.92rem;
-  }
-
-  .table-edit-suffix {
-    align-self: center;
-    padding-top: 0;
-    font-size: 0.76rem;
-  }
-
-  .table-edit-helper {
-    font-size: 0.7rem;
-  }
-
-  .note-cell {
-    max-width: 124px;
-  }
-
-  .result-actions {
+    .result-actions {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
   }
@@ -1538,5 +1303,3 @@ p {
     font-size: 0.76rem;
   }
 }
-
-
