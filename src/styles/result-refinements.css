@@ -130,6 +130,11 @@
 /* ------------------------------------------------------------------
    결과표 레이아웃 최종 제어 블록
    base.css 의 결과표 관련 숫자/폭/패딩보다 이 값이 우선입니다.
+
+   세로/가로가 같아 보이도록 하기 위해
+   1) text-size-adjust 를 100%로 고정
+   2) 비고 텍스트 영역 폭을 아이콘/간격 제외한 값으로 명시
+   를 추가했습니다.
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -138,12 +143,15 @@
 
   --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 105px; /* 월 기준 -5px */
+  --result-col-3: 105px;
   --result-col-4: 120px;
   --result-col-5: 130px;
-  --result-col-6: 145px; /* 비고 +5px */
+  --result-col-6: 145px;
 
   --result-note-max-width: none;
+  --result-note-icon-size: 20px;
+  --result-note-gap: 6px;
+  --result-note-text-width: calc(var(--result-col-6) - var(--result-note-icon-size) - var(--result-note-gap));
 
   --result-edit-inline-gap: 6px;
   --result-input-box-width: 96px;
@@ -156,6 +164,9 @@
   width: max-content;
   min-width: max-content;
   font-size: var(--result-table-font-size);
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* 결과표 셀 패딩 */
@@ -182,12 +193,6 @@
 
 /* ------------------------------------------------------------------
    1열: 구분
-   최적화 포인트:
-   - 폭
-   - 헤더 중앙정렬
-   - 본문 중앙정렬
-   - 내부 라벨(grid) 중앙정렬
-   를 여기서 한 번에 끝냅니다.
 ------------------------------------------------------------------- */
 .table-shell .result-table th:nth-child(1),
 .table-shell .result-table td:nth-child(1),
@@ -322,26 +327,39 @@
   justify-content: flex-end;
 }
 
-/* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정 */
+/* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정
+   아이콘/간격을 뺀 텍스트 폭을 명시해서 세로/가로 줄바꿈 차이를 줄입니다. */
 .table-shell .result-table .note-cell,
 .table-shell .result-table tbody .note-cell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: var(--result-note-text-width) var(--result-note-icon-size);
   align-items: start;
-  gap: 6px;
+  gap: var(--result-note-gap);
   width: 100%;
   max-width: var(--result-note-max-width);
   margin-left: auto;
   margin-right: 0;
   text-align: right;
+  justify-content: end;
 }
 
 .table-shell .result-table .note-cell > span,
 .table-shell .result-table tbody .note-cell > span {
+  width: var(--result-note-text-width);
   min-width: 0;
+  max-width: var(--result-note-text-width);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: keep-all;
+  line-height: 1.28;
+}
+
+.table-shell .result-table .note-popover-trigger,
+.table-shell .result-table tbody .note-popover-trigger {
+  width: var(--result-note-icon-size);
+  height: var(--result-note-icon-size);
+  min-width: var(--result-note-icon-size);
+  min-height: var(--result-note-icon-size);
 }
 
 /* 해석 리스트 */
