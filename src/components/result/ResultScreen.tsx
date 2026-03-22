@@ -360,11 +360,17 @@ const CashFlowChart = memo(function CashFlowChart({
       ? result.cashBalanceTimeline
       : [{ year: 0, balance: result.startingCashReserve }]
   const width = 370
-  const height = 196
+  const height = 210
   const paddingLeft = 50
   const paddingRight = 18
   const paddingTop = 18
-  const paddingBottom = 24
+  const paddingBottom = 38
+  const borderGapLeft = 10
+  const borderGapRight = 10
+  const borderGapTop = 10
+  const borderGapBottom = 10
+  const yLabelGap = 8
+  const xLabelGap = 8
   const balances = points.map((point) => point.balance)
   const minBalance = Math.min(...balances)
   const maxBalance = Math.max(...balances)
@@ -372,6 +378,10 @@ const CashFlowChart = memo(function CashFlowChart({
   const chartWidth = width - paddingLeft - paddingRight
   const chartHeight = height - paddingTop - paddingBottom
   const chartFloorY = height - paddingBottom
+  const borderX = paddingLeft - borderGapLeft
+  const borderY = paddingTop - borderGapTop
+  const borderWidth = chartWidth + borderGapLeft + borderGapRight
+  const borderHeight = chartHeight + borderGapTop + borderGapBottom
   const displayedInflationRate = Math.round((inflationEnabled ? inflationRateAnnual : 0) * 100)
   const palette =
     result.riskLevel === 'deficit'
@@ -464,10 +474,10 @@ const CashFlowChart = memo(function CashFlowChart({
         </defs>
 
         <rect
-          x={paddingLeft + 8}
-          y={paddingTop + 8}
-          width={chartWidth - 16}
-          height={chartHeight - 16}
+          x={borderX}
+          y={borderY}
+          width={borderWidth}
+          height={borderHeight}
           rx={0}
           ry={0}
           fill="none"
@@ -486,7 +496,7 @@ const CashFlowChart = memo(function CashFlowChart({
             />
             <text
               className="cashflow-grid-label"
-              x={paddingLeft - 8}
+              x={borderX - yLabelGap}
               y={tick.y}
               textAnchor="end"
               dominantBaseline="middle"
@@ -522,8 +532,9 @@ const CashFlowChart = memo(function CashFlowChart({
             />
             <text
               x={tick.x}
-              y={chartFloorY + 13}
+              y={borderY + borderHeight + xLabelGap}
               textAnchor={tick.label === '현재' ? 'start' : tick.label === '30년' ? 'end' : 'middle'}
+              dominantBaseline="hanging"
               style={{
                 fill: labelColor,
                 fontSize: 11,
