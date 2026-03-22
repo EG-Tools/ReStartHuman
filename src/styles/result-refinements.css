@@ -179,6 +179,20 @@
     table-layout: fixed;
   }
 
+  .result-table th:nth-child(1),
+  .result-table td:nth-child(1) {
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+  }
+
+  .result-table th:nth-child(2),
+  .result-table td:nth-child(2) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
+
   .result-table th:nth-child(3),
   .result-table td:nth-child(3) {
     width: 86px;
@@ -186,6 +200,20 @@
     max-width: 86px;
     padding-left: 9px;
     padding-right: 9px;
+  }
+
+  .result-table th:nth-child(4),
+  .result-table td:nth-child(4) {
+    width: 106px;
+    min-width: 106px;
+    max-width: 106px;
+  }
+
+  .result-table th:nth-child(5),
+  .result-table td:nth-child(5) {
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
   }
 
   .result-table th:nth-child(6),
