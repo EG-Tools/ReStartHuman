@@ -116,6 +116,155 @@
   padding-block: 11px;
 }
 
+/* ------------------------------------------------------------------
+   결과표 레이아웃 최종 제어 블록
+   이제 세로/가로모드 모두 아래 공통 변수만 사용합니다.
+   앞으로 결과표 크기를 바꿀 때는 아래 값만 수정하면 됩니다.
+
+   1열 = 구분
+   2열 = 입력값
+   3열 = 월 기준
+   4열 = 1년 결과
+   5열 = N년 결과
+   6열 = 비고
+
+   [수치 입력칸 관련]
+   --result-col-2             : 2열 전체 폭
+   --result-input-box-width   : 실제 숫자 입력칸 폭
+   --result-edit-inline-gap   : 숫자칸과 '만원' 사이 간격
+   --result-edit-field-pad-x  : 숫자칸 안쪽 좌우 여백
+   --result-edit-input-font-size : 숫자 폰트 크기
+
+   주의:
+   입력칸을 키우면 '만원' 텍스트와 공간을 같이 써야 하므로
+   보통은 --result-input-box-width 와 --result-col-2 를 같이 조절해야 합니다.
+------------------------------------------------------------------- */
+.table-shell .result-table {
+  --result-table-min-width: 700px;
+  --result-cell-pad-y: 14px;
+  --result-cell-pad-x: 14px;
+
+  --result-col-1: 60px;
+  --result-col-2: 170px;
+  --result-col-3: 80px;
+  --result-col-4: 90px;
+  --result-col-5: 100px;
+  --result-col-6-min: 150px;
+
+  --result-note-max-width: 80px;
+
+  --result-edit-inline-gap: 6px;
+  --result-input-box-width: 80px;
+  --result-edit-field-pad-x: 8px;
+  --result-edit-input-font-size: 0.92rem;
+
+  table-layout: fixed;
+  width: 100%;
+  min-width: var(--result-table-min-width);
+}
+
+/* 결과표 셀 패딩 */
+.table-shell .result-table th,
+.table-shell .result-table td {
+  padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
+}
+
+/* 1열: 구분 */
+.table-shell .result-table th:nth-child(1),
+.table-shell .result-table td:nth-child(1),
+.table-shell .result-table .result-item-cell {
+  width: var(--result-col-1);
+  min-width: var(--result-col-1);
+  max-width: var(--result-col-1);
+}
+
+/* 2열: 입력값 */
+.table-shell .result-table th:nth-child(2),
+.table-shell .result-table td:nth-child(2),
+.table-shell .result-table .result-input-cell,
+.table-shell .result-table .table-edit-cluster {
+  width: var(--result-col-2);
+  min-width: var(--result-col-2);
+  max-width: var(--result-col-2);
+}
+
+/* 3열: 월 기준 */
+.table-shell .result-table th.result-col-monthly,
+.table-shell .result-table td.result-col-monthly,
+.table-shell .result-table th:nth-child(3),
+.table-shell .result-table td:nth-child(3) {
+  width: var(--result-col-3);
+  min-width: var(--result-col-3);
+  max-width: var(--result-col-3);
+}
+
+/* 4열: 1년 결과 */
+.table-shell .result-table th:nth-child(4),
+.table-shell .result-table td:nth-child(4) {
+  width: var(--result-col-4);
+  min-width: var(--result-col-4);
+  max-width: var(--result-col-4);
+}
+
+/* 5열: N년 결과 */
+.table-shell .result-table th:nth-child(5),
+.table-shell .result-table td:nth-child(5) {
+  width: var(--result-col-5);
+  min-width: var(--result-col-5);
+  max-width: var(--result-col-5);
+}
+
+/* 6열: 비고 */
+.table-shell .result-table th:nth-child(6),
+.table-shell .result-table td:nth-child(6) {
+  min-width: var(--result-col-6-min);
+}
+
+/* 2열 안쪽 편집 UI 정리 */
+.table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-group,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-stack {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: var(--result-edit-inline-gap);
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-field {
+  flex: 0 0 var(--result-input-box-width);
+  width: var(--result-input-box-width);
+  min-width: var(--result-input-box-width);
+  max-width: var(--result-input-box-width);
+  padding-left: var(--result-edit-field-pad-x);
+  padding-right: var(--result-edit-field-pad-x);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-input {
+  min-width: 0;
+  width: 100%;
+  font-size: var(--result-edit-input-font-size);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+  flex: 0 0 auto;
+}
+
+/* 비고 셀 내부 최대폭 */
+.table-shell .result-table .note-cell,
+.table-shell .result-table tbody .note-cell {
+  width: 100%;
+  max-width: var(--result-note-max-width);
+}
+
 @media (max-width: 900px) {
   .projection-inline-row {
     gap: 8px;
