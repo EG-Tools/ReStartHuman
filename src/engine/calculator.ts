@@ -79,7 +79,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
       : formData.isaType === 'workingClass'
         ? 'workingClass'
         : 'general',
-  simulationYears: Math.max(1, sanitizeMoney(formData.simulationYears) || 30),
+  simulationYears: Math.min(50, Math.max(10, sanitizeMoney(formData.simulationYears) || 30)),
   homeMarketValue: sanitizeMoney(formData.homeMarketValue),
   homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
   jeonseDeposit: sanitizeMoney(formData.jeonseDeposit),

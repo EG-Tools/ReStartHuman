@@ -26,6 +26,7 @@ interface QuestionNumberFieldConfig {
   suffix?: string
   min?: number
   step?: number
+  max?: number
 }
 
 const MANWON = 10_000
@@ -261,6 +262,7 @@ function QuestionNumberFields({
                   inputMode="decimal"
                   min={field.min ?? 0}
                   step={field.step ?? 1}
+                  max={field.max}
                   disabled={field.disabled}
                   value={displayValue}
                   onWheel={(event) => {
@@ -1090,6 +1092,17 @@ export function QuestionScreen({
                 min: 1,
                 step: 1,
                 helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
+              },
+              {
+                key: 'simulationYears',
+                label: '예상 현금흐름 반영년도수',
+                value: formData.simulationYears,
+                onChange: (value) => update('simulationYears', Math.min(50, Math.max(10, value))),
+                display: 'number',
+                suffix: '년',
+                min: 10,
+                max: 50,
+                step: 1,
               },
             ]}
           />

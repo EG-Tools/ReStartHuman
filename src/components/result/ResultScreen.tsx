@@ -1336,7 +1336,13 @@ export function ResultScreen({
     {
       category: '지출',
       item: '대출 이자',
-      input: `${formatCompactCurrency(formData.loanInterestMonthly)} / ${formData.loanInterestYears}년`,
+      input: (
+        <InlineAmountInput
+          label="월 대출 이자"
+          value={formData.loanInterestMonthly}
+          onChange={(value) => onPatchFormData({ loanInterestMonthly: value })}
+        />
+      ),
       monthly: formatCompactCurrency(formData.loanInterestMonthly),
       annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
       tenYear: formatCompactCurrency(
