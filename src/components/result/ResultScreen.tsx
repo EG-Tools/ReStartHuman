@@ -506,13 +506,42 @@ const CashFlowChart = memo(function CashFlowChart({
 
       </svg>
 
-      <div className="cashflow-axis">
-        {xTicks.map((tick) => (
-          <span key={tick.year}>
-            <strong>{tick.label}</strong>
-            <em>{tick.year}</em>
-          </span>
-        ))}
+      <div
+        className="cashflow-axis"
+        style={{
+          position: 'relative',
+          height: 38,
+          marginTop: 4,
+        }}
+      >
+        {xTicks.map((tick, index) => {
+          const leftPercent = (tick.x / width) * 100
+          const transform =
+            index === 0
+              ? 'translateX(0)'
+              : index === xTicks.length - 1
+                ? 'translateX(-100%)'
+                : 'translateX(-50%)'
+
+          return (
+            <span
+              key={tick.year}
+              style={{
+                position: 'absolute',
+                left: `${leftPercent}%`,
+                transform,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                whiteSpace: 'nowrap',
+                lineHeight: 1.1,
+              }}
+            >
+              <strong>{tick.label}</strong>
+              <em>{tick.year}</em>
+            </span>
+          )
+        })}
       </div>
     </section>
   )
