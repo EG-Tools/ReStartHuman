@@ -1,8 +1,8 @@
 @media (min-width: 901px) and (orientation: landscape) {
   .table-shell .result-table {
     /* 가로모드 결과표 열 폭은 아래 값들만 바꾸면 됩니다. */
-    --result-col-1: 72px;
-    --result-col-2: 120px;
+    --result-col-1: 50px;
+    --result-col-2: 100px;
     --result-col-3: 85px;
     --result-col-4: 95px;
     --result-col-5: 105px;
