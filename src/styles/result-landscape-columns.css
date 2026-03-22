@@ -3,8 +3,8 @@
 /* ------------------------------ */
 .table-shell .result-table {
   --result-table-min-width: 700px;
-  --result-cell-pad-y: 10px;
-  --result-cell-pad-x: 8px;
+  --result-cell-pad-y: 14px;
+  --result-cell-pad-x: 14px;
 
   --result-col-1: 60px;
   --result-col-2: 170px;
@@ -13,13 +13,13 @@
   --result-col-5: 100px;
   --result-col-6-min: 150px;
 
-  --result-note-max-width: 70px;
+  --result-note-max-width: 80px;
 
   /* 수치입력칸 줄 간격 */
   --result-edit-inline-gap: 6px;
 
   /* 실제 숫자 입력칸(박스) 너비 */
-  --result-input-box-width: 50px;
+  --result-input-box-width: 80px;
 
   /* 숫자 입력칸 안쪽 좌우 여백 */
   --result-edit-field-pad-x: 8px;
@@ -151,13 +151,13 @@
     --result-col-5: 100px;
     --result-col-6-min: 150px;
 
-    --result-note-max-width: none;
+    --result-note-max-width: 80px;
 
     /* 수치입력칸 줄 간격 */
-    --result-edit-inline-gap: 8px;
+    --result-edit-inline-gap: 6px;
 
     /* 실제 숫자 입력칸(박스) 너비 */
-    --result-input-box-width: 70px;
+    --result-input-box-width: 80px;
 
     /* 숫자 입력칸 안쪽 좌우 여백
        주의: 이 값을 너무 크게 하면 숫자가 안 보일 수 있습니다. */
