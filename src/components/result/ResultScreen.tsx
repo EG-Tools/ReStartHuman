@@ -419,9 +419,9 @@ const CashFlowChart = memo(function CashFlowChart({
     }),
   )
   const xTicks = [
-    { label: '지금', year: currentYear, index: 0 },
-    { label: '5년', year: currentYear + 5, index: Math.min(5, points.length - 1) },
-    { label: '15년', year: currentYear + 15, index: Math.min(15, points.length - 1) },
+    { label: '현재', year: currentYear, index: 0 },
+    { label: '10년', year: currentYear + 10, index: Math.min(10, points.length - 1) },
+    { label: '20년', year: currentYear + 20, index: Math.min(20, points.length - 1) },
     { label: '30년', year: currentYear + 30, index: points.length - 1 },
   ].map((tick) => ({
     ...tick,
@@ -510,8 +510,8 @@ const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-axis"
         style={{
           position: 'relative',
-          height: 38,
-          marginTop: 4,
+          height: 32,
+          marginTop: -2,
         }}
       >
         {xTicks.map((tick, index) => {
@@ -534,7 +534,7 @@ const CashFlowChart = memo(function CashFlowChart({
                 flexDirection: 'column',
                 alignItems: 'center',
                 whiteSpace: 'nowrap',
-                lineHeight: 1.1,
+                lineHeight: 1.05,
               }}
             >
               <strong>{tick.label}</strong>
