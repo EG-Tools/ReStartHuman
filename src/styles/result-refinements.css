@@ -52,12 +52,15 @@
   box-shadow: var(--result-row-divider-shadow);
 }
 
+/* ------------------------------------------------------------------
+   1열 고정 잔재 제거
+   이전에는 특정 카테고리의 첫 셀만 sticky가 살아 있어서
+   세로 스크롤 / 좌우 스크롤 시 '락이 걸린 것처럼' 보였습니다.
+   이제 색상/굵기만 유지하고 sticky는 제거합니다.
+------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 2;
   font-weight: 800;
   background: var(--result-row-bg);
   color: var(--result-row-color);
@@ -247,7 +250,32 @@
   white-space: nowrap;
 }
 
-/* 2열 내부 요소는 실제 내용 영역 폭 기준 */
+/* ------------------------------------------------------------------
+   2열 단일 정렬 규칙
+   문제 원인:
+   - 에디터 구조(table-edit-*)와 일반 텍스트가 따로 놀고 있었음
+   - 그래서 가로에서는 괜찮아 보여도 세로에서 좌측 정렬이 드러났음
+
+   해결:
+   - 2열 셀 자체를 우측 정렬 기준으로 통일
+   - 일반 텍스트/블록도 같은 내용 폭을 사용
+   - 에디터는 기존 구조 유지
+------------------------------------------------------------------- */
+.table-shell .result-table .result-input-cell {
+  text-align: right;
+}
+
+.table-shell .result-table .result-input-cell > span,
+.table-shell .result-table .result-input-cell > div,
+.table-shell .result-table .result-input-cell > p {
+  display: block;
+  width: var(--result-col-2-content);
+  min-width: var(--result-col-2-content);
+  max-width: var(--result-col-2-content);
+  margin-left: auto;
+  text-align: right;
+}
+
 .table-shell .result-table .result-input-cell .table-edit-cluster,
 .table-shell .result-table .result-input-cell .table-edit-group,
 .table-shell .result-table .result-input-cell .table-edit-stack {
