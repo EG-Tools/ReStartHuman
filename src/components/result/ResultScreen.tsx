@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -42,15 +42,6 @@ const parseDraftValue = (draftValue: string, minValue: number) => {
   const normalizedValue = Number(draftValue) || 0
   return Math.max(normalizedValue, minValue)
 }
-
-const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
-  formData.livingCostInputMode === 'total'
-    ? formData.livingCostMonthlyTotal
-    : formData.foodMonthly +
-      formData.necessitiesMonthly +
-      formData.diningOutMonthly +
-      formData.hobbyMonthly +
-      formData.otherLivingMonthly
 
 const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
   switch (riskLevel) {
@@ -849,39 +840,49 @@ function InlineLabeledAmountInput({
   )
 }
 
-function HousingAmountEditor({
-  formData,
+const HousingAmountEditor = memo(function HousingAmountEditor({
+  housingType,
+  homeMarketValue,
+  homeOfficialValue,
+  jeonseDeposit,
+  monthlyRentDeposit,
+  monthlyRentAmount,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
+  housingType: RetireCalcFormData['housingType']
+  homeMarketValue: number
+  homeOfficialValue: number
+  jeonseDeposit: number
+  monthlyRentDeposit: number
+  monthlyRentAmount: number
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }) {
-  if (formData.housingType === 'own') {
+  if (housingType === 'own') {
     return (
       <div className="table-edit-cluster table-edit-cluster-housing">
         <InlineLabeledAmountInput
           className="table-edit-group-market"
           caption="시가"
           label="주택 시가"
-          value={formData.homeMarketValue}
+          value={homeMarketValue}
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
           caption="공시가격"
           label="주택 공시가격"
-          value={formData.homeOfficialValue}
+          value={homeOfficialValue}
           onChange={(value) => onPatchFormData({ homeOfficialValue: value })}
         />
       </div>
     )
   }
 
-  if (formData.housingType === 'jeonse') {
+  if (housingType === 'jeonse') {
     return (
       <InlineLabeledAmountInput
         caption="전세보증금"
         label="전세보증금"
-        value={formData.jeonseDeposit}
+        value={jeonseDeposit}
         onChange={(value) => onPatchFormData({ jeonseDeposit: value })}
       />
     )
@@ -892,37 +893,39 @@ function HousingAmountEditor({
       <InlineLabeledAmountInput
         caption="보증금"
         label="월세 보증금"
-        value={formData.monthlyRentDeposit}
+        value={monthlyRentDeposit}
         onChange={(value) => onPatchFormData({ monthlyRentDeposit: value })}
       />
       <InlineLabeledAmountInput
         caption="월세"
         label="월세 금액"
-        value={formData.monthlyRentAmount}
+        value={monthlyRentAmount}
         onChange={(value) => onPatchFormData({ monthlyRentAmount: value })}
       />
     </div>
   )
-}
+})
 
-function HealthInsuranceEditor({
-  result,
+const HealthInsuranceEditor = memo(function HealthInsuranceEditor({
+  healthInsuranceMonthly,
+  healthInsuranceSource,
   onPatchFormData,
 }: {
-  result: RetireCalcResult
+  healthInsuranceMonthly: number
+  healthInsuranceSource: RetireCalcResult['healthInsuranceSource']
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }) {
   return (
     <InlineAmountInput
       label="월 건강보험료"
-      value={result.healthInsuranceMonthly}
+      value={healthInsuranceMonthly}
       onChange={(value) =>
         onPatchFormData({
           healthInsuranceOverrideMonthly: value,
         })
       }
       action={
-        result.healthInsuranceSource === 'manual' ? (
+        healthInsuranceSource === 'manual' ? (
           <button
             type="button"
             className="table-edit-reset"
@@ -934,22 +937,26 @@ function HealthInsuranceEditor({
       }
     />
   )
-}
+})
 
-function FixedExpenseEditor({
-  formData,
+const FixedExpenseEditor = memo(function FixedExpenseEditor({
+  housingType,
+  maintenanceMonthly,
+  insuranceMonthly,
+  telecomMonthly,
+  otherFixedMonthly,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
+  housingType: RetireCalcFormData['housingType']
+  maintenanceMonthly: number
+  insuranceMonthly: number
+  telecomMonthly: number
+  otherFixedMonthly: number
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }) {
-  const fixedMaintenanceMonthly =
-    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
-  const lockedBase =
-    formData.insuranceMonthly +
-    fixedMaintenanceMonthly +
-    formData.telecomMonthly
-  const totalValue = lockedBase + formData.otherFixedMonthly
+  const fixedMaintenanceMonthly = housingType === 'monthlyRent' ? 0 : maintenanceMonthly
+  const lockedBase = insuranceMonthly + fixedMaintenanceMonthly + telecomMonthly
+  const totalValue = lockedBase + otherFixedMonthly
 
   return (
     <InlineAmountInput
@@ -962,18 +969,33 @@ function FixedExpenseEditor({
       }
     />
   )
-}
+})
 
-function LivingExpenseEditor({
-  formData,
+const LivingExpenseEditor = memo(function LivingExpenseEditor({
+  livingCostInputMode,
+  livingCostMonthlyTotal,
+  foodMonthly,
+  necessitiesMonthly,
+  diningOutMonthly,
+  hobbyMonthly,
+  otherLivingMonthly,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
+  livingCostInputMode: RetireCalcFormData['livingCostInputMode']
+  livingCostMonthlyTotal: number
+  foodMonthly: number
+  necessitiesMonthly: number
+  diningOutMonthly: number
+  hobbyMonthly: number
+  otherLivingMonthly: number
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }) {
-  const totalValue = getLivingCostSnapshot(formData)
+  const totalValue =
+    livingCostInputMode === 'total'
+      ? livingCostMonthlyTotal
+      : foodMonthly + necessitiesMonthly + diningOutMonthly + hobbyMonthly + otherLivingMonthly
 
-  if (formData.livingCostInputMode === 'total') {
+  if (livingCostInputMode === 'total') {
     return (
       <InlineAmountInput
         label="월 생활비"
@@ -983,11 +1005,7 @@ function LivingExpenseEditor({
     )
   }
 
-  const lockedBase =
-    formData.foodMonthly +
-    formData.necessitiesMonthly +
-    formData.diningOutMonthly +
-    formData.hobbyMonthly
+  const lockedBase = foodMonthly + necessitiesMonthly + diningOutMonthly + hobbyMonthly
 
   return (
     <InlineAmountInput
@@ -1000,7 +1018,7 @@ function LivingExpenseEditor({
       }
     />
   )
-}
+})
 
 const getExportFileName = () => {
   const now = new Date()
@@ -1242,7 +1260,15 @@ export function ResultScreen({
       category: '주거',
       item: housingRowLabel,
       input: (
-        <HousingAmountEditor formData={formData} onPatchFormData={onPatchFormData} />
+        <HousingAmountEditor
+          housingType={formData.housingType}
+          homeMarketValue={formData.homeMarketValue}
+          homeOfficialValue={formData.homeOfficialValue}
+          jeonseDeposit={formData.jeonseDeposit}
+          monthlyRentDeposit={formData.monthlyRentDeposit}
+          monthlyRentAmount={formData.monthlyRentAmount}
+          onPatchFormData={onPatchFormData}
+        />
       ),
       monthly:
         formData.housingType === 'monthlyRent'
@@ -1354,7 +1380,11 @@ export function ResultScreen({
       category: '세금',
       item: '건강 보험료',
       input: (
-        <HealthInsuranceEditor result={result} onPatchFormData={onPatchFormData} />
+        <HealthInsuranceEditor
+          healthInsuranceMonthly={result.healthInsuranceMonthly}
+          healthInsuranceSource={result.healthInsuranceSource}
+          onPatchFormData={onPatchFormData}
+        />
       ),
       monthly: formatCompactCurrency(result.healthInsuranceMonthly),
       annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
@@ -1410,7 +1440,14 @@ export function ResultScreen({
       category: '지출',
       item: '고정지출',
       input: (
-        <FixedExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+        <FixedExpenseEditor
+          housingType={formData.housingType}
+          maintenanceMonthly={formData.maintenanceMonthly}
+          insuranceMonthly={formData.insuranceMonthly}
+          telecomMonthly={formData.telecomMonthly}
+          otherFixedMonthly={formData.otherFixedMonthly}
+          onPatchFormData={onPatchFormData}
+        />
       ),
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
@@ -1421,7 +1458,16 @@ export function ResultScreen({
       category: '지출',
       item: '식비생활비',
       input: (
-        <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />
+        <LivingExpenseEditor
+          livingCostInputMode={formData.livingCostInputMode}
+          livingCostMonthlyTotal={formData.livingCostMonthlyTotal}
+          foodMonthly={formData.foodMonthly}
+          necessitiesMonthly={formData.necessitiesMonthly}
+          diningOutMonthly={formData.diningOutMonthly}
+          hobbyMonthly={formData.hobbyMonthly}
+          otherLivingMonthly={formData.otherLivingMonthly}
+          onPatchFormData={onPatchFormData}
+        />
       ),
       monthly: formatCompactCurrency(result.livingExpenseMonthly),
       annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
@@ -1481,12 +1527,69 @@ export function ResultScreen({
       dividendBasisLabel,
       fixedExpenseAnnualBase,
       fixedExpenseMonthlyBase,
-      formData,
+      formData.carYearlyCost,
+      formData.foodMonthly,
+      formData.hasLoan,
+      formData.hobbyMonthly,
+      formData.homeMarketValue,
+      formData.homeOfficialValue,
+      formData.housingType,
+      formData.insuranceMonthly,
+      formData.isaDividendAnnual,
+      formData.jeonseDeposit,
+      formData.landOwnershipType,
+      formData.landValue,
+      formData.livingCostInputMode,
+      formData.livingCostMonthlyTotal,
+      formData.loanInterestMonthly,
+      formData.loanInterestYears,
+      formData.maintenanceMonthly,
+      formData.monthlyRentAmount,
+      formData.monthlyRentDeposit,
+      formData.necessitiesMonthly,
+      formData.otherFixedMonthly,
+      formData.otherIncomeType,
+      formData.otherLivingMonthly,
+      formData.otherPropertyOfficialValue,
+      formData.otherPropertyOwnershipType,
+      formData.pensionMonthlyAmount,
+      formData.simulationYears,
+      formData.taxableAccountDividendAnnual,
+      formData.telecomMonthly,
       householdSummary,
       housingRowLabel,
       housingRowNote,
       onPatchFormData,
-      result,
+      result.carMonthlyConverted,
+      result.comprehensiveTaxBreakdown,
+      result.comprehensiveTaxImpactAnnual,
+      result.dividendInputMode,
+      result.healthInsuranceMonthly,
+      result.healthInsuranceSource,
+      result.holdingTaxAnnual,
+      result.holdingTaxBreakdown,
+      result.holdingTaxMonthly,
+      result.housingMonthlyCost,
+      result.isaDividendAnnualNet,
+      result.isaDividendMonthlyNet,
+      result.isaTaxAnnual,
+      result.isaTaxBreakdown,
+      result.isaTaxFreeLimitApplied,
+      result.livingExpenseMonthly,
+      result.monthlySurplusOrDeficit,
+      result.monthlyUsableCash,
+      result.otherIncomeMonthlyApplied,
+      result.pensionMonthlyApplied,
+      result.riskLevel,
+      result.taxableDividendAnnualNet,
+      result.taxableDividendMonthlyNet,
+      result.taxableDividendOwnershipBreakdown,
+      result.taxableDividendWithholdingAnnual,
+      result.tenYearSurplusOrDeficit,
+      result.totalDividendAnnualNet,
+      result.totalExpenseMonthly,
+      result.totalIncomeMonthly,
+      result.yearlySurplusOrDeficit,
     ],
   )
 
