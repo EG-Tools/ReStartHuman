@@ -116,6 +116,8 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   telecomMonthly: sanitizeMoney(formData.telecomMonthly),
   nationalPensionMonthly: sanitizeMoney(formData.nationalPensionMonthly),
   carYearlyCost: sanitizeMoney(formData.carYearlyCost),
+  loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
+  loanInterestYears: sanitizeMoney(formData.loanInterestYears),
   otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),
   livingCostMonthlyTotal: sanitizeMoney(formData.livingCostMonthlyTotal),
   foodMonthly: sanitizeMoney(formData.foodMonthly),
@@ -465,6 +467,7 @@ const calculateComprehensiveTax = (
 
 const calculateExpenses = (formData: RetireCalcFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
+  const loanInterestMonthly = formData.loanInterestMonthly
 
   const fixedMaintenanceMonthly =
     formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
@@ -494,11 +497,12 @@ const calculateExpenses = (formData: RetireCalcFormData) => {
 
   return {
     carMonthlyConverted,
+    loanInterestMonthly: roundCurrency(loanInterestMonthly),
     fixedExpenseMonthly: roundCurrency(fixedExpenseMonthly),
     livingExpenseMonthly: roundCurrency(livingExpenseMonthly),
     housingMonthlyCost: roundCurrency(housingMonthlyCost),
     totalExpenseMonthly: roundCurrency(
-      fixedExpenseMonthly + livingExpenseMonthly + housingMonthlyCost,
+      fixedExpenseMonthly + loanInterestMonthly + livingExpenseMonthly + housingMonthlyCost,
     ),
   }
 }
@@ -673,11 +677,22 @@ const calculateCashProjection = (
     },
   ]
 
+  const fixedLoanInterestMonthly = formData.loanInterestMonthly
+  const baseExpenseMonthlyWithoutLoan = Math.max(
+    totalExpenseMonthly - fixedLoanInterestMonthly,
+    0,
+  )
+
   for (let yearIndex = 0; yearIndex < projectionYears; yearIndex += 1) {
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
-    const projectedExpenses = totalExpenseMonthly * inflationMultiplier
+
+    const projectedBaseExpenses = baseExpenseMonthlyWithoutLoan * inflationMultiplier
+    const projectedLoanInterest =
+      yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
+
+    const projectedExpenses = projectedBaseExpenses + projectedLoanInterest
     const projectedMonthlySurplus =
       totalIncomeMonthly -
       projectedExpenses -
@@ -846,6 +861,6 @@ export const calculateRetireScenario = (
         : monthlySurplusOrDeficit < 0
           ? 'deficit'
           : 'neutral',
-    loanNotice: formData.hasLoan,
+    loanNotice: formData.loanInterestMonthly > 0,
   }
 }

@@ -15,7 +15,7 @@ export const questionFlow: QuestionStep[] = [
   },
   {
     id: 'propertyAssets',
-    title: '상가 및 기타부동산 정보',
+    title: '토지 및 기타 부동산',
     description: '',
     visibility: () => true,
   },

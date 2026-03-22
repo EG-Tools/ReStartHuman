@@ -101,6 +101,8 @@ export interface RetireCalcFormData {
   telecomMonthly: number
   nationalPensionMonthly: number
   carYearlyCost: number
+  loanInterestMonthly: number
+  loanInterestYears: number
   otherFixedMonthly: number
 
   livingCostInputMode: 'total' | 'detailed'

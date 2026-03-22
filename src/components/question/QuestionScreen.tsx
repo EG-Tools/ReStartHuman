@@ -469,11 +469,13 @@ export function QuestionScreen({
                 {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
                   update('isJointOwnership', value),
                 )}
+                {formData.isJointOwnership ? (
+                  <p className="screen-copy" style={{ marginTop: '-2px' }}>
+                    본인 50%, 배우자 50% 자동 적용됩니다.
+                  </p>
+                ) : null}
                 {renderBooleanChoice('1주택자로 볼 수 있나요?', formData.isSingleHomeOwner, (value) =>
                   update('isSingleHomeOwner', value),
-                )}
-                {renderBooleanChoice('주택담보대출이 있나요?', formData.hasLoan, (value) =>
-                  update('hasLoan', value),
                 )}
               </>
             ) : null}
@@ -493,6 +495,11 @@ export function QuestionScreen({
                 {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
                   update('isJointOwnership', value),
                 )}
+                {formData.isJointOwnership ? (
+                  <p className="screen-copy" style={{ marginTop: '-2px' }}>
+                    본인 50%, 배우자 50% 자동 적용됩니다.
+                  </p>
+                ) : null}
               </>
             ) : null}
 
@@ -581,7 +588,7 @@ export function QuestionScreen({
                 />
                 {formData.landOwnershipType === 'split' ? (
                   <p className="screen-copy" style={{ marginTop: '10px' }}>
-                    공동명의 선택 시 본인 50%, 배우자 50%가 자동 적용됩니다.
+                    본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
               </section>
@@ -629,7 +636,7 @@ export function QuestionScreen({
                 />
                 {formData.otherPropertyOwnershipType === 'split' ? (
                   <p className="screen-copy" style={{ marginTop: '10px' }}>
-                    공동명의 선택 시 본인 50%, 배우자 50%가 자동 적용됩니다.
+                    본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
               </section>
@@ -959,6 +966,23 @@ export function QuestionScreen({
                 label: '통신비',
                 value: formData.telecomMonthly,
                 onChange: (value) => update('telecomMonthly', value),
+              },
+              {
+                key: 'loanInterestMonthly',
+                label: '대출 이자',
+                value: formData.loanInterestMonthly,
+                onChange: (value) => update('loanInterestMonthly', value),
+              },
+              {
+                key: 'loanInterestYears',
+                label: '대출 이자 반영 년수',
+                value: formData.loanInterestYears,
+                onChange: (value) => update('loanInterestYears', Math.max(value, 0)),
+                display: 'number',
+                suffix: '년',
+                min: 0,
+                step: 1,
+                helperText: '예: 10 입력 시 10년 동안만 반영됩니다.',
               },
               {
                 key: 'carYearlyCost',

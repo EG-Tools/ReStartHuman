@@ -443,7 +443,7 @@ const CashFlowChart = memo(function CashFlowChart({
       <div className="cashflow-hero-header">
         <div>
           <div className="cashflow-hero-titleline">
-            <p className="cashflow-hero-eyebrow">30년 현금흐름</p>
+            <p className="cashflow-hero-eyebrow">30년 현금흐름 예상</p>
             <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
               ({getRiskLabel(result.riskLevel)})
             </span>
@@ -1301,7 +1301,7 @@ export function ResultScreen({
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
       tenYear: formatCompactCurrency(fixedExpenseAnnualBase * 10),
-      note: '차량 제외',
+      note: '차량, 대출 제외',
     },
     {
       category: '지출',
@@ -1332,6 +1332,20 @@ export function ResultScreen({
       tenYear: formatCompactCurrency(formData.carYearlyCost * 10),
       note: '연간 ÷ 12',
       noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
+    },
+    {
+      category: '지출',
+      item: '대출 이자',
+      input: `${formatCompactCurrency(formData.loanInterestMonthly)} / ${formData.loanInterestYears}년`,
+      monthly: formatCompactCurrency(formData.loanInterestMonthly),
+      annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
+      tenYear: formatCompactCurrency(
+        formData.loanInterestMonthly * 12 * Math.min(formData.loanInterestYears, formData.simulationYears),
+      ),
+      note:
+        formData.loanInterestMonthly > 0 && formData.loanInterestYears > 0
+          ? `${Math.min(formData.loanInterestYears, formData.simulationYears)}년치 반영`
+          : '미반영',
     },
     {
       category: '결과',
