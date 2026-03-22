@@ -1,0 +1,57 @@
+@media (min-width: 901px) and (orientation: landscape) {
+  .table-shell .result-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .table-shell .result-table th:nth-child(1),
+  .table-shell .result-table td:nth-child(1),
+  .table-shell .result-table .result-item-cell {
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+  }
+
+  .table-shell .result-table th:nth-child(2),
+  .table-shell .result-table td:nth-child(2),
+  .table-shell .result-table .result-input-cell,
+  .table-shell .result-table .table-edit-cluster {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
+
+  .table-shell .result-table th.result-col-monthly,
+  .table-shell .result-table td.result-col-monthly,
+  .table-shell .result-table th:nth-child(3),
+  .table-shell .result-table td:nth-child(3) {
+    width: 86px;
+    min-width: 86px;
+    max-width: 86px;
+  }
+
+  .table-shell .result-table th:nth-child(4),
+  .table-shell .result-table td:nth-child(4) {
+    width: 106px;
+    min-width: 106px;
+    max-width: 106px;
+  }
+
+  .table-shell .result-table th:nth-child(5),
+  .table-shell .result-table td:nth-child(5) {
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
+  }
+
+  .table-shell .result-table th:nth-child(6),
+  .table-shell .result-table td:nth-child(6) {
+    min-width: 126px;
+  }
+
+  .table-shell .result-table .note-cell,
+  .table-shell .result-table tbody .note-cell {
+    width: 100%;
+    max-width: none;
+  }
+}
