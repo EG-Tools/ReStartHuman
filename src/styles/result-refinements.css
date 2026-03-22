@@ -1,13 +1,5 @@
 /* Result visual refinements */
 
-/* ------------------------------------------------------------------
-   결과표 유지보수 원칙
-   1) 결과표 레이아웃/열폭/입력칸/비고 관련 최종 권한은 이 파일에만 둡니다.
-   2) base.css 에 남아 있는 결과표 레거시 규칙은 더 이상 수정 기준으로 보지 않습니다.
-   3) 앞으로 결과표를 수정할 때는 아래 변수 블록만 먼저 봅니다.
-   4) 이 파일의 기본값은 가로 기준값이며, 세로도 동일 크기로 보이게 맞춥니다.
-------------------------------------------------------------------- */
-
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -31,9 +23,7 @@
   color: #ffd2c6;
 }
 
-/* ------------------------------------------------------------------
-   결과표 행 색상 / 고정 첫열
-------------------------------------------------------------------- */
+/* 결과표 색상은 행별 변수만 지정하고 공통 규칙 한 번만 적용 */
 .result-table {
   --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
   --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
@@ -74,9 +64,6 @@
   box-shadow: var(--result-row-sticky-divider-shadow);
 }
 
-/* ------------------------------------------------------------------
-   상단 물가상승율 영역
-------------------------------------------------------------------- */
 .projection-inline-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -129,11 +116,10 @@
 }
 
 /* ------------------------------------------------------------------
-   결과표 레이아웃 최종 제어 블록
-   핵심:
-   - 가로 기준값을 기본값으로 사용
+   결과표 단일 레이아웃
    - 세로/가로를 따로 나누지 않음
-   - 2열 / 6열은 "열 전체 폭"이 아니라 "셀 안쪽 실제 사용 폭" 기준으로 계산
+   - colgroup 으로 열 자체를 고정
+   - 2열 / 6열은 셀 안쪽 실제 사용 폭 기준으로 계산
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -143,18 +129,29 @@
   --result-col-1: 55px;
   --result-col-2: 175px;
   --result-col-3: 95px;
-  --result-col-4: 110px;
+  --result-col-4: 105px;
   --result-col-5: 125px;
-  --result-col-6: 170px;
+  --result-col-6: 175px;
 
-  /* 셀 패딩을 뺀 실제 내용 영역 폭 */
+  --result-table-fixed-width: calc(
+    var(--result-col-1) +
+    var(--result-col-2) +
+    var(--result-col-3) +
+    var(--result-col-4) +
+    var(--result-col-5) +
+    var(--result-col-6)
+  );
+
   --result-col-2-content: calc(var(--result-col-2) - (var(--result-cell-pad-x) * 2));
   --result-col-6-content: calc(var(--result-col-6) - (var(--result-cell-pad-x) * 2));
 
-  --result-note-max-width: none;
   --result-note-icon-size: 20px;
   --result-note-gap: 6px;
-  --result-note-text-width: calc(var(--result-col-6-content) - var(--result-note-icon-size) - var(--result-note-gap));
+  --result-note-text-width: calc(
+    var(--result-col-6-content) -
+    var(--result-note-icon-size) -
+    var(--result-note-gap)
+  );
 
   --result-edit-inline-gap: 6px;
   --result-input-box-width: 96px;
@@ -166,21 +163,50 @@
   --result-edit-helper-font-size: 0.76rem;
 
   table-layout: fixed;
-  width: max-content;
-  min-width: max-content;
+  width: var(--result-table-fixed-width);
+  min-width: var(--result-table-fixed-width);
+  max-width: var(--result-table-fixed-width);
   font-size: var(--result-table-font-size);
 
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
-/* 결과표 셀 패딩 */
+.table-shell {
+  margin-inline: 0;
+  padding-bottom: 0;
+}
+
+/* colgroup 기반 열 고정 */
+.table-shell .result-table col.result-col-item {
+  width: var(--result-col-1);
+}
+
+.table-shell .result-table col.result-col-input {
+  width: var(--result-col-2);
+}
+
+.table-shell .result-table col.result-col-monthly {
+  width: var(--result-col-3);
+}
+
+.table-shell .result-table col.result-col-annual {
+  width: var(--result-col-4);
+}
+
+.table-shell .result-table col.result-col-horizon {
+  width: var(--result-col-5);
+}
+
+.table-shell .result-table col.result-col-note {
+  width: var(--result-col-6);
+}
+
 .table-shell .result-table th,
 .table-shell .result-table td {
   padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
 }
 
-/* 결과표 공통 기본 정렬 */
 .table-shell .result-table thead th {
   text-align: center;
   white-space: nowrap;
@@ -195,17 +221,9 @@
   border-right: 1px solid rgba(82, 90, 98, 0.34);
 }
 
-/* 1열: 구분 */
-.table-shell .result-table th:nth-child(1),
-.table-shell .result-table td:nth-child(1),
+/* 1열 */
 .table-shell .result-table .result-item-cell {
-  width: var(--result-col-1);
-  min-width: var(--result-col-1);
-  max-width: var(--result-col-1);
   text-align: center;
-}
-
-.table-shell .result-table .result-item-cell {
   padding-left: 0;
   padding-right: 0;
 }
@@ -229,64 +247,17 @@
   white-space: nowrap;
 }
 
-/* 2열: 입력값 */
-.table-shell .result-table th:nth-child(2),
-.table-shell .result-table td:nth-child(2),
-.table-shell .result-table .result-input-cell,
-.table-shell .result-table .table-edit-cluster {
-  width: var(--result-col-2);
-  min-width: var(--result-col-2);
-  max-width: var(--result-col-2);
-}
-
-/* 3열: 월 기준 */
-.table-shell .result-table th.result-col-monthly,
-.table-shell .result-table td.result-col-monthly,
-.table-shell .result-table th:nth-child(3),
-.table-shell .result-table td:nth-child(3) {
-  width: var(--result-col-3);
-  min-width: var(--result-col-3);
-  max-width: var(--result-col-3);
-}
-
-/* 4열: 1년 결과 */
-.table-shell .result-table th:nth-child(4),
-.table-shell .result-table td:nth-child(4) {
-  width: var(--result-col-4);
-  min-width: var(--result-col-4);
-  max-width: var(--result-col-4);
-}
-
-/* 5열: N년 결과 */
-.table-shell .result-table th:nth-child(5),
-.table-shell .result-table td:nth-child(5) {
-  width: var(--result-col-5);
-  min-width: var(--result-col-5);
-  max-width: var(--result-col-5);
-}
-
-/* 6열: 비고 */
-.table-shell .result-table th:nth-child(6),
-.table-shell .result-table td:nth-child(6) {
-  width: var(--result-col-6);
-  min-width: var(--result-col-6);
-  max-width: var(--result-col-6);
-  white-space: normal;
-  text-align: right;
-}
-
-/* 2열 안쪽 편집 UI
-   열 전체 폭이 아니라, 패딩을 뺀 실제 내용 영역 폭을 사용 */
-.table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-group,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-stack {
+/* 2열 내부 요소는 실제 내용 영역 폭 기준 */
+.table-shell .result-table .result-input-cell .table-edit-cluster,
+.table-shell .result-table .result-input-cell .table-edit-group,
+.table-shell .result-table .result-input-cell .table-edit-stack {
   width: var(--result-col-2-content);
   min-width: var(--result-col-2-content);
   max-width: var(--result-col-2-content);
   margin-left: auto;
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+.table-shell .result-table .result-input-cell .table-edit-inline {
   display: grid;
   grid-template-columns:
     var(--result-input-box-width)
@@ -300,7 +271,7 @@
   justify-content: end;
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-field {
+.table-shell .result-table .result-input-cell .table-edit-field {
   width: var(--result-input-box-width);
   min-width: var(--result-input-box-width);
   max-width: var(--result-input-box-width);
@@ -308,37 +279,40 @@
   padding-right: var(--result-edit-field-pad-x);
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-input,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-label,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix {
+.table-shell .result-table .result-input-cell .table-edit-input,
+.table-shell .result-table .result-input-cell .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-suffix {
   text-align: right;
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-input {
+.table-shell .result-table .result-input-cell .table-edit-input {
   min-width: 0;
   width: 100%;
   font-size: var(--result-edit-input-font-size);
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix {
+.table-shell .result-table .result-input-cell .table-edit-suffix {
   white-space: nowrap;
   font-size: var(--result-edit-suffix-font-size);
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-helper {
+.table-shell .result-table .result-input-cell .table-edit-helper {
   font-size: var(--result-edit-helper-font-size);
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+.table-shell .result-table .result-input-cell .table-edit-action {
   white-space: nowrap;
   width: auto;
   justify-content: flex-end;
 }
 
-/* 비고 셀 내부
-   열 전체 폭이 아니라, 패딩을 뺀 실제 내용 영역 폭을 사용 */
-.table-shell .result-table .note-cell,
-.table-shell .result-table tbody .note-cell {
+/* 비고열도 실제 내용 영역 폭 기준 */
+.table-shell .result-table .result-note-cell {
+  white-space: normal;
+  text-align: right;
+}
+
+.table-shell .result-table .note-cell {
   display: grid;
   grid-template-columns: var(--result-note-text-width) var(--result-note-icon-size);
   align-items: start;
@@ -352,8 +326,7 @@
   justify-content: end;
 }
 
-.table-shell .result-table .note-cell > span,
-.table-shell .result-table tbody .note-cell > span {
+.table-shell .result-table .note-cell-text {
   width: var(--result-note-text-width);
   min-width: 0;
   max-width: var(--result-note-text-width);
@@ -363,15 +336,13 @@
   line-height: 1.28;
 }
 
-.table-shell .result-table .note-popover-trigger,
-.table-shell .result-table tbody .note-popover-trigger {
+.table-shell .result-table .note-popover-trigger {
   width: var(--result-note-icon-size);
   height: var(--result-note-icon-size);
   min-width: var(--result-note-icon-size);
   min-height: var(--result-note-icon-size);
 }
 
-/* 해석 리스트 */
 .interpretation-list {
   margin: 0;
   padding-left: 18px;
@@ -384,10 +355,7 @@
   line-height: 1.55;
 }
 
-/* ------------------------------------------------------------------
-   세로 공통 UI만 유지
-   결과표는 더 이상 세로 전용 별도 규칙을 두지 않습니다.
-------------------------------------------------------------------- */
+/* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
     gap: 8px;

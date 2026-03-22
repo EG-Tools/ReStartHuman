@@ -170,7 +170,6 @@ const getPropertyOwnershipLabel = (ownershipType: string) => {
   }
 }
 
-
 const formatOwnershipSummary = (breakdown: AccountOwnershipBreakdown[]) =>
   breakdown.map((item) => `${item.label} ${formatCompactCurrency(item.attributedAnnual)}`).join(', ')
 
@@ -679,14 +678,22 @@ const ResultTable = memo(function ResultTable({
   return (
     <div className="table-shell">
       <table className="result-table">
+        <colgroup>
+          <col className="result-col-item" />
+          <col className="result-col-input" />
+          <col className="result-col-monthly" />
+          <col className="result-col-annual" />
+          <col className="result-col-horizon" />
+          <col className="result-col-note" />
+        </colgroup>
         <thead>
           <tr>
             <th><span className="result-head-text">구분</span></th>
             <th><span className="result-head-text">입력값</span></th>
             <th className="result-col-monthly"><span className="result-head-text">월 기준</span></th>
-            <th><span className="result-head-text">1년 결과</span></th>
-            <th><span className="result-head-text">{projectionYears}년 결과</span></th>
-            <th><span className="result-head-text">비고</span></th>
+            <th className="result-col-annual-cell"><span className="result-head-text">1년 결과</span></th>
+            <th className="result-col-horizon-cell"><span className="result-head-text">{projectionYears}년 결과</span></th>
+            <th className="result-note-cell"><span className="result-head-text">비고</span></th>
           </tr>
         </thead>
         <tbody>
@@ -701,11 +708,11 @@ const ResultTable = memo(function ResultTable({
               </td>
               <td className="result-input-cell">{row.input}</td>
               <td className="result-col-monthly">{row.monthly}</td>
-              <td>{row.annual}</td>
-              <td>{row.tenYear}</td>
-              <td>
+              <td className="result-col-annual-cell">{row.annual}</td>
+              <td className="result-col-horizon-cell">{row.tenYear}</td>
+              <td className="result-note-cell">
                 <div className="note-cell">
-                  <span>{row.note}</span>
+                  <span className="note-cell-text">{row.note}</span>
                   {row.noteDetail ? (
                     <details className="note-popover">
                       <summary className="note-popover-trigger" aria-label="설명 보기">
@@ -1638,4 +1645,3 @@ export function ResultScreen({
     </section>
   )
 }
-
