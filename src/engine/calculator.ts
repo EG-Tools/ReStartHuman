@@ -79,7 +79,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
       : formData.isaType === 'workingClass'
         ? 'workingClass'
         : 'general',
-  simulationYears: Math.max(1, sanitizeMoney(formData.simulationYears) || 10),
+  simulationYears: Math.max(1, sanitizeMoney(formData.simulationYears) || 30),
   homeMarketValue: sanitizeMoney(formData.homeMarketValue),
   homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
   jeonseDeposit: sanitizeMoney(formData.jeonseDeposit),
@@ -598,7 +598,7 @@ const calculateCashProjection = (
   healthInsuranceMonthly: number,
   holdingTaxMonthly: number,
   comprehensiveTaxImpactAnnual: number,
-  projectionYears = 10,
+  projectionYears = 30,
 ): CashProjection => {
   let cumulativeNetChange = 0
   let balance = formData.startingCashReserve
@@ -717,6 +717,7 @@ export const calculateRetireScenario = (
     healthInsuranceMonthly,
     holdingTax.monthly,
     comprehensiveTax.impactAnnual,
+    formData.simulationYears,
   )
   const tenYearSurplusOrDeficit = cashProjection.cumulativeNetChange
 

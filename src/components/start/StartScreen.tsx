@@ -44,7 +44,7 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
             <div className="notice-stack help-drawer-stack">
               <div className="notice-card">
                 <h2>무엇을 계산하나요?</h2>
-                <p>배당, ISA, 건강보험료, 보유세, 생활비를 바탕으로 10년 현금흐름을 추정합니다.</p>
+                <p>배당, ISA, 건강보험료, 보유세, 생활비를 바탕으로 30년 현금흐름을 추정합니다.</p>
               </div>
               <div className="notice-card">
                 <h2>입력 기준</h2>

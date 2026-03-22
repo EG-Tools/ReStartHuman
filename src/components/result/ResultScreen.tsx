@@ -321,7 +321,7 @@ const SummaryCards = memo(function SummaryCards({ result }: { result: RetireCalc
       tone: result.riskLevel,
     },
     {
-      label: '10 년 결과',
+      label: '30 년 결과',
       value: formatSignedCompactCurrency(result.tenYearSurplusOrDeficit),
       tone: result.riskLevel,
     },
@@ -421,7 +421,8 @@ const CashFlowChart = memo(function CashFlowChart({
   const xTicks = [
     { label: '지금', year: currentYear, index: 0 },
     { label: '5년', year: currentYear + 5, index: Math.min(5, points.length - 1) },
-    { label: '10년', year: currentYear + 10, index: points.length - 1 },
+    { label: '15년', year: currentYear + 15, index: Math.min(15, points.length - 1) },
+    { label: '30년', year: currentYear + 30, index: points.length - 1 },
   ].map((tick) => ({
     ...tick,
     x: getX(tick.index),
@@ -432,19 +433,19 @@ const CashFlowChart = memo(function CashFlowChart({
       <div className="cashflow-hero-header">
         <div>
           <div className="cashflow-hero-titleline">
-            <p className="cashflow-hero-eyebrow">10년 현금흐름</p>
+            <p className="cashflow-hero-eyebrow">30년 현금흐름</p>
             <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
               ({getRiskLabel(result.riskLevel)})
             </span>
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            현재 보유한 현금에서 10 년후 그래프 변화입니다.
+            현재 보유한 현금에서 30 년후 그래프 변화입니다.
           </p>
         </div>
         <div className="cashflow-hero-meta">
           <span>시작 {formatCompactCurrency(result.startingCashReserve)}</span>
-          <span>10년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
+          <span>30년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
           <span>물가반영 {displayedInflationRate}%</span>
         </div>
       </div>
@@ -563,7 +564,7 @@ const ResultTable = memo(function ResultTable({ rows }: { rows: ResultRow[] }) {
             <th><span className="result-head-text">입력값</span></th>
             <th><span className="result-head-text">월 기준</span></th>
             <th><span className="result-head-text">1년 결과</span></th>
-            <th><span className="result-head-text">10년 결과</span></th>
+            <th><span className="result-head-text">30년 결과</span></th>
             <th><span className="result-head-text">비고</span></th>
           </tr>
         </thead>

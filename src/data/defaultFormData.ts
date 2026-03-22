@@ -2,7 +2,7 @@ import type { RetireCalcFormData } from '../types/retireCalc'
 
 export const defaultFormData: RetireCalcFormData = {
   householdType: 'single',
-  simulationYears: 10,
+  simulationYears: 30,
 
   hasChildren: false,
   childCount: 0,
