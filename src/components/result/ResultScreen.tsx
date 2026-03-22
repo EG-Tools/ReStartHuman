@@ -474,7 +474,7 @@ const CashFlowChart = memo(function CashFlowChart({
               style={{ stroke: gridColor }}
             />
             <text className="cashflow-grid-label" x={0} y={tick.y + 4} style={{ fill: labelColor }}>
-              {formatCompactCurrency(tick.value)}
+              {formatYAxisEok(tick.value)}
             </text>
           </g>
         ))}
@@ -521,6 +521,12 @@ const CashFlowChart = memo(function CashFlowChart({
     </section>
   )
 })
+
+const formatYAxisEok = (value: number) => {
+  const eokValue = value / 100_000_000
+  return `${eokValue.toFixed(2)} 억`
+}
+
 const splitResultItemWord = (word: string) => {
   if (!word) {
     return []
