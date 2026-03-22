@@ -140,7 +140,7 @@
   --result-col-1: 55px;
   --result-col-2: 175px;
   --result-col-3: 95px;  /* 월 기준 -5px */
-  --result-col-4: 115px;
+  --result-col-4: 115px; /* 1년 결과 -5px */
   --result-col-5: 125px; /* 30년 결과 -5px */
   --result-col-6: 165px; /* 비고 +10px */
 
@@ -155,6 +155,8 @@
   --result-action-min-width: 0px;
   --result-edit-field-pad-x: 8px;
   --result-edit-input-font-size: 0.95rem;
+  --result-edit-suffix-font-size: 0.95rem;
+  --result-edit-helper-font-size: 0.76rem;
 
   table-layout: fixed;
   width: max-content;
@@ -309,12 +311,17 @@
   font-size: var(--result-edit-input-font-size);
 }
 
-.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix {
   white-space: nowrap;
+  font-size: var(--result-edit-suffix-font-size);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-helper {
+  font-size: var(--result-edit-helper-font-size);
 }
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+  white-space: nowrap;
   width: auto;
   justify-content: flex-end;
 }
@@ -417,7 +424,12 @@
     transform: translateX(16px);
   }
 
-  /* base.css 의 모바일 축소 규칙 무효화 */
+  /* base.css 의 모바일 축소 규칙 무효화 + 세로에서도 가로 기준값 유지 */
+  .table-shell {
+    margin-inline: 0;
+    padding-bottom: 0;
+  }
+
   .table-shell .result-table {
     font-size: var(--result-table-font-size);
     width: max-content;
@@ -476,6 +488,18 @@
     width: var(--result-col-6);
     min-width: var(--result-col-6);
     max-width: var(--result-col-6);
+  }
+
+  .table-shell .result-table tbody td:nth-child(2) .table-edit-input {
+    font-size: var(--result-edit-input-font-size);
+  }
+
+  .table-shell .result-table tbody td:nth-child(2) .table-edit-suffix {
+    font-size: var(--result-edit-suffix-font-size);
+  }
+
+  .table-shell .result-table tbody td:nth-child(2) .table-edit-helper {
+    font-size: var(--result-edit-helper-font-size);
   }
 
   .table-shell .result-table .note-cell,
