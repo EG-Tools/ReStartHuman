@@ -464,10 +464,10 @@ const CashFlowChart = memo(function CashFlowChart({
         </defs>
 
         <rect
-          x={paddingLeft}
-          y={paddingTop}
-          width={chartWidth}
-          height={chartHeight}
+          x={paddingLeft - 10}
+          y={paddingTop - 10}
+          width={chartWidth + 20}
+          height={chartHeight + 20}
           rx={0}
           ry={0}
           fill="none"
