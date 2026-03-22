@@ -217,6 +217,7 @@ function QuestionNumberFields({
                 alignItems: 'baseline',
                 justifyContent: 'space-between',
                 gap: '12px',
+                marginBottom: '4px',
               }}
             >
               <h2>{field.label}</h2>
@@ -241,12 +242,14 @@ function QuestionNumberFields({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '3px',
+                marginTop: '-2px',
               }}
             >
               <div className="input-shell" style={{
                 flex: 1,
-                backgroundColor: 'rgba(227, 236, 240, 0.08)',
-                border: '1px solid rgba(227, 236, 240, 0.18)',
+                minHeight: '40px',
+                backgroundColor: 'rgba(227, 236, 240, 0.07)',
+                border: '1px solid rgba(227, 236, 240, 0.16)',
                 borderRadius: '999px',
               }}>
                 <input
@@ -268,6 +271,8 @@ function QuestionNumberFields({
                   }}
                   style={{
                     width: '100%',
+                    minHeight: '40px',
+                    padding: '8px 14px',
                     boxSizing: 'border-box',
                     background: 'transparent',
                     border: 'none',
