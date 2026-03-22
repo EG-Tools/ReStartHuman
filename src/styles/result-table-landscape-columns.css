@@ -1,0 +1,23 @@
+@media (min-width: 901px) {
+  .table-shell > .result-table {
+    table-layout: fixed;
+  }
+
+  .table-shell > .result-table th:nth-child(3),
+  .table-shell > .result-table td:nth-child(3) {
+    width: 86px !important;
+    min-width: 86px !important;
+    max-width: 86px !important;
+  }
+
+  .table-shell > .result-table th:nth-child(6),
+  .table-shell > .result-table td:nth-child(6) {
+    width: 126px !important;
+    min-width: 126px !important;
+    max-width: 126px !important;
+  }
+
+  .table-shell > .result-table td:nth-child(6) .note-cell {
+    max-width: none;
+  }
+}
