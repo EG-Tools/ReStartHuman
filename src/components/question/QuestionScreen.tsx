@@ -57,6 +57,12 @@ const yesNoOptions = [
   { value: 'no', label: '아니오' },
 ] as const
 
+const simulationYearOptions = [
+  { value: '10', label: '10년' },
+  { value: '30', label: '30년' },
+  { value: '50', label: '50년' },
+] as const
+
 const dividendOwnershipOptions = [
   { value: 'mineOnly', label: '본인' },
   { value: 'spouseOnly', label: '배우자' },
@@ -1107,6 +1113,19 @@ export function QuestionScreen({
               },
             ]}
           />
+          <section className="question-block">
+            <div className="question-block-header">
+              <h2>예상 현금흐름 반영 기간</h2>
+            </div>
+            <ChoiceQuestion
+              value={String(formData.simulationYears || 10)}
+              options={simulationYearOptions}
+              onChange={(value) => update('simulationYears', Number(value) as RetireCalcFormData['simulationYears'])}
+            />
+            <p className="screen-copy" style={{ marginTop: '10px' }}>
+              최소 10년, 최대 50년 결과를 시뮬레이션 합니다.
+            </p>
+          </section>
         )
       default:
         return null

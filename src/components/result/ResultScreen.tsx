@@ -327,7 +327,7 @@ const SummaryCards = memo(function SummaryCards({
       tone: result.riskLevel,
     },
     {
-      label: `${projectionYears} 년 결과`,
+      label: '30 년 결과',
       value: formatSignedCompactCurrency(result.tenYearSurplusOrDeficit),
       tone: result.riskLevel,
     },
@@ -460,7 +460,7 @@ const CashFlowChart = memo(function CashFlowChart({
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            현재 보유한 현금에서 ${projectionYears}년후 그래프 변화입니다.
+            현재 보유한 현금에서 {projectionYears}년 후 그래프 변화입니다.
           </p>
         </div>
         <div className="cashflow-hero-meta">
@@ -603,13 +603,7 @@ const getResultCategoryClassName = (category: string) => {
   }
 }
 
-const ResultTable = memo(function ResultTable({
-  rows,
-  projectionYears,
-}: {
-  rows: ResultRow[]
-  projectionYears: number
-}) {
+const ResultTable = memo(function ResultTable({ rows }: { rows: ResultRow[] }) {
   return (
     <div className="table-shell">
       <table className="result-table">
@@ -619,7 +613,7 @@ const ResultTable = memo(function ResultTable({
             <th><span className="result-head-text">입력값</span></th>
             <th><span className="result-head-text">월 기준</span></th>
             <th><span className="result-head-text">1년 결과</span></th>
-            <th><span className="result-head-text">{projectionYears}년 결과</span></th>
+            <th><span className="result-head-text">{formData.simulationYears}년 결과</span></th>
             <th><span className="result-head-text">비고</span></th>
           </tr>
         </thead>
@@ -1461,7 +1455,7 @@ export function ResultScreen({
             </div>
           </div>
           <p className="table-scroll-hint">결과표는 좌우로 밀어서 확인할 수 있어요.</p>
-          <ResultTable rows={rows} projectionYears={formData.simulationYears} />
+          <ResultTable rows={rows} />
         </section>
       </div>
 
