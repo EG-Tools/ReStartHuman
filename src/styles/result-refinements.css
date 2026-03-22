@@ -181,16 +181,16 @@
 
   .result-table th:nth-child(1),
   .result-table td:nth-child(1) {
-    width: 50px;
-    min-width: 50px;
-    max-width: 50px;
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
   }
 
   .result-table th:nth-child(2),
   .result-table td:nth-child(2) {
-    width: 95px;
-    min-width: 95px;
-    max-width: 95px;
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
   }
 
   .result-table th:nth-child(3),
