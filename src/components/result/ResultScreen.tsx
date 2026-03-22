@@ -50,7 +50,6 @@ const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
       formData.necessitiesMonthly +
       formData.diningOutMonthly +
       formData.hobbyMonthly +
-      (formData.academyMonthly ?? 0) +
       formData.otherLivingMonthly
 
 const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
@@ -440,7 +439,7 @@ const CashFlowChart = memo(function CashFlowChart({
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            남아있는 현금을 시작점으로 10년 뒤 잔액이 어떻게 변하는지 보여줍니다.
+            현재 보유한 현금에서 10 년후 그래프 변화입니다.
           </p>
         </div>
         <div className="cashflow-hero-meta">
@@ -882,8 +881,7 @@ function LivingExpenseEditor({
     formData.foodMonthly +
     formData.necessitiesMonthly +
     formData.diningOutMonthly +
-    formData.hobbyMonthly +
-    (formData.academyMonthly ?? 0)
+    formData.hobbyMonthly
 
   return (
     <InlineAmountInput

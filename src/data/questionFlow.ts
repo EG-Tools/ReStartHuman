@@ -28,7 +28,7 @@ export const questionFlow: QuestionStep[] = [
   {
     id: 'income',
     title: '기타 소득 추가',
-    description: '배당 외에 추가 월소득이 있으면 종류와 금액을 반영합니다.',
+    description: '',
     visibility: () => true,
   },
   {
@@ -39,8 +39,8 @@ export const questionFlow: QuestionStep[] = [
   },
   {
     id: 'fixedExpenses',
-    title: '월 고정지출',
-    description: '자동차 비용은 연간 금액을 월 기준으로 환산합니다.',
+    title: '월 고정지출, 자동차 1년 유지비',
+    description: '',
     visibility: () => true,
   },
   {
@@ -52,7 +52,7 @@ export const questionFlow: QuestionStep[] = [
   {
     id: 'cashReserve',
     title: '현재 보유 현금, 나이',
-    description: '현재 보유한 현금과, 나이를 참고해서 최종 결과에 반영합니다.',
+    description: '',
     visibility: () => true,
   },
 ]
