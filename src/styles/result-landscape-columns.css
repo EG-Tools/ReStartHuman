@@ -9,7 +9,25 @@
    5열 = N년 결과
    6열 = 비고
 
-   세로모드/가로모드 모두 이 파일에서만 최종 제어합니다.
+   ------------------------------------------------------------------
+   [수치 입력칸을 바꾸고 싶을 때 어디를 수정해야 하나?]
+
+   1) 2열 전체 폭을 바꾸고 싶다
+      -> --result-col-2
+
+   2) 실제 숫자 입력칸(박스) 가로폭을 바꾸고 싶다
+      -> --result-input-box-width
+
+   3) 숫자 입력칸 안쪽 여백을 바꾸고 싶다
+      -> --result-edit-field-pad-x
+
+   4) 숫자 크기를 바꾸고 싶다
+      -> --result-edit-input-font-size
+
+   5) 비고 셀 내부 최대폭을 바꾸고 싶다
+      -> --result-note-max-width
+
+   세로모드/가로모드 각각 아래 변수 블록에서 따로 조절하면 됩니다.
 ------------------------------------------------------------------- */
 
 /* ------------------------------ */
@@ -28,8 +46,17 @@
   --result-col-6-min: 150px;
 
   --result-note-max-width: 50px;
+
+  /* 수치입력칸 줄 간격 */
   --result-edit-inline-gap: 6px;
+
+  /* 실제 숫자 입력칸(박스) 너비 */
+  --result-input-box-width: 50px;
+
+  /* 숫자 입력칸 안쪽 좌우 여백 */
   --result-edit-field-pad-x: 8px;
+
+  /* 숫자 폰트 크기 */
   --result-edit-input-font-size: 0.92rem;
 
   table-layout: fixed;
@@ -94,28 +121,34 @@
   min-width: var(--result-col-6-min);
 }
 
-/* 2열은 셀 안쪽 편집 UI 폭까지 같이 맞춰야 실제 변화가 바로 보입니다. */
+/* 2열 안쪽 편집 UI 정리 */
 .table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
 .table-shell .result-table tbody td:nth-child(2) .table-edit-group,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-stack,
-.table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+.table-shell .result-table tbody td:nth-child(2) .table-edit-stack {
   width: 100%;
   min-width: 0;
   max-width: 100%;
 }
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   gap: var(--result-edit-inline-gap);
+  justify-content: flex-end;
 }
 
+/* 실제 숫자 입력칸(박스) 크기 */
 .table-shell .result-table tbody td:nth-child(2) .table-edit-field {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
+  flex: 0 0 var(--result-input-box-width);
+  width: var(--result-input-box-width);
+  min-width: var(--result-input-box-width);
+  max-width: var(--result-input-box-width);
   padding-left: var(--result-edit-field-pad-x);
   padding-right: var(--result-edit-field-pad-x);
 }
 
+/* 실제 숫자 영역 */
 .table-shell .result-table tbody td:nth-child(2) .table-edit-input {
   min-width: 0;
   width: 100%;
@@ -127,7 +160,7 @@
   flex: 0 0 auto;
 }
 
-/* 비고 셀 내부 최대폭도 변수로 제어 */
+/* 비고 셀 내부 최대폭 */
 .table-shell .result-table .note-cell,
 .table-shell .result-table tbody .note-cell {
   width: 100%;
@@ -151,8 +184,18 @@
     --result-col-6-min: 140px;
 
     --result-note-max-width: none;
+
+    /* 수치입력칸 줄 간격 */
     --result-edit-inline-gap: 8px;
-    --result-edit-field-pad-x: 50px;
+
+    /* 실제 숫자 입력칸(박스) 너비 */
+    --result-input-box-width: 50px;
+
+    /* 숫자 입력칸 안쪽 좌우 여백
+       주의: 이 값을 너무 크게 하면 숫자가 안 보일 수 있습니다. */
+    --result-edit-field-pad-x: 8px;
+
+    /* 숫자 폰트 크기 */
     --result-edit-input-font-size: 1rem;
   }
 }
