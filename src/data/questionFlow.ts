@@ -26,12 +26,6 @@ export const questionFlow: QuestionStep[] = [
     visibility: () => true,
   },
   {
-    id: 'isa',
-    title: 'ISA 계좌 유형 선택',
-    description: '',
-    visibility: () => true,
-  },
-  {
     id: 'income',
     title: '기타 소득 추가',
     description: '배당 외에 추가 월소득이 있으면 종류와 금액을 반영합니다.',

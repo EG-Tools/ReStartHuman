@@ -537,29 +537,80 @@ export function QuestionScreen({
         )
       case 'assets':
         return (
-          <QuestionNumberFields
-            columns={2}
-            fields={[
-              {
-                key: 'taxableAccountAssets',
-                label: '일반 주식 자산',
-                value: formData.taxableAccountAssets,
-                onChange: (value) => update('taxableAccountAssets', value),
-              },
-              {
-                key: 'isaAssets',
-                label: 'ISA 주식 자산',
-                value: formData.isaAssets,
-                onChange: (value) => update('isaAssets', value),
-              },
-              {
-                key: 'otherAssets',
-                label: '기타 계좌 자산',
-                value: formData.otherAssets,
-                onChange: (value) => update('otherAssets', value),
-              },
-            ]}
-          />
+          <div className="question-stack">
+            <QuestionNumberFields
+              columns={2}
+              fields={[
+                {
+                  key: 'taxableAccountAssets',
+                  label: '일반 주식 자산',
+                  value: formData.taxableAccountAssets,
+                  onChange: (value) => update('taxableAccountAssets', value),
+                },
+                {
+                  key: 'isaAssets',
+                  label: 'ISA 주식 자산',
+                  value: formData.isaAssets,
+                  onChange: (value) => update('isaAssets', value),
+                },
+              ]}
+            />
+            {formData.householdType === 'couple' ? (
+              <>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>본인 ISA 계좌유형</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={myIsaType}
+                    options={isaTypeOptions}
+                    onChange={(value) =>
+                      onPatchFormData({
+                        isaType: value,
+                        myIsaType: value,
+                      })
+                    }
+                  />
+                </section>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>배우자 ISA 계좌유형</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={spouseIsaType}
+                    options={isaTypeOptions}
+                    onChange={(value) => onPatchFormData({ spouseIsaType: value })}
+                  />
+                </section>
+              </>
+            ) : (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>ISA 계좌유형</h2>
+                </div>
+                <ChoiceQuestion
+                  value={singleIsaType}
+                  options={isaTypeOptions}
+                  onChange={(value) =>
+                    onPatchFormData({
+                      isaType: value,
+                      myIsaType: value,
+                    })
+                  }
+                />
+              </section>
+            )}
+            <QuestionNumberFields
+              fields={[
+                {
+                  key: 'otherAssets',
+                  label: '기타 계좌 자산',
+                  value: formData.otherAssets,
+                  onChange: (value) => update('otherAssets', value),
+                },
+              ]}
+            />
+          </div>
         )
       case 'dividends':
         return (
@@ -730,49 +781,7 @@ export function QuestionScreen({
           </div>
         )
       case 'isa':
-        return (
-          <div className="question-stack">
-            {formData.householdType === 'couple' ? (
-              <>
-                {formData.isaOwnershipType !== 'spouseOnly' ? (
-                  <section className="question-block">
-                    <div className="question-block-header">
-                      <h2>본인 ISA 유형</h2>
-                    </div>
-                    <ChoiceQuestion
-                      value={myIsaType}
-                      options={isaTypeOptions}
-                      onChange={(value) => onPatchFormData({ myIsaType: value })}
-                    />
-                  </section>
-                ) : null}
-                {formData.isaOwnershipType !== 'mineOnly' ? (
-                  <section className="question-block">
-                    <div className="question-block-header">
-                      <h2>배우자 ISA 유형</h2>
-                    </div>
-                    <ChoiceQuestion
-                      value={spouseIsaType}
-                      options={isaTypeOptions}
-                      onChange={(value) => onPatchFormData({ spouseIsaType: value })}
-                    />
-                  </section>
-                ) : null}
-              </>
-            ) : (
-              <ChoiceQuestion
-                value={singleIsaType}
-                options={isaTypeOptions}
-                onChange={(value) =>
-                  onPatchFormData({
-                    isaType: value,
-                    myIsaType: value,
-                  })
-                }
-              />
-            )}
-          </div>
-        )
+        return null
       case 'income':
         return (
           <div className="question-stack">
