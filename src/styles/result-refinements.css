@@ -118,11 +118,12 @@
 
 /* ------------------------------------------------------------------
    결과표 레이아웃 최종 제어 블록
-   세로에서 마음에 드는 크기를 가로에서도 그대로 유지하도록 조정.
-   핵심:
-   1) width: 100% 제거
-   2) width: max-content 로 변경
-   3) 결과표 font-size 를 공통값으로 고정
+   최적화 포인트:
+   1) 세로/가로 모두 같은 값 사용
+   2) 테이블 전체는 max-content 로 고정
+   3) 2열 입력칸은 고정폭이 아니라 "남는 폭 자동 사용" 구조로 변경
+      -> 만원 텍스트 침범 방지
+      -> 가로/세로 따로 다시 조절할 일 감소
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -139,7 +140,7 @@
   --result-note-max-width: none;
 
   --result-edit-inline-gap: 6px;
-  --result-input-box-width: 96px;
+  --result-input-box-min-width: 92px;
   --result-edit-field-pad-x: 8px;
   --result-edit-input-font-size: 0.95rem;
 
@@ -219,19 +220,20 @@
 }
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+  display: grid;
+  grid-template-columns: minmax(var(--result-input-box-min-width), 1fr) auto auto;
+  align-items: center;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   gap: var(--result-edit-inline-gap);
-  justify-content: flex-end;
-  flex-wrap: nowrap;
+  justify-content: end;
 }
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-field {
-  flex: 0 0 var(--result-input-box-width);
-  width: var(--result-input-box-width);
-  min-width: var(--result-input-box-width);
-  max-width: var(--result-input-box-width);
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   padding-left: var(--result-edit-field-pad-x);
   padding-right: var(--result-edit-field-pad-x);
 }
@@ -246,6 +248,11 @@
 .table-shell .result-table tbody td:nth-child(2) .table-edit-action {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+  width: auto;
+  justify-content: flex-end;
 }
 
 /* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정 */
