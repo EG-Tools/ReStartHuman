@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
+import { ChoiceQuestion, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
 
@@ -415,7 +415,7 @@ export function QuestionScreen({
               </p>
             </section>
             {(formData.hasChildren ?? false) ? (
-              <NumberFields
+              <QuestionNumberFields
                 fields={[
                   {
                     key: 'childCount',
@@ -804,7 +804,7 @@ export function QuestionScreen({
                   label: '월 급여',
                   value: formData.salaryMonthly,
                   onChange: (value) => update('salaryMonthly', value),
-                  helperText: '직장가입자 계산에 사용합니다. 입력 단위는 만원입니다.',
+                  helperText: '직장가입자 계산에 사용됩니다.',
                 },
               ]}
             />
