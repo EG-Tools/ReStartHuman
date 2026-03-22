@@ -138,10 +138,10 @@
 
   --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 110px;
+  --result-col-3: 105px; /* 월 기준 -5px */
   --result-col-4: 120px;
   --result-col-5: 130px;
-  --result-col-6: 140px;
+  --result-col-6: 145px; /* 비고 +5px */
 
   --result-note-max-width: none;
 
@@ -180,13 +180,46 @@
   border-right: 1px solid rgba(82, 90, 98, 0.34);
 }
 
-/* 1열: 구분 */
+/* ------------------------------------------------------------------
+   1열: 구분
+   최적화 포인트:
+   - 폭
+   - 헤더 중앙정렬
+   - 본문 중앙정렬
+   - 내부 라벨(grid) 중앙정렬
+   를 여기서 한 번에 끝냅니다.
+------------------------------------------------------------------- */
 .table-shell .result-table th:nth-child(1),
 .table-shell .result-table td:nth-child(1),
 .table-shell .result-table .result-item-cell {
   width: var(--result-col-1);
   min-width: var(--result-col-1);
   max-width: var(--result-col-1);
+  text-align: center;
+}
+
+.table-shell .result-table .result-item-cell {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.table-shell .result-table .result-item-label {
+  display: grid;
+  gap: 2px;
+  line-height: 1.06;
+  font-weight: 700;
+  justify-items: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.table-shell .result-table .result-item-label span {
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* 2열: 입력값 */
