@@ -3,10 +3,10 @@
     /* 가로모드 결과표 열 폭은 아래 값들만 바꾸면 됩니다. */
     --result-col-1: 40px;
     --result-col-2: 95px;
-    --result-col-3: 60px;
+    --result-col-3: 55px;
     --result-col-4: 65px;
     --result-col-5: 70px;
-    --result-col-6-min: 135px;
+    --result-col-6-min: 140px;
 
     table-layout: fixed;
     width: 100%;
