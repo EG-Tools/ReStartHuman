@@ -118,6 +118,24 @@
 
 /* ------------------------------------------------------------------
    결과표 레이아웃 최종 제어 블록
+
+   지금 상태에서 가장 자주 만지는 지점만 변수로 정리했습니다.
+   화면은 최대한 유지하고, 다음 수정 때 덜 헷갈리게 하는 목적입니다.
+
+   열 폭:
+   --result-col-1 ~ --result-col-6
+
+   2열 입력칸:
+   --result-col-2                : 2열 전체 폭
+   --result-input-box-width      : 숫자 입력 박스 폭
+   --result-suffix-min-width     : '만원' 영역 최소 폭
+   --result-action-min-width     : 버튼 영역 최소 폭
+   --result-edit-inline-gap      : 입력칸 / 만원 / 버튼 사이 간격
+   --result-edit-field-pad-x     : 입력칸 안쪽 좌우 여백
+   --result-edit-input-font-size : 입력 숫자 글자 크기
+
+   비고:
+   --result-note-max-width
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -135,6 +153,8 @@
 
   --result-edit-inline-gap: 6px;
   --result-input-box-width: 96px;
+  --result-suffix-min-width: 28px;
+  --result-action-min-width: 0px;
   --result-edit-field-pad-x: 8px;
   --result-edit-input-font-size: 0.95rem;
 
@@ -215,7 +235,10 @@
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
   display: grid;
-  grid-template-columns: var(--result-input-box-width) auto auto;
+  grid-template-columns:
+    var(--result-input-box-width)
+    minmax(var(--result-suffix-min-width), auto)
+    minmax(var(--result-action-min-width), auto);
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -240,7 +263,6 @@
 
 .table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
 .table-shell .result-table tbody td:nth-child(2) .table-edit-action {
-  flex: 0 0 auto;
   white-space: nowrap;
 }
 
