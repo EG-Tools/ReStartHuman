@@ -121,20 +121,6 @@
    이제 세로/가로모드 모두 아래 공통 변수만 사용합니다.
    앞으로 결과표 크기를 바꿀 때는 아래 값만 수정하면 됩니다.
 
-   1열 = 구분
-   2열 = 입력값
-   3열 = 월 기준
-   4열 = 1년 결과
-   5열 = N년 결과
-   6열 = 비고
-
-   [수치 입력칸 관련]
-   --result-col-2             : 2열 전체 폭
-   --result-input-box-width   : 실제 숫자 입력칸 폭
-   --result-edit-inline-gap   : 숫자칸과 '만원' 사이 간격
-   --result-edit-field-pad-x  : 숫자칸 안쪽 좌우 여백
-   --result-edit-input-font-size : 숫자 폰트 크기
-
    주의:
    입력칸을 키우면 '만원' 텍스트와 공간을 같이 써야 하므로
    보통은 --result-input-box-width 와 --result-col-2 를 같이 조절해야 합니다.
