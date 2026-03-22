@@ -1,8 +1,9 @@
-import { policyConfig } from '../config/policyConfig'
+﻿import { policyConfig } from '../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
   CashBalancePoint,
   ComprehensiveTaxPersonBreakdown,
+  HoldingTaxBreakdownItem,
   IsaTaxBreakdown,
   IsaType,
   OwnershipType,
@@ -36,6 +37,12 @@ interface CashProjection {
   cumulativeNetChange: number
   endingBalance: number
   timeline: CashBalancePoint[]
+}
+
+interface HoldingTaxEstimate {
+  annual: number
+  monthly: number
+  breakdown: HoldingTaxBreakdownItem[]
 }
 
 const roundCurrency = (value: number) => Math.round(value)
@@ -544,43 +551,184 @@ const calculatePropertyTaxMain = (
   )
 }
 
-const estimateHoldingTax = (formData: RetireCalcFormData) => {
-  if (formData.housingType !== 'own') {
-    return {
-      annual: 0,
-      monthly: 0,
-    }
-  }
+const createHoldingTaxItem = ({
+  key,
+  label,
+  annual,
+  baseValue,
+}: {
+  key: HoldingTaxBreakdownItem['key']
+  label: string
+  annual: number
+  baseValue: number
+}): HoldingTaxBreakdownItem => ({
+  key,
+  label,
+  annual: roundCurrency(Math.max(annual, 0)),
+  monthly: toMonthly(Math.max(annual, 0)),
+  baseValue: roundCurrency(Math.max(baseValue, 0)),
+})
 
-  const ownerCount = formData.isJointOwnership
-    ? policyConfig.holdingTax.jointOwnershipShareCount
-    : 1
-  const fairMarketRatio = getHoldingTaxFairMarketRatio(formData)
-  const officialValuePerOwner = formData.homeOfficialValue / ownerCount
-  const taxBasePerOwner = officialValuePerOwner * fairMarketRatio
-  const useSingleHomeSpecialRate =
-    formData.isSingleHomeOwner &&
-    formData.homeOfficialValue <=
-      policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
-  const propertyTaxMainPerOwner = calculatePropertyTaxMain(
-    taxBasePerOwner,
-    useSingleHomeSpecialRate,
-  )
-  const urbanAreaTaxPerOwner = roundCurrency(
-    taxBasePerOwner * policyConfig.holdingTax.urbanAreaRate,
-  )
-  const localEducationTaxPerOwner = roundCurrency(
-    propertyTaxMainPerOwner * policyConfig.holdingTax.localEducationTaxRate,
-  )
-  const annual =
-    (propertyTaxMainPerOwner +
+const calculateHoldingTaxFromOwnerValues = ({
+  ownerValues,
+  fairMarketRatio,
+  useSingleHomeSpecialRate,
+}: {
+  ownerValues: number[]
+  fairMarketRatio: number
+  useSingleHomeSpecialRate: boolean
+}) => {
+  const annual = ownerValues.reduce((sum, ownerValue) => {
+    const normalizedOwnerValue = Math.max(ownerValue, 0)
+
+    if (normalizedOwnerValue <= 0) {
+      return sum
+    }
+
+    const taxBasePerOwner = normalizedOwnerValue * fairMarketRatio
+    const propertyTaxMainPerOwner = calculatePropertyTaxMain(
+      taxBasePerOwner,
+      useSingleHomeSpecialRate,
+    )
+    const urbanAreaTaxPerOwner = roundCurrency(
+      taxBasePerOwner * policyConfig.holdingTax.urbanAreaRate,
+    )
+    const localEducationTaxPerOwner = roundCurrency(
+      propertyTaxMainPerOwner * policyConfig.holdingTax.localEducationTaxRate,
+    )
+
+    return (
+      sum +
+      propertyTaxMainPerOwner +
       urbanAreaTaxPerOwner +
-      localEducationTaxPerOwner) *
-    ownerCount
+      localEducationTaxPerOwner
+    )
+  }, 0)
 
   return {
     annual: roundCurrency(Math.max(annual, 0)),
     monthly: toMonthly(Math.max(annual, 0)),
+  }
+}
+
+const getOwnerAllocatedValues = ({
+  householdType,
+  ownershipType,
+  totalValue,
+  myShare,
+}: {
+  householdType: RetireCalcFormData['householdType']
+  ownershipType: OwnershipType
+  totalValue: number
+  myShare: number
+}) => {
+  if (totalValue <= 0) {
+    return []
+  }
+
+  if (householdType !== 'couple') {
+    return [roundCurrency(totalValue)]
+  }
+
+  if (ownershipType === 'mineOnly') {
+    return [roundCurrency(totalValue)]
+  }
+
+  if (ownershipType === 'spouseOnly') {
+    return [roundCurrency(totalValue)]
+  }
+
+  const safeShare = Math.min(Math.max(myShare, 0), 100)
+  const mineValue = roundCurrency(totalValue * (safeShare / 100))
+  const spouseValue = roundCurrency(Math.max(totalValue - mineValue, 0))
+
+  return [mineValue, spouseValue]
+}
+
+const estimateHoldingTax = (formData: RetireCalcFormData): HoldingTaxEstimate => {
+  const breakdown: HoldingTaxBreakdownItem[] = []
+
+  if (formData.housingType === 'own' && formData.homeOfficialValue > 0) {
+    const ownerCount = formData.isJointOwnership
+      ? policyConfig.holdingTax.jointOwnershipShareCount
+      : 1
+    const fairMarketRatio = getHoldingTaxFairMarketRatio(formData)
+    const useSingleHomeSpecialRate =
+      formData.isSingleHomeOwner &&
+      formData.homeOfficialValue <=
+        policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
+    const ownerValues = Array.from({ length: ownerCount }, () => formData.homeOfficialValue / ownerCount)
+    const homeHoldingTax = calculateHoldingTaxFromOwnerValues({
+      ownerValues,
+      fairMarketRatio,
+      useSingleHomeSpecialRate,
+    })
+
+    breakdown.push(
+      createHoldingTaxItem({
+        key: 'home',
+        label: '주택',
+        annual: homeHoldingTax.annual,
+        baseValue: formData.homeOfficialValue,
+      }),
+    )
+  }
+
+  if (formData.landValue > 0) {
+    const landAssessedValue = roundCurrency(
+      formData.landValue * policyConfig.holdingTax.landAssessedValueRatioApprox,
+    )
+    const landHoldingTax = calculateHoldingTaxFromOwnerValues({
+      ownerValues: getOwnerAllocatedValues({
+        householdType: formData.householdType,
+        ownershipType: formData.landOwnershipType,
+        totalValue: landAssessedValue,
+        myShare: formData.myLandShare,
+      }),
+      fairMarketRatio: policyConfig.holdingTax.defaultFairMarketRatio,
+      useSingleHomeSpecialRate: false,
+    })
+
+    breakdown.push(
+      createHoldingTaxItem({
+        key: 'land',
+        label: '토지',
+        annual: landHoldingTax.annual,
+        baseValue: landAssessedValue,
+      }),
+    )
+  }
+
+  if (formData.otherPropertyOfficialValue > 0) {
+    const otherPropertyHoldingTax = calculateHoldingTaxFromOwnerValues({
+      ownerValues: getOwnerAllocatedValues({
+        householdType: formData.householdType,
+        ownershipType: formData.otherPropertyOwnershipType,
+        totalValue: formData.otherPropertyOfficialValue,
+        myShare: formData.myOtherPropertyShare,
+      }),
+      fairMarketRatio: policyConfig.holdingTax.defaultFairMarketRatio,
+      useSingleHomeSpecialRate: false,
+    })
+
+    breakdown.push(
+      createHoldingTaxItem({
+        key: 'otherProperty',
+        label: '상가·기타부동산',
+        annual: otherPropertyHoldingTax.annual,
+        baseValue: formData.otherPropertyOfficialValue,
+      }),
+    )
+  }
+
+  const annual = roundCurrency(
+    breakdown.reduce((sum, item) => sum + item.annual, 0),
+  )
+
+  return {
+    annual,
+    monthly: toMonthly(annual),
+    breakdown,
   }
 }
 
@@ -841,6 +989,7 @@ export const calculateRetireScenario = (
       formData.healthInsuranceOverrideMonthly === null ? 'estimated' : 'manual',
     holdingTaxAnnual: holdingTax.annual,
     holdingTaxMonthly: holdingTax.monthly,
+    holdingTaxBreakdown: holdingTax.breakdown,
     pensionMonthlyApplied,
     otherIncomeMonthlyApplied,
     carMonthlyConverted: expenses.carMonthlyConverted,

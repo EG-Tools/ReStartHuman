@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+﻿import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -201,6 +201,40 @@ const formatIsaLimitSummary = (breakdown: RetireCalcResult['isaTaxBreakdown']) =
       (item) =>
         `${item.label} ${getIsaTypeLabel(item.isaType)} 한도 ${formatCompactCurrency(item.taxFreeLimitAnnual)}`,
     )
+    .join(', ')
+}
+
+const getHoldingTaxBreakdownSummary = (result: RetireCalcResult) => {
+  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
+
+  if (activeBreakdown.length === 0) {
+    return '해당 없음'
+  }
+
+  return activeBreakdown
+    .map((item) => `${item.label} ${formatCompactCurrency(item.annual)}`)
+    .join(', ')
+}
+
+const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
+  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
+
+  if (activeBreakdown.length === 0) {
+    return '해당 없음'
+  }
+
+  return activeBreakdown.map((item) => item.label).join(' · ')
+}
+
+const getHoldingTaxBaseSummary = (result: RetireCalcResult) => {
+  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.baseValue > 0)
+
+  if (activeBreakdown.length === 0) {
+    return '해당 자산 없음'
+  }
+
+  return activeBreakdown
+    .map((item) => `${item.label} 기준가 ${formatCompactCurrency(item.baseValue)}`)
     .join(', ')
 }
 
@@ -1053,9 +1087,9 @@ export function ResultScreen({
   const interpretationItems = useMemo(
     () => [
       result.holdingTaxAnnual >= 10_000_000
-        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 주택이라면 보유세 부담이 큰 구간에 들어갈 것으로 보입니다.`
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
         : result.holdingTaxAnnual > 0
-          ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. 공시가격 ${formatCompactCurrency(formData.homeOfficialValue)} 기준으로 추정된 값입니다.`
+          ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 추정했습니다.`
           : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
       result.comprehensiveTaxIncluded
         ? result.comprehensiveTaxImpactAnnual > 0
@@ -1341,25 +1375,27 @@ export function ResultScreen({
     {
       category: '세금',
       item: '보유세',
-      input: formData.housingType === 'own' ? '자가 주택 기준' : '해당 없음',
+      input: getHoldingTaxInputSummary(result),
       monthly:
-        formData.housingType === 'own'
+        result.holdingTaxAnnual > 0
           ? formatCompactCurrency(result.holdingTaxMonthly)
           : '—',
       annual:
-        formData.housingType === 'own'
+        result.holdingTaxAnnual > 0
           ? formatCompactCurrency(result.holdingTaxAnnual)
           : '—',
       tenYear:
-        formData.housingType === 'own'
+        result.holdingTaxAnnual > 0
           ? formatCompactCurrency(result.holdingTaxAnnual * formData.simulationYears)
           : '—',
       note:
-        formData.housingType === 'own'
-          ? '주택세 추정'
-          : '자가가 아니면 0원 처리',
+        result.holdingTaxAnnual > 0
+          ? '주택·토지·기타부동산 추정'
+          : '해당 없음',
       noteDetail:
-        formData.housingType === 'own' ? policyConfig.holdingTax.note : undefined,
+        result.holdingTaxAnnual > 0
+          ? `${getHoldingTaxBreakdownSummary(result)} 기준. ${policyConfig.holdingTax.note}`
+          : undefined,
     },
     {
       category: '결과',
@@ -1477,7 +1513,7 @@ export function ResultScreen({
             <div className="title-with-help projection-inline-title">
               <span className="projection-inline-label">물가상승율</span>
               <HelpPopover
-                detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 재산세는 고정으로 둡니다."
+                detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 보유세는 고정으로 둡니다."
                 label="물가반영 설명 보기"
                 align="left"
               />
@@ -1561,7 +1597,7 @@ export function ResultScreen({
               </p>
             </div>
             <div className="notice-card">
-              <h2>주택세·건강보험 기준</h2>
+              <h2>보유세·건강보험 기준</h2>
               <p>
                 {policyConfig.holdingTax.note} 건강보험은 {policyConfig.healthInsurance.approximationNotice}
               </p>

@@ -1,4 +1,4 @@
-export type HouseholdType = 'single' | 'couple'
+﻿export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
@@ -154,6 +154,14 @@ export interface CashBalancePoint {
   balance: number
 }
 
+export interface HoldingTaxBreakdownItem {
+  key: 'home' | 'land' | 'otherProperty'
+  label: string
+  annual: number
+  monthly: number
+  baseValue: number
+}
+
 export interface RetireCalcResult {
   policyBaseDate: string
   policyStatus: string
@@ -198,6 +206,7 @@ export interface RetireCalcResult {
   healthInsuranceSource: 'estimated' | 'manual'
   holdingTaxAnnual: number
   holdingTaxMonthly: number
+  holdingTaxBreakdown: HoldingTaxBreakdownItem[]
 
   pensionMonthlyApplied: number
   otherIncomeMonthlyApplied: number
