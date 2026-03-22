@@ -933,18 +933,6 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {renderBooleanChoice(
-              '사업소득이 있나요?',
-              formData.isBusinessOwner,
-              (value) => update('isBusinessOwner', value),
-              '사업소득은 개인사업, 프리랜서, 임대 등으로 신고되는 소득을 말합니다.',
-            )}
-            {renderBooleanChoice(
-              '무급가족종사자인가요?',
-              formData.isUnpaidOwner,
-              (value) => update('isUnpaidOwner', value),
-              '무급가족종사자는 가족 사업을 돕지만 급여를 따로 받지 않는 가족 구성원을 뜻합니다.',
-            )}
           </div>
         )
       case 'fixedExpenses':

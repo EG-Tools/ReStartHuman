@@ -88,6 +88,8 @@ const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
 
   return (
     housingAsset +
+    formData.landValue +
+    formData.otherPropertyOfficialValue +
     formData.taxableAccountAssets +
     formData.isaAssets +
     formData.pensionAccountAssets +
@@ -154,6 +156,20 @@ const getHealthInsuranceTypeSummary = (healthInsuranceType: RetireCalcFormData['
       return '입력한 건강보험 상태 기준'
   }
 }
+
+const getPropertyOwnershipLabel = (ownershipType: string) => {
+  switch (ownershipType) {
+    case 'mineOnly':
+      return '본인'
+    case 'spouseOnly':
+      return '배우자'
+    case 'split':
+      return '공동명의'
+    default:
+      return '본인'
+  }
+}
+
 
 const formatOwnershipSummary = (breakdown: AccountOwnershipBreakdown[]) =>
   breakdown.map((item) => `${item.label} ${formatCompactCurrency(item.attributedAnnual)}`).join(', ')
@@ -1049,6 +1065,9 @@ export function ResultScreen({
       result.healthInsuranceMonthly >= 1_000_000
         ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
         : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
+      result.otherIncomeMonthlyApplied > 0
+        ? `기타 월소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+        : '기타 월소득은 별도 입력이 없어 반영하지 않았습니다.',
       assetInterpretation,
     ],
     [
@@ -1060,6 +1079,7 @@ export function ResultScreen({
       result.comprehensiveTaxIncluded,
       result.healthInsuranceMonthly,
       result.holdingTaxAnnual,
+      result.otherIncomeMonthlyApplied,
     ],
   )
 
@@ -1199,6 +1219,30 @@ export function ResultScreen({
       note: housingRowNote,
     },
     {
+      category: '주거',
+      item: '토지',
+      input: formatCompactCurrency(formData.landValue),
+      monthly: '—',
+      annual: '—',
+      tenYear: '—',
+      note:
+        formData.landValue > 0
+          ? `${getPropertyOwnershipLabel(formData.landOwnershipType)} 기준`
+          : '0원이면 미보유 처리',
+    },
+    {
+      category: '주거',
+      item: '상가/기타부동산',
+      input: formatCompactCurrency(formData.otherPropertyOfficialValue),
+      monthly: '—',
+      annual: '—',
+      tenYear: '—',
+      note:
+        formData.otherPropertyOfficialValue > 0
+          ? `${getPropertyOwnershipLabel(formData.otherPropertyOwnershipType)} 기준`
+          : '0원이면 미보유 처리',
+    },
+    {
       category: '배당',
       item: '배당금',
       input: (
@@ -1244,6 +1288,24 @@ export function ResultScreen({
       annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
       tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * formData.simulationYears),
       note: '월 기준 유입',
+    },
+    {
+      category: '유입',
+      item: '기타 소득',
+      input: formData.otherIncomeType === 'none' ? '없음' : `월 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}`,
+      monthly: formatCompactCurrency(result.otherIncomeMonthlyApplied),
+      annual: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12),
+      tenYear: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12 * formData.simulationYears),
+      note:
+        formData.otherIncomeType === 'none'
+          ? '미입력'
+          : `${formData.otherIncomeType === 'earned'
+              ? '근로소득'
+              : formData.otherIncomeType === 'business'
+                ? '사업소득'
+                : formData.otherIncomeType === 'pension'
+                  ? '기타연금'
+                  : '기타'} 월 유입`,
     },
     {
       category: '결과',
