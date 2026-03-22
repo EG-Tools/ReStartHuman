@@ -174,3 +174,12 @@
   line-height: 1.55;
 }
 
+@media (min-width: 901px) and (orientation: landscape) {
+  .result-table th.result-col-monthly,
+  .result-table td.result-col-monthly {
+    width: 96px;
+    min-width: 96px;
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}
