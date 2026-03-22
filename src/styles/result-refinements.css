@@ -118,15 +118,14 @@
 
 /* ------------------------------------------------------------------
    결과표 레이아웃 최종 제어 블록
-   세로/가로모드 모두 동일한 값을 사용합니다.
-
-   추천 기본값:
-   - 입력칸은 "100억5000" 수준(만원 단위 1005000)도 무리 없이 보이게
-   - 비고는 다른 열을 침범하지 않도록 줄바꿈 허용
-   - 세로/가로 체감 균형이 비슷하도록 공통 값 사용
+   세로에서 마음에 드는 크기를 가로에서도 그대로 유지하도록 조정.
+   핵심:
+   1) width: 100% 제거
+   2) width: max-content 로 변경
+   3) 결과표 font-size 를 공통값으로 고정
 ------------------------------------------------------------------- */
 .table-shell .result-table {
-  --result-table-min-width: 760px;
+  --result-table-font-size: 0.86rem;
   --result-cell-pad-y: 12px;
   --result-cell-pad-x: 12px;
 
@@ -135,7 +134,7 @@
   --result-col-3: 110px;
   --result-col-4: 120px;
   --result-col-5: 130px;
-  --result-col-6-min: 140px;
+  --result-col-6: 140px;
 
   --result-note-max-width: none;
 
@@ -145,8 +144,9 @@
   --result-edit-input-font-size: 0.95rem;
 
   table-layout: fixed;
-  width: 100%;
-  min-width: var(--result-table-min-width);
+  width: max-content;
+  min-width: max-content;
+  font-size: var(--result-table-font-size);
 }
 
 /* 결과표 셀 패딩 */
@@ -203,7 +203,9 @@
 /* 6열: 비고 */
 .table-shell .result-table th:nth-child(6),
 .table-shell .result-table td:nth-child(6) {
-  min-width: var(--result-col-6-min);
+  width: var(--result-col-6);
+  min-width: var(--result-col-6);
+  max-width: var(--result-col-6);
   white-space: normal;
 }
 
