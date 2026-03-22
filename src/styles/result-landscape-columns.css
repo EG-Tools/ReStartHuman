@@ -7,10 +7,10 @@
   --result-cell-pad-x: 8px;
 
   --result-col-1: 60px;
-  --result-col-2: 150px;
-  --result-col-3: 90px;
-  --result-col-4: 106px;
-  --result-col-5: 116px;
+  --result-col-2: 170px;
+  --result-col-3: 80px;
+  --result-col-4: 90px;
+  --result-col-5: 100px;
   --result-col-6-min: 150px;
 
   --result-note-max-width: 70px;
@@ -144,12 +144,12 @@
     --result-cell-pad-y: 14px;
     --result-cell-pad-x: 14px;
 
-    --result-col-1: 40px;
-    --result-col-2: 100px;
-    --result-col-3: 55px;
-    --result-col-4: 65px;
-    --result-col-5: 70px;
-    --result-col-6-min: 140px;
+    --result-col-1: 60px;
+    --result-col-2: 170px;
+    --result-col-3: 80px;
+    --result-col-4: 90px;
+    --result-col-5: 100px;
+    --result-col-6-min: 150px;
 
     --result-note-max-width: none;
 
