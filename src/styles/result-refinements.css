@@ -131,11 +131,11 @@
   --result-cell-pad-x: 14px;
 
   --result-col-1: 60px;
-  --result-col-2: 170px;
-  --result-col-3: 80px;
-  --result-col-4: 90px;
-  --result-col-5: 100px;
-  --result-col-6-min: 150px;
+  --result-col-2: 160px;
+  --result-col-3: 90px;
+  --result-col-4: 100px;
+  --result-col-5: 120px;
+  --result-col-6-min: 130px;
 
   --result-note-max-width: 80px;
 
