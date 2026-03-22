@@ -64,6 +64,7 @@
   background: #0e2923;
   color: #bfe2d6;
 }
+
 .projection-inline-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -162,6 +163,7 @@
     transform: translateX(16px);
   }
 }
+
 .interpretation-list {
   margin: 0;
   padding-left: 18px;
@@ -172,59 +174,4 @@
 
 .interpretation-list li {
   line-height: 1.55;
-}
-
-@media (min-width: 901px) and (orientation: landscape) {
-  .result-table {
-    table-layout: fixed;
-  }
-
-  .result-table th:nth-child(1),
-  .result-table td:nth-child(1) {
-    width: 35px;
-    min-width: 35px;
-    max-width: 35px;
-  }
-
-  .result-table th:nth-child(2),
-  .result-table td:nth-child(2) {
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
-  }
-
-  .result-table th:nth-child(3),
-  .result-table td:nth-child(3) {
-    width: 86px;
-    min-width: 86px;
-    max-width: 86px;
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-
-  .result-table th:nth-child(4),
-  .result-table td:nth-child(4) {
-    width: 106px;
-    min-width: 106px;
-    max-width: 106px;
-  }
-
-  .result-table th:nth-child(5),
-  .result-table td:nth-child(5) {
-    width: 116px;
-    min-width: 116px;
-    max-width: 116px;
-  }
-
-  .result-table th:nth-child(6),
-  .result-table td:nth-child(6) {
-    width: 116px;
-    min-width: 116px;
-    max-width: 116px;
-  }
-
-  .result-table td:nth-child(6) .note-cell {
-    width: 100%;
-    max-width: none;
-  }
 }

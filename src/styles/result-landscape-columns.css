@@ -1,6 +1,148 @@
+/* ------------------------------------------------------------------
+   결과표 크기/열폭 최종 제어 파일
+   앞으로 결과표 폭을 바꿀 때는 아래 변수만 수정하면 됩니다.
+
+   1열 = 구분
+   2열 = 입력값
+   3열 = 월 기준
+   4열 = 1년 결과
+   5열 = N년 결과
+   6열 = 비고
+
+   세로모드/가로모드 모두 이 파일에서만 최종 제어합니다.
+------------------------------------------------------------------- */
+
+/* ------------------------------ */
+/* 세로모드(기본값) 변수 블록      */
+/* ------------------------------ */
+.table-shell .result-table {
+  --result-table-min-width: 620px;
+  --result-cell-pad-y: 10px;
+  --result-cell-pad-x: 8px;
+
+  --result-col-1: 60px;
+  --result-col-2: 108px;
+  --result-col-3: 106px;
+  --result-col-4: 106px;
+  --result-col-5: 116px;
+  --result-col-6-min: 124px;
+
+  --result-note-max-width: 124px;
+  --result-edit-inline-gap: 6px;
+  --result-edit-field-pad-x: 8px;
+  --result-edit-input-font-size: 0.92rem;
+
+  table-layout: fixed;
+  width: 100%;
+  min-width: var(--result-table-min-width);
+}
+
+/* 공통 셀 패딩도 여기 변수에서 같이 제어 */
+.table-shell .result-table th,
+.table-shell .result-table td {
+  padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
+}
+
+/* 1열: 구분 */
+.table-shell .result-table th:nth-child(1),
+.table-shell .result-table td:nth-child(1),
+.table-shell .result-table .result-item-cell {
+  width: var(--result-col-1);
+  min-width: var(--result-col-1);
+  max-width: var(--result-col-1);
+}
+
+/* 2열: 입력값 */
+.table-shell .result-table th:nth-child(2),
+.table-shell .result-table td:nth-child(2),
+.table-shell .result-table .result-input-cell,
+.table-shell .result-table .table-edit-cluster {
+  width: var(--result-col-2);
+  min-width: var(--result-col-2);
+  max-width: var(--result-col-2);
+}
+
+/* 3열: 월 기준 */
+.table-shell .result-table th.result-col-monthly,
+.table-shell .result-table td.result-col-monthly,
+.table-shell .result-table th:nth-child(3),
+.table-shell .result-table td:nth-child(3) {
+  width: var(--result-col-3);
+  min-width: var(--result-col-3);
+  max-width: var(--result-col-3);
+}
+
+/* 4열: 1년 결과 */
+.table-shell .result-table th:nth-child(4),
+.table-shell .result-table td:nth-child(4) {
+  width: var(--result-col-4);
+  min-width: var(--result-col-4);
+  max-width: var(--result-col-4);
+}
+
+/* 5열: N년 결과 */
+.table-shell .result-table th:nth-child(5),
+.table-shell .result-table td:nth-child(5) {
+  width: var(--result-col-5);
+  min-width: var(--result-col-5);
+  max-width: var(--result-col-5);
+}
+
+/* 6열: 비고 (남는 폭을 받되 최소폭은 보장) */
+.table-shell .result-table th:nth-child(6),
+.table-shell .result-table td:nth-child(6) {
+  min-width: var(--result-col-6-min);
+}
+
+/* 2열은 셀 안쪽 편집 UI 폭까지 같이 맞춰야 실제 변화가 바로 보입니다. */
+.table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-group,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-stack,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+  gap: var(--result-edit-inline-gap);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-field {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  padding-left: var(--result-edit-field-pad-x);
+  padding-right: var(--result-edit-field-pad-x);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-input {
+  min-width: 0;
+  width: 100%;
+  font-size: var(--result-edit-input-font-size);
+}
+
+.table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
+.table-shell .result-table tbody td:nth-child(2) .table-edit-action {
+  flex: 0 0 auto;
+}
+
+/* 비고 셀 내부 최대폭도 변수로 제어 */
+.table-shell .result-table .note-cell,
+.table-shell .result-table tbody .note-cell {
+  width: 100%;
+  max-width: var(--result-note-max-width);
+}
+
+/* ------------------------------ */
+/* 가로모드 변수 블록              */
+/* ------------------------------ */
 @media (min-width: 901px) and (orientation: landscape) {
   .table-shell .result-table {
-    /* 가로모드 결과표 열 폭은 아래 값들만 바꾸면 됩니다. */
+    --result-table-min-width: 680px;
+    --result-cell-pad-y: 14px;
+    --result-cell-pad-x: 14px;
+
     --result-col-1: 40px;
     --result-col-2: 95px;
     --result-col-3: 55px;
@@ -8,84 +150,9 @@
     --result-col-5: 70px;
     --result-col-6-min: 140px;
 
-    table-layout: fixed;
-    width: 100%;
-  }
-
-  .table-shell .result-table th:nth-child(1),
-  .table-shell .result-table td:nth-child(1),
-  .table-shell .result-table .result-item-cell {
-    width: var(--result-col-1);
-    min-width: var(--result-col-1);
-    max-width: var(--result-col-1);
-  }
-
-  .table-shell .result-table th:nth-child(2),
-  .table-shell .result-table td:nth-child(2),
-  .table-shell .result-table .result-input-cell,
-  .table-shell .result-table .table-edit-cluster {
-    width: var(--result-col-2);
-    min-width: var(--result-col-2);
-    max-width: var(--result-col-2);
-  }
-
-  .table-shell .result-table th.result-col-monthly,
-  .table-shell .result-table td.result-col-monthly,
-  .table-shell .result-table th:nth-child(3),
-  .table-shell .result-table td:nth-child(3) {
-    width: var(--result-col-3);
-    min-width: var(--result-col-3);
-    max-width: var(--result-col-3);
-  }
-
-  .table-shell .result-table th:nth-child(4),
-  .table-shell .result-table td:nth-child(4) {
-    width: var(--result-col-4);
-    min-width: var(--result-col-4);
-    max-width: var(--result-col-4);
-  }
-
-  .table-shell .result-table th:nth-child(5),
-  .table-shell .result-table td:nth-child(5) {
-    width: var(--result-col-5);
-    min-width: var(--result-col-5);
-    max-width: var(--result-col-5);
-  }
-
-  .table-shell .result-table th:nth-child(6),
-  .table-shell .result-table td:nth-child(6) {
-    min-width: var(--result-col-6-min);
-  }
-
-  /* 2열은 셀 안쪽 편집 UI 폭까지 같이 맞춰야 실제 변화가 보입니다. */
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-group,
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-stack,
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-field {
-    flex: 1 1 auto;
-    width: auto;
-    min-width: 0;
-  }
-
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-input {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
-  .table-shell .result-table tbody td:nth-child(2) .table-edit-action {
-    flex: 0 0 auto;
-  }
-
-  .table-shell .result-table .note-cell,
-  .table-shell .result-table tbody .note-cell {
-    width: 100%;
-    max-width: none;
+    --result-note-max-width: none;
+    --result-edit-inline-gap: 8px;
+    --result-edit-field-pad-x: 10px;
+    --result-edit-input-font-size: 1rem;
   }
 }
