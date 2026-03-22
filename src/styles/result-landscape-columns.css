@@ -21,11 +21,11 @@
   --result-cell-pad-x: 8px;
 
   --result-col-1: 60px;
-  --result-col-2: 108px;
+  --result-col-2: 125px;
   --result-col-3: 106px;
   --result-col-4: 106px;
   --result-col-5: 116px;
-  --result-col-6-min: 124px;
+  --result-col-6-min: 140px;
 
   --result-note-max-width: 124px;
   --result-edit-inline-gap: 6px;
@@ -144,7 +144,7 @@
     --result-cell-pad-x: 14px;
 
     --result-col-1: 40px;
-    --result-col-2: 95px;
+    --result-col-2: 100px;
     --result-col-3: 55px;
     --result-col-4: 65px;
     --result-col-5: 70px;
