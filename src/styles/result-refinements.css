@@ -54,9 +54,6 @@
 
 /* ------------------------------------------------------------------
    1열 고정 잔재 제거
-   이전에는 특정 카테고리의 첫 셀만 sticky가 살아 있어서
-   세로 스크롤 / 좌우 스크롤 시 '락이 걸린 것처럼' 보였습니다.
-   이제 색상/굵기만 유지하고 sticky는 제거합니다.
 ------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
@@ -121,7 +118,6 @@
 /* ------------------------------------------------------------------
    결과표 단일 레이아웃
    조절은 이 블록 숫자만 바꾸면 됩니다.
-   1열 구분 / 2열 입력값 / 3열 월 기준 / 4열 1년 / 5열 N년 / 6열 비고
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -135,9 +131,6 @@
   --result-col-5: 125px;
   --result-col-6: 180px;
 
-  /* 최적화:
-     셀 전체 폭과 셀 안쪽 실제 사용 폭을 분리해 둬서
-     이후에는 열폭만 바꿔도 2열/비고열 내부 정렬이 같이 따라오게 유지 */
   --result-table-fixed-width: calc(
     var(--result-col-1) +
     var(--result-col-2) +
@@ -152,16 +145,17 @@
 
   --result-note-icon-size: 20px;
   --result-note-gap: 6px;
-  --result-note-text-width: calc(
+  --result-note-text-width-full: var(--result-col-6-content);
+  --result-note-text-width-with-icon: calc(
     var(--result-col-6-content) -
     var(--result-note-icon-size) -
     var(--result-note-gap)
   );
 
   /* 최적화:
-     비고 줄바꿈 정책을 변수로 분리.
-     이전 overflow-wrap:anywhere 는 공간이 충분해도 '전' 같은 한 글자를
-     아래 줄로 떨굴 수 있어서 normal 로 고정합니다. */
+     아이콘이 없는 비고 행은 아이콘 칸을 예약하지 않음.
+     그래서 '생활비·고정지출 차감 전' 같은 문구가 괜히 한 글자만
+     아래 줄로 떨어지지 않게 합니다. */
   --result-note-overflow-wrap: normal;
   --result-note-word-break: keep-all;
 
@@ -259,17 +253,7 @@
   white-space: nowrap;
 }
 
-/* ------------------------------------------------------------------
-   2열 단일 정렬 규칙
-   문제 원인:
-   - 에디터 구조(table-edit-*)와 일반 텍스트가 따로 놀고 있었음
-   - 그래서 가로에서는 괜찮아 보여도 세로에서 좌측 정렬이 드러났음
-
-   해결:
-   - 2열 셀 자체를 우측 정렬 기준으로 통일
-   - 일반 텍스트/블록도 같은 내용 폭을 사용
-   - 에디터는 기존 구조 유지
-------------------------------------------------------------------- */
+/* 2열 단일 정렬 규칙 */
 .table-shell .result-table .result-input-cell {
   text-align: right;
 }
@@ -343,7 +327,11 @@
   justify-content: flex-end;
 }
 
-/* 비고열도 실제 내용 영역 폭 기준 */
+/* ------------------------------------------------------------------
+   비고열 단일 규칙
+   기본은 1칸.
+   설명 아이콘이 실제로 있는 행만 2칸 그리드로 바꿉니다.
+------------------------------------------------------------------- */
 .table-shell .result-table .result-note-cell {
   white-space: normal;
   text-align: right;
@@ -351,9 +339,8 @@
 
 .table-shell .result-table .note-cell {
   display: grid;
-  grid-template-columns: var(--result-note-text-width) var(--result-note-icon-size);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: var(--result-note-gap);
   width: var(--result-col-6-content);
   min-width: var(--result-col-6-content);
   max-width: var(--result-col-6-content);
@@ -363,14 +350,24 @@
   justify-content: end;
 }
 
+.table-shell .result-table .note-cell:has(.note-popover) {
+  grid-template-columns: var(--result-note-text-width-with-icon) var(--result-note-icon-size);
+  gap: var(--result-note-gap);
+}
+
 .table-shell .result-table .note-cell-text {
-  width: var(--result-note-text-width);
+  width: var(--result-note-text-width-full);
   min-width: 0;
-  max-width: var(--result-note-text-width);
+  max-width: var(--result-note-text-width-full);
   white-space: normal;
   overflow-wrap: var(--result-note-overflow-wrap);
   word-break: var(--result-note-word-break);
   line-height: 1.28;
+}
+
+.table-shell .result-table .note-cell:has(.note-popover) .note-cell-text {
+  width: var(--result-note-text-width-with-icon);
+  max-width: var(--result-note-text-width-with-icon);
 }
 
 .table-shell .result-table .note-popover-trigger {
