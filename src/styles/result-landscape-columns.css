@@ -2,10 +2,10 @@
   .table-shell .result-table {
     /* 가로모드 결과표 열 폭은 아래 값들만 바꾸면 됩니다. */
     --result-col-1: 50px;
-    --result-col-2: 100px;
-    --result-col-3: 85px;
-    --result-col-4: 95px;
-    --result-col-5: 105px;
+    --result-col-2: 95px;
+    --result-col-3: 70px;
+    --result-col-4: 80px;
+    --result-col-5: 95px;
     --result-col-6-min: 126px;
 
     table-layout: fixed;
