@@ -368,6 +368,7 @@ function InflationSwitch({
     </button>
   )
 }
+
 const SummaryCards = memo(function SummaryCards({
   result,
   projectionYears,
