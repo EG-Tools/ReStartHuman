@@ -463,6 +463,17 @@ const CashFlowChart = memo(function CashFlowChart({
           </linearGradient>
         </defs>
 
+        <rect
+          x={paddingLeft}
+          y={paddingTop}
+          width={chartWidth}
+          height={chartHeight}
+          rx={10}
+          ry={10}
+          fill="none"
+          style={{ stroke: 'rgba(227, 236, 240, 0.18)', strokeWidth: 1 }}
+        />
+
         {yTicks.map((tick) => (
           <g key={`y-tick-${tick.key}`}>
             <line
@@ -473,7 +484,14 @@ const CashFlowChart = memo(function CashFlowChart({
               y2={tick.y}
               style={{ stroke: gridColor }}
             />
-            <text className="cashflow-grid-label" x={0} y={tick.y + 4} style={{ fill: labelColor }}>
+            <text
+              className="cashflow-grid-label"
+              x={paddingLeft - 8}
+              y={tick.y}
+              textAnchor="end"
+              dominantBaseline="middle"
+              style={{ fill: labelColor }}
+            >
               {formatYAxisEok(tick.value)}
             </text>
           </g>
