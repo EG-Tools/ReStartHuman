@@ -67,8 +67,18 @@ const clampRate = (value: number, fallback: number) => {
 const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   ...formData,
   isaType: formData.isaType === 'workingClass' ? 'workingClass' : 'general',
-  myIsaType: formData.myIsaType === 'workingClass' ? 'workingClass' : formData.isaType === 'workingClass' ? 'workingClass' : 'general',
-  spouseIsaType: formData.spouseIsaType === 'workingClass' ? 'workingClass' : formData.isaType === 'workingClass' ? 'workingClass' : 'general',
+  myIsaType:
+    formData.myIsaType === 'workingClass'
+      ? 'workingClass'
+      : formData.isaType === 'workingClass'
+        ? 'workingClass'
+        : 'general',
+  spouseIsaType:
+    formData.spouseIsaType === 'workingClass'
+      ? 'workingClass'
+      : formData.isaType === 'workingClass'
+        ? 'workingClass'
+        : 'general',
   simulationYears: Math.max(1, sanitizeMoney(formData.simulationYears) || 10),
   homeMarketValue: sanitizeMoney(formData.homeMarketValue),
   homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
@@ -85,15 +95,9 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   pensionDividendAnnual: sanitizeMoney(formData.pensionDividendAnnual),
   isaYearsSinceOpen: sanitizeMoney(formData.isaYearsSinceOpen),
   myAnnualDividendAttributed: sanitizeMoney(formData.myAnnualDividendAttributed),
-  spouseAnnualDividendAttributed: sanitizeMoney(
-    formData.spouseAnnualDividendAttributed,
-  ),
-  myAnnualIsaDividendAttributed: sanitizeMoney(
-    formData.myAnnualIsaDividendAttributed,
-  ),
-  spouseAnnualIsaDividendAttributed: sanitizeMoney(
-    formData.spouseAnnualIsaDividendAttributed,
-  ),
+  spouseAnnualDividendAttributed: sanitizeMoney(formData.spouseAnnualDividendAttributed),
+  myAnnualIsaDividendAttributed: sanitizeMoney(formData.myAnnualIsaDividendAttributed),
+  spouseAnnualIsaDividendAttributed: sanitizeMoney(formData.spouseAnnualIsaDividendAttributed),
   otherIncomeMonthly: sanitizeMoney(formData.otherIncomeMonthly),
   pensionStartAge: sanitizeMoney(formData.pensionStartAge),
   pensionMonthlyAmount: sanitizeMoney(formData.pensionMonthlyAmount),
@@ -112,6 +116,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   necessitiesMonthly: sanitizeMoney(formData.necessitiesMonthly),
   diningOutMonthly: sanitizeMoney(formData.diningOutMonthly),
   hobbyMonthly: sanitizeMoney(formData.hobbyMonthly),
+  academyMonthly: sanitizeMoney(formData.academyMonthly ?? 0),
   otherLivingMonthly: sanitizeMoney(formData.otherLivingMonthly),
   inflationRateAnnual: clampRate(
     formData.inflationRateAnnual,
@@ -320,18 +325,19 @@ const getOwnershipAllocations = ({
   return [
     {
       personKey: 'mine',
-        label: '본인',
+      label: '본인',
       attributedAnnual: mineAllocatedAnnual,
     },
     {
       personKey: 'spouse',
-        label: '배우자',
+      label: '배우자',
       attributedAnnual: roundCurrency(
         Math.max(totalAnnualAllocated - mineAllocatedAnnual, 0),
       ),
     },
   ]
 }
+
 const calculateComprehensiveTax = (
   ownershipBreakdown: AccountOwnershipBreakdown[],
 ): ComprehensiveTaxCalculation => {
@@ -360,9 +366,7 @@ const calculateComprehensiveTax = (
     const incomeTaxByComparison = Math.max(
       attributedDividendAnnual * policyConfig.dividendWithholding.incomeTaxRate,
       thresholdAnnual * policyConfig.dividendWithholding.incomeTaxRate +
-        calculateProgressiveIncomeTax(
-          attributedDividendAnnual - thresholdAnnual,
-        ),
+        calculateProgressiveIncomeTax(attributedDividendAnnual - thresholdAnnual),
     )
     const finalTaxAnnual = roundCurrency(
       incomeTaxByComparison *
@@ -414,6 +418,7 @@ const calculateExpenses = (formData: RetireCalcFormData) => {
         formData.necessitiesMonthly +
         formData.diningOutMonthly +
         formData.hobbyMonthly +
+        (formData.academyMonthly ?? 0) +
         formData.otherLivingMonthly
 
   const housingMonthlyCost =
@@ -518,9 +523,7 @@ const getRegionalPropertyBase = (formData: RetireCalcFormData) => {
     return formData.jeonseDeposit * policyConfig.healthInsurance.leaseValueRatio
   }
 
-  return (
-    formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
-  )
+  return formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
 }
 
 const estimateHealthInsurance = (
@@ -781,5 +784,3 @@ export const calculateRetireScenario = (
     loanNotice: formData.hasLoan,
   }
 }
-
-

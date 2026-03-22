@@ -240,13 +240,13 @@ function QuestionNumberFields({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '3px',
               }}
             >
               <div className="input-shell" style={{
                 flex: 1,
-                backgroundColor: 'rgba(227, 236, 240, 0.12)',
-                border: '1px solid rgba(227, 236, 240, 0.22)',
+                backgroundColor: 'rgba(227, 236, 240, 0.08)',
+                border: '1px solid rgba(227, 236, 240, 0.18)',
                 borderRadius: '999px',
               }}>
                 <input
@@ -847,10 +847,10 @@ export function QuestionScreen({
               },
               {
                 key: 'carYearlyCost',
-                label: '자동차 연간 유지비',
+                label: '자동차 1년 유지비',
                 value: formData.carYearlyCost,
                 onChange: (value) => update('carYearlyCost', value),
-                helperText: '연간 금액을 입력하면 월 기준으로 12개월 나누어 계산합니다.',
+                helperText: '12개월로 나눠서 계산됩니다.',
               },
               {
                 key: 'otherFixedMonthly',
