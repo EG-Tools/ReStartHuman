@@ -118,31 +118,31 @@
 
 /* ------------------------------------------------------------------
    결과표 레이아웃 최종 제어 블록
-   이제 세로/가로모드 모두 아래 공통 변수만 사용합니다.
-   앞으로 결과표 크기를 바꿀 때는 아래 값만 수정하면 됩니다.
+   세로/가로모드 모두 동일한 값을 사용합니다.
 
-   주의:
-   입력칸을 키우면 '만원' 텍스트와 공간을 같이 써야 하므로
-   보통은 --result-input-box-width 와 --result-col-2 를 같이 조절해야 합니다.
+   추천 기본값:
+   - 입력칸은 "100억5000" 수준(만원 단위 1005000)도 무리 없이 보이게
+   - 비고는 다른 열을 침범하지 않도록 줄바꿈 허용
+   - 세로/가로 체감 균형이 비슷하도록 공통 값 사용
 ------------------------------------------------------------------- */
 .table-shell .result-table {
-  --result-table-min-width: 700px;
-  --result-cell-pad-y: 14px;
-  --result-cell-pad-x: 14px;
+  --result-table-min-width: 760px;
+  --result-cell-pad-y: 12px;
+  --result-cell-pad-x: 12px;
 
-  --result-col-1: 60px;
-  --result-col-2: 160px;
-  --result-col-3: 90px;
-  --result-col-4: 100px;
-  --result-col-5: 120px;
-  --result-col-6-min: 130px;
+  --result-col-1: 56px;
+  --result-col-2: 182px;
+  --result-col-3: 88px;
+  --result-col-4: 98px;
+  --result-col-5: 108px;
+  --result-col-6-min: 160px;
 
-  --result-note-max-width: 80px;
+  --result-note-max-width: none;
 
   --result-edit-inline-gap: 6px;
-  --result-input-box-width: 80px;
+  --result-input-box-width: 96px;
   --result-edit-field-pad-x: 8px;
-  --result-edit-input-font-size: 0.92rem;
+  --result-edit-input-font-size: 0.95rem;
 
   table-layout: fixed;
   width: 100%;
@@ -204,6 +204,7 @@
 .table-shell .result-table th:nth-child(6),
 .table-shell .result-table td:nth-child(6) {
   min-width: var(--result-col-6-min);
+  white-space: normal;
 }
 
 /* 2열 안쪽 편집 UI 정리 */
@@ -242,13 +243,29 @@
 .table-shell .result-table tbody td:nth-child(2) .table-edit-suffix,
 .table-shell .result-table tbody td:nth-child(2) .table-edit-action {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
-/* 비고 셀 내부 최대폭 */
+/* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정 */
 .table-shell .result-table .note-cell,
 .table-shell .result-table tbody .note-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px;
   width: 100%;
   max-width: var(--result-note-max-width);
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+}
+
+.table-shell .result-table .note-cell > span,
+.table-shell .result-table tbody .note-cell > span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 @media (max-width: 900px) {
