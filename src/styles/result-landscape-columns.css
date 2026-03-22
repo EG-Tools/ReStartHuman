@@ -25,23 +25,23 @@
   .table-shell .result-table td.result-col-monthly,
   .table-shell .result-table th:nth-child(3),
   .table-shell .result-table td:nth-child(3) {
-    width: 86px;
-    min-width: 86px;
-    max-width: 86px;
+    width: 85px;
+    min-width: 85px;
+    max-width: 85px;
   }
 
   .table-shell .result-table th:nth-child(4),
   .table-shell .result-table td:nth-child(4) {
-    width: 106px;
-    min-width: 106px;
-    max-width: 106px;
+    width: 95px;
+    min-width: 95px;
+    max-width: 95px;
   }
 
   .table-shell .result-table th:nth-child(5),
   .table-shell .result-table td:nth-child(5) {
-    width: 116px;
-    min-width: 116px;
-    max-width: 116px;
+    width: 105px;
+    min-width: 105px;
+    max-width: 105px;
   }
 
   .table-shell .result-table th:nth-child(6),
