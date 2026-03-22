@@ -411,7 +411,7 @@ export function QuestionScreen({
                 }
               />
               <p className="screen-copy" style={{ marginTop: '10px' }}>
-                현재는 참고용으로 저장되며 기본 계산에는 아직 직접 반영하지 않습니다.
+                현재는 참고용이며, 추후 계산 구조에 반영할 예정입니다.
               </p>
             </section>
             {(formData.hasChildren ?? false) ? (
@@ -941,10 +941,10 @@ export function QuestionScreen({
             fields={[
               {
                 key: 'startingCashReserve',
-                label: '지금 남아있는 현금',
+                label: '현재 보유한 현금',
                 value: formData.startingCashReserve,
                 onChange: (value) => update('startingCashReserve', value),
-                helperText: '기본값 1억원이며, 결과 상단 10년 현금흐름 그래프의 시작점이 됩니다.',
+                helperText: '현금 흐름 그래프의 시작 금액 입니다.',
               },
               {
                 key: 'currentAge',
