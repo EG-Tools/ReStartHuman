@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { PrimaryButton } from '../common/Ui'
 import type {
@@ -217,13 +217,29 @@ const getHoldingTaxBreakdownSummary = (result: RetireCalcResult) => {
 }
 
 const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
-  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
+  const activeLabels = result.holdingTaxBreakdown
+    .filter((item) => item.annual > 0)
+    .map((item) => item.label)
 
-  if (activeBreakdown.length === 0) {
+  if (activeLabels.length === 0) {
     return '해당 없음'
   }
 
-  return activeBreakdown.map((item) => item.label).join(' · ')
+  const otherPropertyIndex = activeLabels.findIndex((label) =>
+    label.includes('기타부동산'),
+  )
+
+  if (otherPropertyIndex <= 0) {
+    return activeLabels.join(' · ')
+  }
+
+  return (
+    <span>
+      {activeLabels.slice(0, otherPropertyIndex).join(' · ')}
+      <br />
+      {activeLabels.slice(otherPropertyIndex).join(' · ')}
+    </span>
+  )
 }
 
 const getHoldingTaxBaseSummary = (result: RetireCalcResult) => {
@@ -1390,7 +1406,7 @@ export function ResultScreen({
           : '—',
       note:
         result.holdingTaxAnnual > 0
-          ? '주택·토지·기타부동산 추정'
+          ? '주택·토지·기타부동산'
           : '해당 없음',
       noteDetail:
         result.holdingTaxAnnual > 0
@@ -1400,11 +1416,17 @@ export function ResultScreen({
     {
       category: '결과',
       item: '월 실사용 가능액',
-      input: '총 유입에서 건강보험료·보유세·종합소득세 반영',
+      input: (
+        <span>
+          총 유입에서 건강보험료·
+          <br />
+          보유세·종합소득세 반영
+        </span>
+      ),
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
       tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * formData.simulationYears),
-      note: '생활비와 고정지출 차감 전',
+      note: '생활비·고정지출 차감 전',
     },
     {
       category: '지출',
