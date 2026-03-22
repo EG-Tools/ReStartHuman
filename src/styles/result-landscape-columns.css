@@ -16,18 +16,18 @@
 /* 세로모드(기본값) 변수 블록      */
 /* ------------------------------ */
 .table-shell .result-table {
-  --result-table-min-width: 620px;
+  --result-table-min-width: 700px;
   --result-cell-pad-y: 10px;
   --result-cell-pad-x: 8px;
 
   --result-col-1: 60px;
-  --result-col-2: 125px;
-  --result-col-3: 106px;
+  --result-col-2: 150px;
+  --result-col-3: 90px;
   --result-col-4: 106px;
   --result-col-5: 116px;
-  --result-col-6-min: 140px;
+  --result-col-6-min: 150px;
 
-  --result-note-max-width: 124px;
+  --result-note-max-width: 50px;
   --result-edit-inline-gap: 6px;
   --result-edit-field-pad-x: 8px;
   --result-edit-input-font-size: 0.92rem;
@@ -139,7 +139,7 @@
 /* ------------------------------ */
 @media (min-width: 901px) and (orientation: landscape) {
   .table-shell .result-table {
-    --result-table-min-width: 680px;
+    --result-table-min-width: 700px;
     --result-cell-pad-y: 14px;
     --result-cell-pad-x: 14px;
 
@@ -152,7 +152,7 @@
 
     --result-note-max-width: none;
     --result-edit-inline-gap: 8px;
-    --result-edit-field-pad-x: 10px;
+    --result-edit-field-pad-x: 50px;
     --result-edit-input-font-size: 1rem;
   }
 }
