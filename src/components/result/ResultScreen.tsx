@@ -364,7 +364,7 @@ const CashFlowChart = memo(function CashFlowChart({
   const paddingLeft = 58
   const paddingRight = 18
   const paddingTop = 18
-  const paddingBottom = 36
+  const paddingBottom = 24
   const currentYear = new Date().getFullYear()
   const balances = points.map((point) => point.balance)
   const minBalance = Math.min(...balances)
@@ -418,14 +418,15 @@ const CashFlowChart = memo(function CashFlowChart({
       y: getY(value),
     }),
   )
+  const totalYears = Math.max(points[points.length - 1]?.year ?? 30, 30)
   const xTicks = [
-    { label: '현재', year: currentYear, index: 0 },
-    { label: '10년', year: currentYear + 10, index: Math.min(10, points.length - 1) },
-    { label: '20년', year: currentYear + 20, index: Math.min(20, points.length - 1) },
-    { label: '30년', year: currentYear + 30, index: points.length - 1 },
+    { label: '현재', yearOffset: 0 },
+    { label: '10년', yearOffset: 10 },
+    { label: '20년', yearOffset: 20 },
+    { label: '30년', yearOffset: 30 },
   ].map((tick) => ({
     ...tick,
-    x: getX(tick.index),
+    x: paddingLeft + (Math.min(tick.yearOffset, totalYears) / totalYears) * chartWidth,
   }))
 
   return (
@@ -454,7 +455,7 @@ const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="10-year cashflow chart"
+        aria-label="30-year cashflow chart"
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -493,56 +494,31 @@ const CashFlowChart = memo(function CashFlowChart({
         />
 
         {xTicks.map((tick) => (
-          <line
-            key={`x-tick-${tick.year}`}
-            className="cashflow-year-tick"
-            x1={tick.x}
-            y1={chartFloorY}
-            x2={tick.x}
-            y2={chartFloorY + 6}
-            style={{ stroke: tickColor }}
-          />
+          <g key={`x-tick-${tick.label}`}>
+            <line
+              className="cashflow-year-tick"
+              x1={tick.x}
+              y1={chartFloorY}
+              x2={tick.x}
+              y2={chartFloorY + 4}
+              style={{ stroke: tickColor }}
+            />
+            <text
+              x={tick.x}
+              y={chartFloorY + 14}
+              textAnchor={tick.label === '현재' ? 'start' : tick.label === '30년' ? 'end' : 'middle'}
+              style={{
+                fill: labelColor,
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              {tick.label}
+            </text>
+          </g>
         ))}
 
       </svg>
-
-      <div
-        className="cashflow-axis"
-        style={{
-          position: 'relative',
-          height: 32,
-          marginTop: -2,
-        }}
-      >
-        {xTicks.map((tick, index) => {
-          const leftPercent = (tick.x / width) * 100
-          const transform =
-            index === 0
-              ? 'translateX(0)'
-              : index === xTicks.length - 1
-                ? 'translateX(-100%)'
-                : 'translateX(-50%)'
-
-          return (
-            <span
-              key={tick.year}
-              style={{
-                position: 'absolute',
-                left: `${leftPercent}%`,
-                transform,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                whiteSpace: 'nowrap',
-                lineHeight: 1.05,
-              }}
-            >
-              <strong>{tick.label}</strong>
-              <em>{tick.year}</em>
-            </span>
-          )
-        })}
-      </div>
     </section>
   )
 })
