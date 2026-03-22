@@ -130,12 +130,12 @@
   --result-cell-pad-y: 12px;
   --result-cell-pad-x: 12px;
 
-  --result-col-1: 56px;
-  --result-col-2: 182px;
-  --result-col-3: 88px;
-  --result-col-4: 98px;
-  --result-col-5: 108px;
-  --result-col-6-min: 160px;
+  --result-col-1: 55px;
+  --result-col-2: 180px;
+  --result-col-3: 90px;
+  --result-col-4: 105px;
+  --result-col-5: 115px;
+  --result-col-6-min: 150px;
 
   --result-note-max-width: none;
 
