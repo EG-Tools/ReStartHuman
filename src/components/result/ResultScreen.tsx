@@ -303,7 +303,13 @@ function InflationSwitch({
     </button>
   )
 }
-const SummaryCards = memo(function SummaryCards({ result }: { result: RetireCalcResult }) {
+const SummaryCards = memo(function SummaryCards({
+  result,
+  projectionYears,
+}: {
+  result: RetireCalcResult
+  projectionYears: number
+}) {
   const cards = [
     {
       label: '월 실사용 가능액',
@@ -350,10 +356,12 @@ const CashFlowChart = memo(function CashFlowChart({
   result,
   inflationEnabled,
   inflationRateAnnual,
+  projectionYears,
 }: {
   result: RetireCalcResult
   inflationEnabled: boolean
   inflationRateAnnual: number
+  projectionYears: number
 }) {
   const points =
     result.cashBalanceTimeline.length > 0
@@ -427,12 +435,14 @@ const CashFlowChart = memo(function CashFlowChart({
       y: getY(value),
     }),
   )
-  const totalYears = Math.max(points[points.length - 1]?.year ?? 30, 30)
+  const totalYears = Math.max(points[points.length - 1]?.year ?? projectionYears, projectionYears)
+  const midYear1 = Math.max(1, Math.round(totalYears / 3))
+  const midYear2 = Math.max(midYear1 + 1, Math.round((totalYears * 2) / 3))
   const xTicks = [
     { label: '현재', yearOffset: 0 },
-    { label: '10년', yearOffset: 10 },
-    { label: '20년', yearOffset: 20 },
-    { label: '30년', yearOffset: 30 },
+    { label: `${midYear1}년`, yearOffset: midYear1 },
+    { label: `${midYear2}년`, yearOffset: midYear2 },
+    { label: `${totalYears}년`, yearOffset: totalYears },
   ].map((tick) => ({
     ...tick,
     x: paddingLeft + (Math.min(tick.yearOffset, totalYears) / totalYears) * chartWidth,
@@ -443,19 +453,19 @@ const CashFlowChart = memo(function CashFlowChart({
       <div className="cashflow-hero-header">
         <div>
           <div className="cashflow-hero-titleline">
-            <p className="cashflow-hero-eyebrow">30년 현금흐름 예상</p>
+            <p className="cashflow-hero-eyebrow">{projectionYears}년 현금흐름 예상</p>
             <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
               ({getRiskLabel(result.riskLevel)})
             </span>
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            현재 보유한 현금에서 30 년후 그래프 변화입니다.
+            현재 보유한 현금에서 ${projectionYears}년후 그래프 변화입니다.
           </p>
         </div>
         <div className="cashflow-hero-meta">
           <span>시작 {formatCompactCurrency(result.startingCashReserve)}</span>
-          <span>30년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
+          <span>{projectionYears}년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
           <span>물가반영 {displayedInflationRate}%</span>
         </div>
       </div>
@@ -464,7 +474,7 @@ const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="30-year cashflow chart"
+        aria-label={`${projectionYears}년 현금흐름 그래프`}
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -533,7 +543,7 @@ const CashFlowChart = memo(function CashFlowChart({
             <text
               x={tick.x}
               y={borderY + borderHeight + xLabelGap}
-              textAnchor={tick.label === '현재' ? 'start' : tick.label === '30년' ? 'end' : 'middle'}
+              textAnchor={tick.label === '현재' ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'}
               dominantBaseline="hanging"
               style={{
                 fill: labelColor,
@@ -603,7 +613,7 @@ const ResultTable = memo(function ResultTable({ rows }: { rows: ResultRow[] }) {
             <th><span className="result-head-text">입력값</span></th>
             <th><span className="result-head-text">월 기준</span></th>
             <th><span className="result-head-text">1년 결과</span></th>
-            <th><span className="result-head-text">30년 결과</span></th>
+            <th><span className="result-head-text">{formData.simulationYears}년 결과</span></th>
             <th><span className="result-head-text">비고</span></th>
           </tr>
         </thead>
@@ -1194,7 +1204,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.taxableDividendMonthlyNet),
       annual: formatCompactCurrency(result.taxableDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.taxableDividendAnnualNet * 10),
+      tenYear: formatCompactCurrency(result.taxableDividendAnnualNet * formData.simulationYears),
       note: '원천징수 15.4%',
       noteDetail: getTaxableDividendNote(result),
     },
@@ -1210,7 +1220,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
       annual: formatCompactCurrency(result.isaDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.isaDividendAnnualNet * 10),
+      tenYear: formatCompactCurrency(result.isaDividendAnnualNet * formData.simulationYears),
       note: 'ISA 특례',
       noteDetail: getIsaDividendNote(result),
     },
@@ -1226,7 +1236,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.pensionMonthlyApplied),
       annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
-      tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * 10),
+      tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * formData.simulationYears),
       note: '월 기준 유입',
     },
     {
@@ -1235,7 +1245,7 @@ export function ResultScreen({
       input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
-      tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * 10),
+      tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * formData.simulationYears),
       note: '세금 차감 전',
     },
     {
@@ -1246,7 +1256,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.healthInsuranceMonthly),
       annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
-      tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * 10),
+      tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * formData.simulationYears),
       note: 'NHIS 단순화',
       noteDetail: policyConfig.healthInsurance.approximationNotice,
     },
@@ -1256,7 +1266,7 @@ export function ResultScreen({
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
-      tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * 10),
+      tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
       note: '일반계좌만 반영',
       noteDetail: getComprehensiveTaxNote(result),
     },
@@ -1274,7 +1284,7 @@ export function ResultScreen({
           : '—',
       tenYear:
         formData.housingType === 'own'
-          ? formatCompactCurrency(result.holdingTaxAnnual * 10)
+          ? formatCompactCurrency(result.holdingTaxAnnual * formData.simulationYears)
           : '—',
       note:
         formData.housingType === 'own'
@@ -1289,7 +1299,7 @@ export function ResultScreen({
       input: '총 유입에서 건강보험료·보유세·종합소득세 반영',
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
-      tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * 10),
+      tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * formData.simulationYears),
       note: '생활비와 고정지출 차감 전',
     },
     {
@@ -1300,7 +1310,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
-      tenYear: formatCompactCurrency(fixedExpenseAnnualBase * 10),
+      tenYear: formatCompactCurrency(fixedExpenseAnnualBase * formData.simulationYears),
       note: '차량, 대출 제외',
     },
     {
@@ -1311,7 +1321,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.livingExpenseMonthly),
       annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
-      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * 10),
+      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * formData.simulationYears),
       note:
         formData.livingCostInputMode === 'detailed'
           ? '세부 항목 합산'
@@ -1329,7 +1339,7 @@ export function ResultScreen({
       ),
       monthly: formatCompactCurrency(result.carMonthlyConverted),
       annual: formatCompactCurrency(formData.carYearlyCost),
-      tenYear: formatCompactCurrency(formData.carYearlyCost * 10),
+      tenYear: formatCompactCurrency(formData.carYearlyCost * formData.simulationYears),
       note: '연간 ÷ 12',
       noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
     },
@@ -1390,9 +1400,9 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} />
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} />
 
-        <SummaryCards result={result} />
+        <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">

@@ -1095,7 +1095,7 @@ export function QuestionScreen({
               },
               {
                 key: 'simulationYears',
-                label: '예상 현금흐름 반영년도수',
+                label: '예상 현금흐름 반영 기간',
                 value: formData.simulationYears,
                 onChange: (value) => update('simulationYears', Math.min(50, Math.max(10, value))),
                 display: 'number',
@@ -1103,6 +1103,7 @@ export function QuestionScreen({
                 min: 10,
                 max: 50,
                 step: 1,
+                helperText: '최소 10년, 최대 50년 결과를 시뮬레이션 합니다.',
               },
             ]}
           />

@@ -430,13 +430,14 @@ const calculateComprehensiveTax = (
       }
     }
 
-    const incomeTaxByComparison = Math.max(
-      attributedDividendAnnual * policyConfig.dividendWithholding.incomeTaxRate,
+    const excessAnnual = Math.max(attributedDividendAnnual - thresholdAnnual, 0)
+    const comparisonIncomeTaxAnnual =
       thresholdAnnual * policyConfig.dividendWithholding.incomeTaxRate +
-        calculateProgressiveIncomeTax(attributedDividendAnnual - thresholdAnnual),
-    )
+      calculateProgressiveIncomeTax(excessAnnual)
+    const withholdingEquivalentIncomeTaxAnnual =
+      attributedDividendAnnual * policyConfig.dividendWithholding.incomeTaxRate
     const finalTaxAnnual = roundCurrency(
-      incomeTaxByComparison *
+      Math.max(comparisonIncomeTaxAnnual, withholdingEquivalentIncomeTaxAnnual) *
         (1 + policyConfig.comprehensiveIncomeTax.localIncomeTaxMultiplier),
     )
 
