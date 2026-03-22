@@ -359,9 +359,9 @@ const CashFlowChart = memo(function CashFlowChart({
     result.cashBalanceTimeline.length > 0
       ? result.cashBalanceTimeline
       : [{ year: 0, balance: result.startingCashReserve }]
-  const width = 360
+  const width = 370
   const height = 196
-  const paddingLeft = 58
+  const paddingLeft = 50
   const paddingRight = 18
   const paddingTop = 18
   const paddingBottom = 24
@@ -468,8 +468,8 @@ const CashFlowChart = memo(function CashFlowChart({
           y={paddingTop}
           width={chartWidth}
           height={chartHeight}
-          rx={10}
-          ry={10}
+          rx={0}
+          ry={0}
           fill="none"
           style={{ stroke: 'rgba(227, 236, 240, 0.18)', strokeWidth: 1 }}
         />
@@ -486,7 +486,7 @@ const CashFlowChart = memo(function CashFlowChart({
             />
             <text
               className="cashflow-grid-label"
-              x={paddingLeft - 8}
+              x={paddingLeft - 5}
               y={tick.y}
               textAnchor="end"
               dominantBaseline="middle"
@@ -522,7 +522,7 @@ const CashFlowChart = memo(function CashFlowChart({
             />
             <text
               x={tick.x}
-              y={chartFloorY + 14}
+              y={chartFloorY + 11}
               textAnchor={tick.label === '현재' ? 'start' : tick.label === '30년' ? 'end' : 'middle'}
               style={{
                 fill: labelColor,
@@ -1359,12 +1359,6 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <div className="screen-header">
-          <div>
-            <h1 className="screen-title">현금흐름 결과</h1>
-          </div>
-        </div>
-
         <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} />
 
         <SummaryCards result={result} />
