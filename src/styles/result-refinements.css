@@ -143,10 +143,10 @@
 
   --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 105px;
-  --result-col-4: 120px;
+  --result-col-3: 100px; /* 월 기준 -5px 적용 */
+  --result-col-4: 115px; /* 1년 결과 -5px 적용 */
   --result-col-5: 130px;
-  --result-col-6: 145px;
+  --result-col-6: 155px; /* 비고 +10px 적용 */
 
   --result-note-max-width: none;
   --result-note-icon-size: 20px;
@@ -273,8 +273,7 @@
   text-align: right;
 }
 
-/* 2열 안쪽 편집 UI
-   숫자칸 / 만원 / 버튼 공간을 분리해서 base.css 영향 최소화 */
+/* 2열 안쪽 편집 UI */
 .table-shell .result-table tbody td:nth-child(2) .table-edit-cluster,
 .table-shell .result-table tbody td:nth-child(2) .table-edit-group,
 .table-shell .result-table tbody td:nth-child(2) .table-edit-stack {
@@ -327,8 +326,7 @@
   justify-content: flex-end;
 }
 
-/* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정
-   아이콘/간격을 뺀 텍스트 폭을 명시해서 세로/가로 줄바꿈 차이를 줄입니다. */
+/* 비고 셀 내부는 줄바꿈 허용 + 말풍선 아이콘은 오른쪽 고정 */
 .table-shell .result-table .note-cell,
 .table-shell .result-table tbody .note-cell {
   display: grid;
