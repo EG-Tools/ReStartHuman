@@ -21,6 +21,16 @@ export const defaultFormData: RetireCalcFormData = {
   maintenanceIncludedInRent: true,
   monthlyMaintenanceFee: 0,
 
+  landValue: 0,
+  landOwnershipType: 'mineOnly',
+  myLandShare: 100,
+  spouseLandShare: 0,
+
+  otherPropertyOfficialValue: 0,
+  otherPropertyOwnershipType: 'mineOnly',
+  myOtherPropertyShare: 100,
+  spouseOtherPropertyShare: 0,
+
   taxableAccountAssets: 0,
   isaAssets: 0,
   pensionAccountAssets: 0,

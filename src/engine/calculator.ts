@@ -86,6 +86,12 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   monthlyRentDeposit: sanitizeMoney(formData.monthlyRentDeposit),
   monthlyRentAmount: sanitizeMoney(formData.monthlyRentAmount),
   monthlyMaintenanceFee: sanitizeMoney(formData.monthlyMaintenanceFee),
+  landValue: sanitizeMoney(formData.landValue),
+  myLandShare: sanitizeMoney(formData.myLandShare),
+  spouseLandShare: sanitizeMoney(formData.spouseLandShare),
+  otherPropertyOfficialValue: sanitizeMoney(formData.otherPropertyOfficialValue),
+  myOtherPropertyShare: sanitizeMoney(formData.myOtherPropertyShare),
+  spouseOtherPropertyShare: sanitizeMoney(formData.spouseOtherPropertyShare),
   taxableAccountAssets: sanitizeMoney(formData.taxableAccountAssets),
   isaAssets: sanitizeMoney(formData.isaAssets),
   pensionAccountAssets: sanitizeMoney(formData.pensionAccountAssets),
@@ -338,6 +344,65 @@ const getOwnershipAllocations = ({
   ]
 }
 
+const getMineAttributedPropertyValue = ({
+  householdType,
+  ownershipType,
+  totalValue,
+  myShare,
+}: {
+  householdType: RetireCalcFormData['householdType']
+  ownershipType: OwnershipType
+  totalValue: number
+  myShare: number
+}) => {
+  if (householdType !== 'couple') {
+    return roundCurrency(totalValue)
+  }
+
+  if (ownershipType === 'mineOnly') {
+    return roundCurrency(totalValue)
+  }
+
+  if (ownershipType === 'spouseOnly') {
+    return 0
+  }
+
+  const safeShare = Math.min(Math.max(myShare, 0), 100)
+  return roundCurrency(totalValue * (safeShare / 100))
+}
+
+const getAdditionalPropertyBase = (formData: RetireCalcFormData) => {
+  const landTotal = formData.landValue
+  const otherPropertyTotal = formData.otherPropertyOfficialValue
+
+  if (formData.householdType !== 'couple') {
+    return landTotal + otherPropertyTotal
+  }
+
+  if (
+    formData.healthInsuranceType === 'regional' ||
+    formData.healthInsuranceType === 'bothRegional' ||
+    formData.healthInsuranceType === 'other'
+  ) {
+    return landTotal + otherPropertyTotal
+  }
+
+  return (
+    getMineAttributedPropertyValue({
+      householdType: formData.householdType,
+      ownershipType: formData.landOwnershipType,
+      totalValue: landTotal,
+      myShare: formData.myLandShare,
+    }) +
+    getMineAttributedPropertyValue({
+      householdType: formData.householdType,
+      ownershipType: formData.otherPropertyOwnershipType,
+      totalValue: otherPropertyTotal,
+      myShare: formData.myOtherPropertyShare,
+    })
+  )
+}
+
 const calculateComprehensiveTax = (
   ownershipBreakdown: AccountOwnershipBreakdown[],
 ): ComprehensiveTaxCalculation => {
@@ -515,15 +580,14 @@ const estimateHoldingTax = (formData: RetireCalcFormData) => {
 }
 
 const getRegionalPropertyBase = (formData: RetireCalcFormData) => {
-  if (formData.housingType === 'own') {
-    return formData.homeOfficialValue
-  }
+  const housingBase =
+    formData.housingType === 'own'
+      ? formData.homeOfficialValue
+      : formData.housingType === 'jeonse'
+        ? formData.jeonseDeposit * policyConfig.healthInsurance.leaseValueRatio
+        : formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
 
-  if (formData.housingType === 'jeonse') {
-    return formData.jeonseDeposit * policyConfig.healthInsurance.leaseValueRatio
-  }
-
-  return formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
+  return housingBase + getAdditionalPropertyBase(formData)
 }
 
 const estimateHealthInsurance = (

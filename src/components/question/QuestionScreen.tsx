@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ChoiceQuestion, PrimaryButton, ProgressBar } from '../common/Ui'
+import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
 
@@ -60,6 +60,12 @@ const dividendOwnershipOptions = [
   { value: 'mineOnly', label: '본인' },
   { value: 'spouseOnly', label: '배우자' },
   { value: 'split', label: '분할' },
+] as const
+
+const propertyOwnershipOptions = [
+  { value: 'mineOnly', label: '본인' },
+  { value: 'spouseOnly', label: '배우자' },
+  { value: 'split', label: '공동명의' },
 ] as const
 
 const otherIncomeTypeOptions = [
@@ -217,7 +223,6 @@ function QuestionNumberFields({
                 alignItems: 'baseline',
                 justifyContent: 'space-between',
                 gap: '12px',
-                marginBottom: '4px',
               }}
             >
               <h2>{field.label}</h2>
@@ -242,14 +247,12 @@ function QuestionNumberFields({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '3px',
-                marginTop: '-2px',
               }}
             >
               <div className="input-shell" style={{
                 flex: 1,
-                minHeight: '40px',
-                backgroundColor: 'rgba(227, 236, 240, 0.07)',
-                border: '1px solid rgba(227, 236, 240, 0.16)',
+                backgroundColor: 'rgba(227, 236, 240, 0.08)',
+                border: '1px solid rgba(227, 236, 240, 0.18)',
                 borderRadius: '999px',
               }}>
                 <input
@@ -271,8 +274,6 @@ function QuestionNumberFields({
                   }}
                   style={{
                     width: '100%',
-                    minHeight: '40px',
-                    padding: '8px 14px',
                     boxSizing: 'border-box',
                     background: 'transparent',
                     border: 'none',
@@ -415,7 +416,7 @@ export function QuestionScreen({
               </p>
             </section>
             {(formData.hasChildren ?? false) ? (
-              <QuestionNumberFields
+              <NumberFields
                 fields={[
                   {
                     key: 'childCount',
@@ -532,6 +533,106 @@ export function QuestionScreen({
                   />
                 ) : null}
               </>
+            ) : null}
+          </div>
+        )
+      case 'propertyAssets':
+        return (
+          <div className="question-stack">
+            <QuestionNumberFields
+              fields={[
+                {
+                  key: 'landValue',
+                  label: '토지 금액',
+                  value: formData.landValue,
+                  onChange: (value) => update('landValue', value),
+                },
+              ]}
+            />
+            {formData.householdType === 'couple' ? (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>토지 소유형태</h2>
+                </div>
+                <ChoiceQuestion
+                  value={formData.landOwnershipType}
+                  options={propertyOwnershipOptions}
+                  onChange={(value) =>
+                    onPatchFormData(
+                      value === 'split'
+                        ? {
+                            landOwnershipType: value,
+                            myLandShare: 50,
+                            spouseLandShare: 50,
+                          }
+                        : value === 'spouseOnly'
+                          ? {
+                              landOwnershipType: value,
+                              myLandShare: 0,
+                              spouseLandShare: 100,
+                            }
+                          : {
+                              landOwnershipType: value,
+                              myLandShare: 100,
+                              spouseLandShare: 0,
+                            },
+                    )
+                  }
+                />
+                {formData.landOwnershipType === 'split' ? (
+                  <p className="screen-copy" style={{ marginTop: '10px' }}>
+                    공동명의 선택 시 본인 50%, 배우자 50%가 자동 적용됩니다.
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
+            <QuestionNumberFields
+              fields={[
+                {
+                  key: 'otherPropertyOfficialValue',
+                  label: '상가 및 기타부동산 공시가격',
+                  value: formData.otherPropertyOfficialValue,
+                  onChange: (value) => update('otherPropertyOfficialValue', value),
+                },
+              ]}
+            />
+            {formData.householdType === 'couple' ? (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>상가 및 기타부동산 소유형태</h2>
+                </div>
+                <ChoiceQuestion
+                  value={formData.otherPropertyOwnershipType}
+                  options={propertyOwnershipOptions}
+                  onChange={(value) =>
+                    onPatchFormData(
+                      value === 'split'
+                        ? {
+                            otherPropertyOwnershipType: value,
+                            myOtherPropertyShare: 50,
+                            spouseOtherPropertyShare: 50,
+                          }
+                        : value === 'spouseOnly'
+                          ? {
+                              otherPropertyOwnershipType: value,
+                              myOtherPropertyShare: 0,
+                              spouseOtherPropertyShare: 100,
+                            }
+                          : {
+                              otherPropertyOwnershipType: value,
+                              myOtherPropertyShare: 100,
+                              spouseOtherPropertyShare: 0,
+                            },
+                    )
+                  }
+                />
+                {formData.otherPropertyOwnershipType === 'split' ? (
+                  <p className="screen-copy" style={{ marginTop: '10px' }}>
+                    공동명의 선택 시 본인 50%, 배우자 50%가 자동 적용됩니다.
+                  </p>
+                ) : null}
+              </section>
             ) : null}
           </div>
         )

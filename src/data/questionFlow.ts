@@ -14,6 +14,12 @@ export const questionFlow: QuestionStep[] = [
     visibility: () => true,
   },
   {
+    id: 'propertyAssets',
+    title: '상가 및 기타부동산 정보',
+    description: '',
+    visibility: () => true,
+  },
+  {
     id: 'assets',
     title: '주식 계좌 자산 규모',
     description: '',
@@ -52,7 +58,7 @@ export const questionFlow: QuestionStep[] = [
   {
     id: 'cashReserve',
     title: '현재 보유 현금, 나이',
-    description: '',
+    description: '현재 보유한 현금과, 나이를 참고해서 최종 결과에 반영합니다.',
     visibility: () => true,
   },
 ]

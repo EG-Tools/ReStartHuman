@@ -18,6 +18,7 @@ export type QuestionStepId =
   | 'household'
   | 'housingType'
   | 'housingDetails'
+  | 'propertyAssets'
   | 'assets'
   | 'dividends'
   | 'isa'
@@ -48,6 +49,16 @@ export interface RetireCalcFormData {
   monthlyRentAmount: number
   maintenanceIncludedInRent: boolean
   monthlyMaintenanceFee: number
+
+  landValue: number
+  landOwnershipType: OwnershipType
+  myLandShare: number
+  spouseLandShare: number
+
+  otherPropertyOfficialValue: number
+  otherPropertyOwnershipType: OwnershipType
+  myOtherPropertyShare: number
+  spouseOtherPropertyShare: number
 
   taxableAccountAssets: number
   isaAssets: number
