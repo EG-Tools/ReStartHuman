@@ -175,11 +175,28 @@
 }
 
 @media (min-width: 901px) and (orientation: landscape) {
-  .result-table th.result-col-monthly,
-  .result-table td.result-col-monthly {
-    width: 96px;
-    min-width: 96px;
+  .result-table {
+    table-layout: fixed;
+  }
+
+  .result-table th:nth-child(3),
+  .result-table td:nth-child(3) {
+    width: 86px;
+    min-width: 86px;
+    max-width: 86px;
     padding-left: 9px;
     padding-right: 9px;
+  }
+
+  .result-table th:nth-child(6),
+  .result-table td:nth-child(6) {
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
+  }
+
+  .result-table td:nth-child(6) .note-cell {
+    width: 100%;
+    max-width: none;
   }
 }
