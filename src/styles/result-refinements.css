@@ -139,10 +139,10 @@
 
   --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 95px;  /* 월 기준 -5px */
-  --result-col-4: 115px; /* 1년 결과 -5px */
-  --result-col-5: 125px; /* 30년 결과 -5px */
-  --result-col-6: 165px; /* 비고 +10px */
+  --result-col-3: 95px;  /* 월 기준 */
+  --result-col-4: 110px; /* 1년 결과 -5px */
+  --result-col-5: 125px; /* 30년 결과 */
+  --result-col-6: 170px; /* 비고 +5px */
 
   --result-note-max-width: none;
   --result-note-icon-size: 20px;
@@ -375,7 +375,7 @@
 
 /* ------------------------------------------------------------------
    세로에서도 가로와 같은 테이블 크기 유지
-   base.css 의 모바일용 결과표 축소 규칙을 여기서 다시 덮습니다.
+   base.css 의 모바일용 결과표 축소 규칙을 더 강하게 다시 덮습니다.
 ------------------------------------------------------------------- */
 @media (max-width: 900px) {
   .projection-inline-row {
@@ -424,86 +424,100 @@
     transform: translateX(16px);
   }
 
-  /* base.css 의 모바일 축소 규칙 무효화 + 세로에서도 가로 기준값 유지 */
   .table-shell {
-    margin-inline: 0;
-    padding-bottom: 0;
+    margin-inline: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   .table-shell .result-table {
-    font-size: var(--result-table-font-size);
-    width: max-content;
-    min-width: max-content;
+    font-size: var(--result-table-font-size) !important;
+    width: max-content !important;
+    min-width: max-content !important;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
   .table-shell .result-table th,
   .table-shell .result-table td {
-    padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
+    padding: var(--result-cell-pad-y) var(--result-cell-pad-x) !important;
   }
 
   .table-shell .result-table th:nth-child(1),
   .table-shell .result-table td:nth-child(1),
   .table-shell .result-table .result-item-cell {
-    width: var(--result-col-1);
-    min-width: var(--result-col-1);
-    max-width: var(--result-col-1);
+    width: var(--result-col-1) !important;
+    min-width: var(--result-col-1) !important;
+    max-width: var(--result-col-1) !important;
   }
 
   .table-shell .result-table th:nth-child(2),
   .table-shell .result-table td:nth-child(2),
   .table-shell .result-table .result-input-cell,
   .table-shell .result-table .table-edit-cluster {
-    width: var(--result-col-2);
-    min-width: var(--result-col-2);
-    max-width: var(--result-col-2);
+    width: var(--result-col-2) !important;
+    min-width: var(--result-col-2) !important;
+    max-width: var(--result-col-2) !important;
   }
 
   .table-shell .result-table th.result-col-monthly,
   .table-shell .result-table td.result-col-monthly,
   .table-shell .result-table th:nth-child(3),
   .table-shell .result-table td:nth-child(3) {
-    width: var(--result-col-3);
-    min-width: var(--result-col-3);
-    max-width: var(--result-col-3);
+    width: var(--result-col-3) !important;
+    min-width: var(--result-col-3) !important;
+    max-width: var(--result-col-3) !important;
   }
 
   .table-shell .result-table th:nth-child(4),
   .table-shell .result-table td:nth-child(4) {
-    width: var(--result-col-4);
-    min-width: var(--result-col-4);
-    max-width: var(--result-col-4);
+    width: var(--result-col-4) !important;
+    min-width: var(--result-col-4) !important;
+    max-width: var(--result-col-4) !important;
   }
 
   .table-shell .result-table th:nth-child(5),
   .table-shell .result-table td:nth-child(5) {
-    width: var(--result-col-5);
-    min-width: var(--result-col-5);
-    max-width: var(--result-col-5);
+    width: var(--result-col-5) !important;
+    min-width: var(--result-col-5) !important;
+    max-width: var(--result-col-5) !important;
   }
 
   .table-shell .result-table th:nth-child(6),
   .table-shell .result-table td:nth-child(6) {
-    width: var(--result-col-6);
-    min-width: var(--result-col-6);
-    max-width: var(--result-col-6);
+    width: var(--result-col-6) !important;
+    min-width: var(--result-col-6) !important;
+    max-width: var(--result-col-6) !important;
+  }
+
+  .table-shell .result-table .result-input-cell,
+  .table-shell .result-table .table-edit-cluster {
+    min-width: var(--result-col-2) !important;
+  }
+
+  .table-shell .result-table tbody td:nth-child(2) .table-edit-inline {
+    gap: var(--result-edit-inline-gap) !important;
+  }
+
+  .table-shell .result-table tbody td:nth-child(2) .table-edit-field {
+    padding-left: var(--result-edit-field-pad-x) !important;
+    padding-right: var(--result-edit-field-pad-x) !important;
   }
 
   .table-shell .result-table tbody td:nth-child(2) .table-edit-input {
-    font-size: var(--result-edit-input-font-size);
+    font-size: var(--result-edit-input-font-size) !important;
   }
 
   .table-shell .result-table tbody td:nth-child(2) .table-edit-suffix {
-    font-size: var(--result-edit-suffix-font-size);
+    font-size: var(--result-edit-suffix-font-size) !important;
   }
 
   .table-shell .result-table tbody td:nth-child(2) .table-edit-helper {
-    font-size: var(--result-edit-helper-font-size);
+    font-size: var(--result-edit-helper-font-size) !important;
   }
 
   .table-shell .result-table .note-cell,
   .table-shell .result-table tbody .note-cell {
-    grid-template-columns: var(--result-note-text-width) var(--result-note-icon-size);
+    grid-template-columns: var(--result-note-text-width) var(--result-note-icon-size) !important;
+    max-width: none !important;
   }
 }
