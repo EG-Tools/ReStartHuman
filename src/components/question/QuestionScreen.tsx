@@ -1078,54 +1078,49 @@ export function QuestionScreen({
         )
       case 'cashReserve':
         return (
-          <QuestionNumberFields
-            columns={2}
-            fields={[
-              {
-                key: 'startingCashReserve',
-                label: '현재 보유한 현금',
-                value: formData.startingCashReserve,
-                onChange: (value) => update('startingCashReserve', value),
-                helperText: '현금 흐름 그래프의 시작 금액 입니다.',
-              },
-              {
-                key: 'currentAge',
-                label: '현재 나이',
-                value: formData.currentAge,
-                onChange: (value) => update('currentAge', value),
-                display: 'number',
-                suffix: '세',
-                min: 1,
-                step: 1,
-                helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
-              },
-              {
-                key: 'simulationYears',
-                label: '예상 현금흐름 반영 기간',
-                value: formData.simulationYears,
-                onChange: (value) => update('simulationYears', Math.min(50, Math.max(10, value))),
-                display: 'number',
-                suffix: '년',
-                min: 10,
-                max: 50,
-                step: 1,
-                helperText: '최소 10년, 최대 50년 결과를 시뮬레이션 합니다.',
-              },
-            ]}
-          />
-          <section className="question-block">
-            <div className="question-block-header">
-              <h2>예상 현금흐름 반영 기간</h2>
-            </div>
-            <ChoiceQuestion
-              value={String(formData.simulationYears || 10)}
-              options={simulationYearOptions}
-              onChange={(value) => update('simulationYears', Number(value) as RetireCalcFormData['simulationYears'])}
+          <div className="question-stack">
+            <QuestionNumberFields
+              columns={2}
+              fields={[
+                {
+                  key: 'startingCashReserve',
+                  label: '현재 보유한 현금',
+                  value: formData.startingCashReserve,
+                  onChange: (value) => update('startingCashReserve', value),
+                  helperText: '현금 흐름 그래프의 시작 금액 입니다.',
+                },
+                {
+                  key: 'currentAge',
+                  label: '현재 나이',
+                  value: formData.currentAge,
+                  onChange: (value) => update('currentAge', value),
+                  display: 'number',
+                  suffix: '세',
+                  min: 1,
+                  step: 1,
+                  helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
+                },
+              ]}
             />
-            <p className="screen-copy" style={{ marginTop: '10px' }}>
-              최소 10년, 최대 50년 결과를 시뮬레이션 합니다.
-            </p>
-          </section>
+            <section className="question-block">
+              <div className="question-block-header">
+                <h2>예상 현금흐름 반영 기간</h2>
+              </div>
+              <ChoiceQuestion
+                value={String(formData.simulationYears || 10)}
+                options={simulationYearOptions}
+                onChange={(value) =>
+                  update(
+                    'simulationYears',
+                    Number(value) as RetireCalcFormData['simulationYears'],
+                  )
+                }
+              />
+              <p className="screen-copy" style={{ marginTop: '10px' }}>
+                최소 10년, 최대 50년 결과를 시뮬레이션 합니다.
+              </p>
+            </section>
+          </div>
         )
       default:
         return null
