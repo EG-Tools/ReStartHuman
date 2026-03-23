@@ -112,7 +112,7 @@
 
 .projection-inline-input .input-control {
   text-align: right;
-  padding-block: 11px;
+  padding-block: 9px;
 }
 
 /* ------------------------------------------------------------------
@@ -409,7 +409,7 @@
   }
 
   .projection-inline-input .input-control {
-    padding-block: 10px;
+    padding-block: 9px;
   }
 
   .inflation-toggle {
@@ -436,21 +436,4 @@
   .inflation-toggle.is-on .inflation-toggle-thumb {
     transform: translateX(16px);
   }
-}
-
-
-/* 집값행: 시가 밑 만원 ↔ 공시가격 간격만 소폭 추가 */
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group + .table-edit-group {
-  margin-top: 4px;
-}
-
-
-/* 집값행: 시가 라벨-입력 간격만 약간 축소 */
-.table-shell .result-table .result-input-cell .table-edit-group-market {
-  gap: 4px;
-}
-
-/* 집값행: 시가/공시가격 라벨은 왼쪽정렬 */
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing .table-edit-label {
-  text-align: left;
 }
