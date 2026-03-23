@@ -447,3 +447,9 @@
 .table-shell .result-table .result-input-cell .table-edit-inline:not(:has(.table-edit-action)) .table-edit-suffix {
   justify-self: end;
 }
+
+
+/* 집값행만 그룹 사이 간격을 아주 조금 더 넓힘 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing {
+  gap: 12px;
+}
