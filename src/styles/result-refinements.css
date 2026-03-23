@@ -443,3 +443,14 @@
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group + .table-edit-group {
   margin-top: 4px;
 }
+
+
+/* 집값행: 시가 라벨-입력 간격만 약간 축소 */
+.table-shell .result-table .result-input-cell .table-edit-group-market {
+  gap: 4px;
+}
+
+/* 집값행: 시가/공시가격 라벨은 왼쪽정렬 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing .table-edit-label {
+  text-align: left;
+}
