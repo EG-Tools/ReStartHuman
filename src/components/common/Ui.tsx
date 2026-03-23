@@ -1,14 +1,104 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 
 const MANWON = 10_000
 
-const formatDraftValue = (value: number) =>
-  Number.isFinite(value) && value !== 0 ? String(value) : ''
+type NumericDisplayMode = 'currency' | 'number'
+type NumericCommitMode = 'blur' | 'change'
+type ZeroDisplayMode = 'blank' | 'zero'
+
+const formatDraftValue = (
+  value: number,
+  zeroDisplayMode: ZeroDisplayMode = 'blank',
+) =>
+  Number.isFinite(value) && (value !== 0 || zeroDisplayMode === 'zero') ? String(value) : ''
 
 const parseDraftValue = (draftValue: string, minValue: number) => {
   const normalizedValue = Number(draftValue) || 0
   return Math.max(normalizedValue, minValue)
+}
+
+const toDisplayValue = (value: number, display: NumericDisplayMode) =>
+  display === 'currency' ? value / MANWON : value
+
+const toCommitValue = (value: number, display: NumericDisplayMode) =>
+  display === 'currency' ? value * MANWON : value
+
+interface UseNumericDraftControllerProps {
+  value: number
+  onChange: (value: number) => void
+  min?: number
+  display?: NumericDisplayMode
+  commitMode?: NumericCommitMode
+  idleZeroDisplay?: ZeroDisplayMode
+}
+
+function useNumericDraftController({
+  value,
+  onChange,
+  min = 0,
+  display = 'currency',
+  commitMode = 'blur',
+  idleZeroDisplay = 'blank',
+}: UseNumericDraftControllerProps) {
+  const displayValue = Number.isFinite(value) ? toDisplayValue(value, display) : 0
+  const [editBuffer, setEditBuffer] = useState<string | null>(null)
+
+  const draftValue = editBuffer ?? formatDraftValue(displayValue, idleZeroDisplay)
+
+  const commitRawValue = (rawValue: string) => {
+    const nextValue = parseDraftValue(rawValue, min)
+    onChange(toCommitValue(nextValue, display))
+    return nextValue
+  }
+
+  return {
+    draftValue,
+    displayValue,
+    commitDraftValue: () => {
+      const nextValue = commitRawValue(draftValue)
+      setEditBuffer(null)
+      return nextValue
+    },
+    inputHandlers: {
+      onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+        setEditBuffer((currentValue) =>
+          currentValue ?? formatDraftValue(displayValue, idleZeroDisplay),
+        )
+        event.currentTarget.select()
+      },
+      onBlur: () => {
+        if (commitMode === 'blur') {
+          commitRawValue(draftValue)
+        }
+
+        setEditBuffer(null)
+      },
+      onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur()
+        }
+
+        if (event.key === 'Escape') {
+          setEditBuffer(null)
+          event.currentTarget.blur()
+        }
+      },
+      onWheel: (event: React.WheelEvent<HTMLInputElement>) => {
+        if (document.activeElement === event.currentTarget) {
+          event.currentTarget.blur()
+        }
+      },
+      onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        const nextDraftValue = event.target.value
+        setEditBuffer(nextDraftValue)
+
+        if (commitMode === 'change') {
+          commitRawValue(nextDraftValue)
+        }
+      },
+    },
+  }
 }
 
 export interface ToggleOption<T extends string> {
@@ -136,6 +226,92 @@ export function ChoiceQuestion<T extends string>(props: ChoiceQuestionProps<T>) 
   return <ToggleButtonGroup {...props} />
 }
 
+interface InlineNumericFieldProps {
+  value: number
+  onChange: (value: number) => void
+  suffix?: string
+  min?: number
+  step?: number
+  max?: number
+  display?: NumericDisplayMode
+  disabled?: boolean
+  commitMode?: NumericCommitMode
+  idleZeroDisplay?: ZeroDisplayMode
+  inlineClassName?: string
+  shellClassName?: string
+  inputClassName?: string
+  suffixClassName?: string
+  action?: ReactNode
+  placeholder?: string
+  inputAriaLabel?: string
+  inlineStyle?: CSSProperties
+  shellStyle?: CSSProperties
+  inputStyle?: CSSProperties
+  suffixStyle?: CSSProperties
+}
+
+export function InlineNumericField({
+  value,
+  onChange,
+  suffix,
+  min = 0,
+  step,
+  max,
+  display = 'currency',
+  disabled = false,
+  commitMode = 'blur',
+  idleZeroDisplay = 'blank',
+  inlineClassName = 'input-inline',
+  shellClassName = 'input-shell',
+  inputClassName = 'input-control',
+  suffixClassName = 'input-suffix',
+  action,
+  placeholder = '0',
+  inputAriaLabel,
+  inlineStyle,
+  shellStyle,
+  inputStyle,
+  suffixStyle,
+}: InlineNumericFieldProps) {
+  const resolvedStep = step ?? 1
+  const resolvedSuffix = suffix ?? (display === 'currency' ? '만원' : undefined)
+  const { draftValue, inputHandlers } = useNumericDraftController({
+    value,
+    onChange,
+    min,
+    display,
+    commitMode,
+    idleZeroDisplay,
+  })
+
+  return (
+    <div className={inlineClassName} style={inlineStyle}>
+      <div className={shellClassName} style={shellStyle}>
+        <input
+          className={inputClassName}
+          type="number"
+          inputMode="decimal"
+          min={min}
+          step={resolvedStep}
+          max={max}
+          value={draftValue}
+          aria-label={inputAriaLabel}
+          placeholder={placeholder}
+          disabled={disabled}
+          style={inputStyle}
+          {...inputHandlers}
+        />
+      </div>
+      {resolvedSuffix ? (
+        <span className={suffixClassName} style={suffixStyle}>
+          {resolvedSuffix}
+        </span>
+      ) : null}
+      {action}
+    </div>
+  )
+}
+
 interface NumericInputProps {
   label: string
   value: number
@@ -144,7 +320,7 @@ interface NumericInputProps {
   suffix?: string
   min?: number
   step?: number
-  display?: 'currency' | 'number'
+  display?: NumericDisplayMode
   disabled?: boolean
 }
 
@@ -160,77 +336,26 @@ export function NumericInput({
   disabled = false,
 }: NumericInputProps) {
   const isCurrency = display === 'currency'
-  const displayValue = isCurrency ? value / MANWON : value
-  const resolvedStep = step ?? 1
-  const resolvedSuffix = suffix ?? (isCurrency ? '\uB9CC\uC6D0' : undefined)
-  const [draftValue, setDraftValue] = useState(() => formatDraftValue(displayValue))
-  const isEditingRef = useRef(false)
-
-  useEffect(() => {
-    if (!isEditingRef.current) {
-      setDraftValue(formatDraftValue(displayValue))
-    }
-  }, [displayValue])
-
-  const committedDraftValue = parseDraftValue(draftValue, min)
-  const previewValue = isCurrency ? committedDraftValue * MANWON : committedDraftValue
-  const preview = helperText ?? (isCurrency ? `\uD658\uC0B0: ${formatCurrency(previewValue)}` : undefined)
-
-  const commitDraftValue = () => {
-    const nextValue = parseDraftValue(draftValue, min)
-    onChange(isCurrency ? nextValue * MANWON : nextValue)
-    setDraftValue(formatDraftValue(nextValue))
-  }
+  const previewSourceValue = Number.isFinite(value) ? value : 0
+  const preview = helperText ?? (isCurrency ? `환산: ${formatCurrency(previewSourceValue)}` : undefined)
 
   return (
     <label className={`input-card${disabled ? ' is-disabled' : ''}`}>
       <span className="input-card-label">{label}</span>
-      <div className="input-inline">
-        <div className="input-shell">
-          <input
-            className="input-control"
-            type="number"
-            inputMode="decimal"
-            min={min}
-            step={resolvedStep}
-            value={draftValue}
-            placeholder="0"
-            onFocus={(event) => {
-              isEditingRef.current = true
-              event.currentTarget.select()
-            }}
-            onBlur={() => {
-              isEditingRef.current = false
-              commitDraftValue()
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.currentTarget.blur()
-              }
-
-              if (event.key === 'Escape') {
-                isEditingRef.current = false
-                setDraftValue(formatDraftValue(displayValue))
-                event.currentTarget.blur()
-              }
-            }}
-            disabled={disabled}
-            onWheel={(event) => {
-              if (document.activeElement === event.currentTarget) {
-                event.currentTarget.blur()
-              }
-            }}
-            onChange={(event) => {
-              setDraftValue(event.target.value)
-            }}
-          />
-        </div>
-        {resolvedSuffix ? <span className="input-suffix">{resolvedSuffix}</span> : null}
-      </div>
+      <InlineNumericField
+        value={value}
+        onChange={onChange}
+        suffix={suffix}
+        min={min}
+        step={step}
+        display={display}
+        disabled={disabled}
+      />
       {preview ? <span className="input-preview">{preview}</span> : null}
     </label>
   )
 }
+
 export interface NumberField {
   key: string
   label: string
@@ -240,7 +365,7 @@ export interface NumberField {
   suffix?: string
   min?: number
   step?: number
-  display?: 'currency' | 'number'
+  display?: NumericDisplayMode
   disabled?: boolean
 }
 
@@ -260,4 +385,3 @@ export function NumberFields({
     </div>
   )
 }
-

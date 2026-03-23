@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ChoiceQuestion, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
+import { ChoiceQuestion, InlineNumericField, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
 
@@ -29,7 +29,6 @@ interface QuestionNumberFieldConfig {
   max?: number
 }
 
-const MANWON = 10_000
 
 const householdOptions = [
   { value: 'single', label: '1인가구' },
@@ -211,11 +210,6 @@ function QuestionNumberFields({
     >
       {fields.map((field) => {
         const isCurrency = field.display !== 'number'
-        const displayValue = Number.isFinite(field.value)
-          ? isCurrency
-            ? Math.round(field.value / MANWON)
-            : field.value
-          : 0
         const suffix = field.suffix ?? (isCurrency ? '만원' : '')
         const conversionText = isCurrency
           ? `환산 ${field.value > 0 ? formatCompactCurrency(field.value) : '0원'}`
@@ -249,63 +243,49 @@ function QuestionNumberFields({
               ) : null}
             </div>
 
-            <div
-              style={{
-                display: 'flex',
+            <InlineNumericField
+              value={field.value}
+              onChange={field.onChange}
+              suffix={suffix || undefined}
+              min={field.min ?? 0}
+              step={field.step ?? 1}
+              max={field.max}
+              disabled={field.disabled}
+              display={isCurrency ? 'currency' : 'number'}
+              commitMode="change"
+              idleZeroDisplay="zero"
+              inlineClassName="input-inline"
+              shellClassName="input-shell"
+              inputClassName="input-control"
+              suffixClassName="input-suffix"
+              inputAriaLabel={field.label}
+              inlineStyle={{
                 alignItems: 'center',
                 gap: '3px',
               }}
-            >
-              <div className="input-shell" style={{
+              shellStyle={{
                 flex: 1,
                 backgroundColor: 'rgba(227, 236, 240, 0.08)',
                 border: '1px solid rgba(227, 236, 240, 0.18)',
                 borderRadius: '999px',
-              }}>
-                <input
-                  className="input-control"
-                  type="number"
-                  inputMode="decimal"
-                  min={field.min ?? 0}
-                  step={field.step ?? 1}
-                  max={field.max}
-                  disabled={field.disabled}
-                  value={displayValue}
-                  onWheel={(event) => {
-                    if (document.activeElement === event.currentTarget) {
-                      event.currentTarget.blur()
-                    }
-                  }}
-                  onChange={(event) => {
-                    const rawValue = Number(event.target.value) || 0
-                    field.onChange(isCurrency ? rawValue * MANWON : rawValue)
-                  }}
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    background: 'transparent',
-                    border: 'none',
-                    boxShadow: 'none',
-                    color: '#f4fbfd',
-                  }}
-                />
-              </div>
-              {suffix ? (
-                <span
-                  className="input-suffix"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    lineHeight: 1,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                    marginTop: '-4px',
-                  }}
-                >
-                  {suffix}
-                </span>
-              ) : null}
-            </div>
+              }}
+              inputStyle={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                color: '#f4fbfd',
+              }}
+              suffixStyle={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                lineHeight: 1,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                marginTop: '-4px',
+              }}
+            />
 
             {field.helperText && isCurrency ? (
               <p className="screen-copy" style={{ marginTop: '8px' }}>

@@ -1,6 +1,6 @@
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
-import { PrimaryButton } from '../common/Ui'
+import { InlineNumericField, PrimaryButton } from '../common/Ui'
 import type {
   AccountOwnershipBreakdown,
   RetireCalcFormData,
@@ -33,15 +33,6 @@ interface ResultRow {
   noteDetail?: string
 }
 
-const MANWON = 10_000
-
-const formatDraftValue = (value: number) =>
-  Number.isFinite(value) && value !== 0 ? String(value) : ''
-
-const parseDraftValue = (draftValue: string, minValue: number) => {
-  const normalizedValue = Number(draftValue) || 0
-  return Math.max(normalizedValue, minValue)
-}
 
 const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
   formData.livingCostInputMode === 'total'
@@ -50,7 +41,6 @@ const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
       formData.necessitiesMonthly +
       formData.diningOutMonthly +
       formData.hobbyMonthly +
-      (formData.academyMonthly ?? 0) +
       formData.otherLivingMonthly
 
 const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
@@ -786,66 +776,21 @@ function InlineAmountInput({
   onChange: (value: number) => void
   action?: ReactNode
 }) {
-  const displayValue = Number.isFinite(value) ? Math.round(value / MANWON) : 0
-  const [draftValue, setDraftValue] = useState(() => formatDraftValue(displayValue))
-  const isEditingRef = useRef(false)
-
-  useEffect(() => {
-    if (!isEditingRef.current) {
-      setDraftValue(formatDraftValue(displayValue))
-    }
-  }, [displayValue])
-
-  const commitDraftValue = () => {
-    const nextValue = parseDraftValue(draftValue, 0)
-    onChange(nextValue * MANWON)
-    setDraftValue(formatDraftValue(nextValue))
-  }
-
   return (
     <div className="table-edit-stack">
-      <div className="table-edit-inline">
-        <div className="table-edit-field">
-          <input
-            className="table-edit-input"
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step={1}
-            value={draftValue}
-            aria-label={label}
-            onFocus={(event) => {
-              isEditingRef.current = true
-              event.currentTarget.select()
-            }}
-            onBlur={() => {
-              isEditingRef.current = false
-              commitDraftValue()
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.currentTarget.blur()
-              }
-
-              if (event.key === 'Escape') {
-                isEditingRef.current = false
-                setDraftValue(formatDraftValue(displayValue))
-                event.currentTarget.blur()
-              }
-            }}
-            onWheel={(event) => {
-              if (document.activeElement === event.currentTarget) {
-                event.currentTarget.blur()
-              }
-            }}
-            onChange={(event) => {
-              setDraftValue(event.target.value)
-            }}
-          />
-        </div>
-        <span className="table-edit-suffix">만원</span>
-        {action ? <div className="table-edit-action">{action}</div> : null}
-      </div>
+      <InlineNumericField
+        value={value}
+        onChange={onChange}
+        min={0}
+        step={1}
+        display="currency"
+        inlineClassName="table-edit-inline"
+        shellClassName="table-edit-field"
+        inputClassName="table-edit-input"
+        suffixClassName="table-edit-suffix"
+        inputAriaLabel={label}
+        action={action ? <div className="table-edit-action">{action}</div> : null}
+      />
     </div>
   )
 }
@@ -1012,8 +957,7 @@ function LivingExpenseEditor({
     formData.foodMonthly +
     formData.necessitiesMonthly +
     formData.diningOutMonthly +
-    formData.hobbyMonthly +
-    (formData.academyMonthly ?? 0)
+    formData.hobbyMonthly
 
   return (
     <InlineAmountInput
