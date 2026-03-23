@@ -449,3 +449,33 @@
     transform: translateX(16px);
   }
 }
+
+/* 집값행 라벨/간격 전용 보정 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing {
+  gap: 15px;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market,
+.table-shell .result-table .result-input-cell .table-edit-group-official {
+  width: var(--result-col-2-content);
+  min-width: var(--result-col-2-content);
+  max-width: var(--result-col-2-content);
+  margin-left: auto;
+  align-items: stretch;
+  text-align: left;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
+  display: block;
+  width: 100%;
+  text-align: left;
+  position: static;
+  top: auto;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-stack,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-stack {
+  width: 100%;
+  min-width: 0;
+}
