@@ -1,19 +1,15 @@
-import type { QuestionStep, RetireCalcFormData } from '../types/retireCalc'
-
-const hasIsaStep = (formData: RetireCalcFormData) =>
-  formData.isaAssets > 0 || formData.isaDividendAnnual > 0
-
+import type { QuestionStep } from '../types/retireCalc'
 
 export const questionFlow: QuestionStep[] = [
   {
     id: 'household',
-    title: '가구 기준 정보',
+    title: '기본 정보',
     description: '',
     visibility: () => true,
   },
   {
     id: 'housingDetails',
-    title: '주거 형태 및 상세 정보',
+    title: '주거 형태',
     description: '선택한 주거 형태에 필요한 항목만 보여줍니다.',
     visibility: () => true,
   },
@@ -34,12 +30,6 @@ export const questionFlow: QuestionStep[] = [
     title: '배당금과 연금 예상액',
     description: '',
     visibility: () => true,
-  },
-  {
-    id: 'isa',
-    title: 'ISA 상세 정보',
-    description: 'ISA 자산이나 배당금이 있을 때만 보여줍니다.',
-    visibility: hasIsaStep,
   },
   {
     id: 'income',
@@ -68,7 +58,7 @@ export const questionFlow: QuestionStep[] = [
   {
     id: 'cashReserve',
     title: '현재 보유 현금',
-    description: '현재 보유한 현금과 예상 현금흐름 반영 기간을 최종 결과에 반영합니다.',
+    description: '현재 보유한 현금을 최종 결과에 반영합니다.',
     visibility: () => true,
   },
 ]

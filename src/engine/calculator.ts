@@ -122,6 +122,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
   telecomMonthly: sanitizeMoney(formData.telecomMonthly),
   nationalPensionMonthly: sanitizeMoney(formData.nationalPensionMonthly),
+  currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),
   carYearlyCost: sanitizeMoney(formData.carYearlyCost),
   loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
   loanInterestYears: sanitizeMoney(formData.loanInterestYears),
@@ -714,7 +715,7 @@ const estimateHoldingTax = (formData: RetireCalcFormData): HoldingTaxEstimate =>
     breakdown.push(
       createHoldingTaxItem({
         key: 'otherProperty',
-        label: '상가·기타부동산',
+        label: '기타 부동산',
         annual: otherPropertyHoldingTax.annual,
         baseValue: formData.otherPropertyOfficialValue,
       }),

@@ -216,7 +216,7 @@ const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
   }
 
   const otherPropertyIndex = activeLabels.findIndex((label) =>
-    label.includes('기타부동산'),
+    label.includes('기타부동산') || label.includes('기타 부동산'),
   )
 
   if (otherPropertyIndex <= 0) {
@@ -756,8 +756,12 @@ const RESULT_EDIT_CLASS = {
   group: 'table-edit-group',
   cluster: 'table-edit-cluster',
   housingCluster: 'table-edit-cluster-housing',
+  housingGroup: 'table-edit-group-housing',
   housingMarket: 'table-edit-group-housing-market',
   housingOfficial: 'table-edit-group-housing-official',
+  marketGroup: 'table-edit-group-market',
+  officialGroup: 'table-edit-group-official',
+  captionCenterGroup: 'table-edit-group-caption-center',
 } as const
 
 function joinClassNames(...tokens: Array<string | undefined | false | null>) {
@@ -860,14 +864,22 @@ function HousingAmountEditor({
     return (
       <div className={joinClassNames(RESULT_EDIT_CLASS.cluster, RESULT_EDIT_CLASS.housingCluster)}>
         <InlineLabeledAmountInput
-          className={RESULT_EDIT_CLASS.housingMarket}
+          className={joinClassNames(
+            RESULT_EDIT_CLASS.housingGroup,
+            RESULT_EDIT_CLASS.housingMarket,
+            RESULT_EDIT_CLASS.marketGroup,
+          )}
           caption="시가"
           label="주택 시가"
           value={formData.homeMarketValue}
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
-          className={RESULT_EDIT_CLASS.housingOfficial}
+          className={joinClassNames(
+            RESULT_EDIT_CLASS.housingGroup,
+            RESULT_EDIT_CLASS.housingOfficial,
+            RESULT_EDIT_CLASS.officialGroup,
+          )}
           caption="공시가격"
           label="주택 공시가격"
           value={formData.homeOfficialValue}
@@ -880,6 +892,7 @@ function HousingAmountEditor({
   if (formData.housingType === 'jeonse') {
     return (
       <InlineLabeledAmountInput
+        className={joinClassNames(RESULT_EDIT_CLASS.housingGroup, RESULT_EDIT_CLASS.captionCenterGroup)}
         caption="전세보증금"
         label="전세보증금"
         value={formData.jeonseDeposit}
@@ -891,12 +904,14 @@ function HousingAmountEditor({
   return (
     <div className={RESULT_EDIT_CLASS.cluster}>
       <InlineLabeledAmountInput
-        caption="보증금"
+        className={joinClassNames(RESULT_EDIT_CLASS.housingGroup, RESULT_EDIT_CLASS.captionCenterGroup)}
+        caption="월세보증금"
         label="월세 보증금"
         value={formData.monthlyRentDeposit}
         onChange={(value) => onPatchFormData({ monthlyRentDeposit: value })}
       />
       <InlineLabeledAmountInput
+        className={joinClassNames(RESULT_EDIT_CLASS.housingGroup, RESULT_EDIT_CLASS.captionCenterGroup)}
         caption="월세"
         label="월세 금액"
         value={formData.monthlyRentAmount}
@@ -1267,7 +1282,7 @@ export function ResultScreen({
     },
     {
       category: '주거',
-      item: '상가/기타부동산',
+      item: '기타 부동산',
       input: formatCompactCurrency(formData.otherPropertyOfficialValue),
       monthly: '—',
       annual: '—',
@@ -1391,7 +1406,7 @@ export function ResultScreen({
           : '—',
       note:
         result.holdingTaxAnnual > 0
-          ? '주택·토지·기타부동산'
+          ? '주택·토지·기타 부동산'
           : '해당 없음',
       noteDetail:
         result.holdingTaxAnnual > 0

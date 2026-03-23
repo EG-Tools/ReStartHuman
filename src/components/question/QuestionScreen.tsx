@@ -31,7 +31,7 @@ interface QuestionNumberFieldConfig {
 
 
 const householdOptions = [
-  { value: 'single', label: '1인가구' },
+  { value: 'single', label: '본인' },
   { value: 'couple', label: '공동명의' },
 ] as const
 
@@ -54,12 +54,6 @@ const isaTypeOptions = [
 const yesNoOptions = [
   { value: 'yes', label: '예' },
   { value: 'no', label: '아니오' },
-] as const
-
-const yesNoUnknownOptions = [
-  { value: 'yes', label: '예' },
-  { value: 'no', label: '아니오' },
-  { value: 'unknown', label: '잘 모르겠음' },
 ] as const
 
 const simulationYearOptions = [
@@ -274,25 +268,10 @@ export function QuestionScreen({
     onPatchFormData({ [key]: value } as Pick<RetireCalcFormData, K>)
   }
 
-  const handleHouseholdTypeChange = (value: RetireCalcFormData['householdType']) => {
-    onPatchFormData({
-      householdType: value,
-      isJointOwnership: value === 'couple',
-    })
-  }
-
   const singleIsaType = formData.isaType === 'workingClass' ? 'workingClass' : 'general'
   const myIsaType = formData.myIsaType === 'workingClass' ? 'workingClass' : 'general'
   const spouseIsaType =
     formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
-
-  const hasIsaQuestion = formData.isaAssets > 0 || formData.isaDividendAnnual > 0
-  const showLoanQuestions = formData.hasLoan || formData.loanInterestMonthly > 0
-  const showCarQuestions =
-    formData.hasCar || formData.carYearlyCost > 0 || formData.currentCarValue > 0
-  const usesSalaryQuestion =
-    formData.healthInsuranceType === 'employee' ||
-    formData.healthInsuranceType === 'employeeWithDependentSpouse'
 
   const renderBooleanChoice = (
     label: string,
@@ -344,17 +323,7 @@ export function QuestionScreen({
       case 'household':
         return (
           <div className="question-stack">
-            <section className="question-block household-choice-block">
-              <div className="question-block-header">
-                <h2>가구 명의</h2>
-              </div>
-              <ChoiceQuestion
-                value={formData.householdType}
-                options={householdOptions}
-                onChange={(value) => handleHouseholdTypeChange(value)}
-              />
-            </section>
-            <NumberFields
+            <QuestionNumberFields
               fields={[
                 {
                   key: 'currentAge',
@@ -365,9 +334,25 @@ export function QuestionScreen({
                   suffix: '세',
                   min: 1,
                   step: 1,
+                  helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
                 },
               ]}
             />
+            <section className="question-block household-choice-block">
+              <div className="question-block-header">
+                <h2>부동산 명의</h2>
+              </div>
+              <ChoiceQuestion
+                value={formData.householdType}
+                options={householdOptions}
+                onChange={(value) =>
+                  onPatchFormData({
+                    householdType: value,
+                    isJointOwnership: value === 'couple',
+                  })
+                }
+              />
+            </section>
             <section className="question-block">
               <div className="question-block-header">
                 <h2>자녀가 있나요?</h2>
@@ -421,7 +406,7 @@ export function QuestionScreen({
                 onChange={(value) =>
                   onPatchFormData({
                     housingType: value,
-                    isSingleHomeOwner: value === 'own' ? true : formData.isSingleHomeOwner,
+                    isSingleHomeOwner: value === 'own',
                   })
                 }
               />
@@ -500,7 +485,6 @@ export function QuestionScreen({
             ) : null}
           </div>
         )
-
       case 'propertyAssets':
         return (
           <div className="question-stack">
@@ -514,7 +498,7 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {formData.householdType === 'couple' && formData.landValue > 0 ? (
+            {formData.householdType === 'couple' ? (
               <section className="question-block">
                 <div className="question-block-header">
                   <h2>토지 소유형태</h2>
@@ -556,16 +540,16 @@ export function QuestionScreen({
               fields={[
                 {
                   key: 'otherPropertyOfficialValue',
-                  label: '상가 및 기타부동산 공시가격',
+                  label: '기타 부동산 공시가격',
                   value: formData.otherPropertyOfficialValue,
                   onChange: (value) => update('otherPropertyOfficialValue', value),
                 },
               ]}
             />
-            {formData.householdType === 'couple' && formData.otherPropertyOfficialValue > 0 ? (
+            {formData.householdType === 'couple' ? (
               <section className="question-block">
                 <div className="question-block-header">
-                  <h2>상가 및 기타부동산 소유형태</h2>
+                  <h2>기타 부동산 소유형태</h2>
                 </div>
                 <ChoiceQuestion
                   value={formData.otherPropertyOwnershipType}
@@ -618,13 +602,54 @@ export function QuestionScreen({
                   label: 'ISA 주식 자산',
                   value: formData.isaAssets,
                   onChange: (value) => update('isaAssets', value),
-                  helperText:
-                    formData.isaAssets > 0
-                      ? '다음 질문에서 ISA 계좌 유형을 추가로 확인합니다.'
-                      : undefined,
                 },
               ]}
             />
+            {formData.householdType === 'couple' ? (
+              <>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>본인 ISA 계좌유형</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={myIsaType}
+                    options={isaTypeOptions}
+                    onChange={(value) =>
+                      onPatchFormData({
+                        isaType: value,
+                        myIsaType: value,
+                      })
+                    }
+                  />
+                </section>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>배우자 ISA 계좌유형</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={spouseIsaType}
+                    options={isaTypeOptions}
+                    onChange={(value) => onPatchFormData({ spouseIsaType: value })}
+                  />
+                </section>
+              </>
+            ) : (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>ISA 계좌유형</h2>
+                </div>
+                <ChoiceQuestion
+                  value={singleIsaType}
+                  options={isaTypeOptions}
+                  onChange={(value) =>
+                    onPatchFormData({
+                      isaType: value,
+                      myIsaType: value,
+                    })
+                  }
+                />
+              </section>
+            )}
             <QuestionNumberFields
               fields={[
                 {
@@ -635,11 +660,6 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {hasIsaQuestion ? (
-              <p className="screen-copy question-copy-note">
-                ISA 자산 또는 ISA 배당금이 있으면 다음 단계에서 ISA 상세 정보를 확인합니다.
-              </p>
-            ) : null}
           </div>
         )
       case 'dividends':
@@ -674,7 +694,7 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {formData.householdType === 'couple' && formData.taxableAccountDividendAnnual > 0 ? (
+            {formData.householdType === 'couple' ? (
               <section className="question-block">
                 <div className="question-block-header">
                   <h2>일반계좌 배당 귀속</h2>
@@ -695,7 +715,7 @@ export function QuestionScreen({
                   }
                 />
               </section>
-            ) : formData.taxableAccountDividendAnnual > 0 ? (
+            ) : (
               <section className="question-block">
                 <div className="question-block-header">
                   <h2>일반계좌 배당 귀속</h2>
@@ -704,7 +724,7 @@ export function QuestionScreen({
                   본인만 계산하므로 일반계좌 배당은 전부 본인 귀속으로 처리합니다.
                 </p>
               </section>
-            ) : null}
+            )}
             {formData.householdType === 'couple' && formData.dividendOwnershipType === 'split' ? (
               <QuestionNumberFields
                 fields={[
@@ -811,80 +831,7 @@ export function QuestionScreen({
           </div>
         )
       case 'isa':
-        return (
-          <div className="question-stack">
-            {formData.householdType === 'couple' ? (
-              <>
-                <section className="question-block">
-                  <div className="question-block-header">
-                    <h2>본인 ISA 계좌유형</h2>
-                  </div>
-                  <ChoiceQuestion
-                    value={myIsaType}
-                    options={isaTypeOptions}
-                    onChange={(value) =>
-                      onPatchFormData({
-                        isaType: value,
-                        myIsaType: value,
-                      })
-                    }
-                  />
-                </section>
-                <section className="question-block">
-                  <div className="question-block-header">
-                    <h2>배우자 ISA 계좌유형</h2>
-                  </div>
-                  <ChoiceQuestion
-                    value={spouseIsaType}
-                    options={isaTypeOptions}
-                    onChange={(value) => onPatchFormData({ spouseIsaType: value })}
-                  />
-                </section>
-              </>
-            ) : (
-              <section className="question-block">
-                <div className="question-block-header">
-                  <h2>ISA 계좌유형</h2>
-                </div>
-                <ChoiceQuestion
-                  value={singleIsaType}
-                  options={isaTypeOptions}
-                  onChange={(value) =>
-                    onPatchFormData({
-                      isaType: value,
-                      myIsaType: value,
-                    })
-                  }
-                />
-              </section>
-            )}
-            <QuestionNumberFields
-              fields={[
-                {
-                  key: 'isaYearsSinceOpen',
-                  label: 'ISA 가입 후 지난 기간',
-                  value: formData.isaYearsSinceOpen,
-                  onChange: (value) => update('isaYearsSinceOpen', Math.max(value, 0)),
-                  display: 'number',
-                  suffix: '년',
-                  min: 0,
-                  step: 1,
-                  helperText: '0이면 막 개설한 상태로 간주합니다.',
-                },
-              ]}
-            />
-            <section className="question-block">
-              <div className="question-block-header">
-                <h2>ISA는 만기 연장 상태인가요?</h2>
-              </div>
-              <ChoiceQuestion
-                value={formData.isaMaturityExtended}
-                options={yesNoUnknownOptions}
-                onChange={(value) => update('isaMaturityExtended', value)}
-              />
-            </section>
-          </div>
-        )
+        return null
       case 'income':
         return (
           <div className="question-stack">
@@ -898,14 +845,8 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {formData.otherIncomeMonthly > 0 ? (
-              renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
-                update('otherIncomeType', value),
-              )
-            ) : (
-              <p className="screen-copy question-copy-note">
-                기타 월소득이 0원이면 소득 유형 질문은 자동으로 생략됩니다.
-              </p>
+            {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
+              update('otherIncomeType', value),
             )}
           </div>
         )
@@ -915,7 +856,8 @@ export function QuestionScreen({
             {renderChoiceRows(formData.healthInsuranceType, healthInsuranceOptionRows, (value) =>
               update('healthInsuranceType', value),
             )}
-            {usesSalaryQuestion ? (
+            {(formData.healthInsuranceType === 'employee' ||
+              formData.healthInsuranceType === 'employeeWithDependentSpouse') ? (
               <QuestionNumberFields
                 fields={[
                   {
@@ -927,11 +869,7 @@ export function QuestionScreen({
                   },
                 ]}
               />
-            ) : (
-              <p className="screen-copy question-copy-note">
-                선택한 건강보험 유형에서는 월 급여 입력을 생략합니다.
-              </p>
-            )}
+            ) : null}
           </div>
         )
       case 'fixedExpenses':
@@ -971,18 +909,14 @@ export function QuestionScreen({
                 },
               ]}
             />
-            {renderBooleanChoice('대출금이 있나요?', showLoanQuestions, (value) =>
-              onPatchFormData(
-                value
-                  ? { hasLoan: true }
-                  : {
-                      hasLoan: false,
-                      loanInterestMonthly: 0,
-                      loanInterestYears: 0,
-                    },
-              )
+            {renderBooleanChoice('대출금이 있나요?', formData.hasLoan, (value) =>
+              onPatchFormData({
+                hasLoan: value,
+                loanInterestMonthly: value ? formData.loanInterestMonthly : 0,
+                loanInterestYears: value ? formData.loanInterestYears : 0,
+              }),
             )}
-            {showLoanQuestions ? (
+            {formData.hasLoan ? (
               <QuestionNumberFields
                 columns={2}
                 fields={[
@@ -994,20 +928,20 @@ export function QuestionScreen({
                   },
                   {
                     key: 'loanInterestYears',
-                    label: '반영 년도',
+                    label: '반영 년수',
                     value: formData.loanInterestYears,
                     onChange: (value) => update('loanInterestYears', Math.max(value, 0)),
                     display: 'number',
                     suffix: '년',
                     min: 0,
                     step: 1,
+                    helperText: '예: 10 입력 시 10년 동안만 반영됩니다.',
                   },
                 ]}
               />
             ) : null}
           </div>
         )
-
       case 'livingCosts':
         return (
           <div className="question-stack">
@@ -1074,41 +1008,35 @@ export function QuestionScreen({
                 ]}
               />
             )}
-            {renderBooleanChoice('자동차를 보유하고 있나요?', showCarQuestions, (value) =>
-              onPatchFormData(
-                value
-                  ? { hasCar: true }
-                  : {
-                      hasCar: false,
-                      currentCarValue: 0,
-                      carYearlyCost: 0,
-                    },
-              )
-            )}
-            {showCarQuestions ? (
+            {renderBooleanChoice('자동차 보유', formData.hasCar, (value) =>
+              onPatchFormData({
+                hasCar: value,
+                currentCarMarketValue: value ? formData.currentCarMarketValue : 0,
+                carYearlyCost: value ? formData.carYearlyCost : 0,
+              }), '예 선택 시 차량 시세와 1년 유지비를 입력합니다.') }
+            {formData.hasCar ? (
               <QuestionNumberFields
                 columns={2}
                 fields={[
                   {
-                    key: 'currentCarValue',
+                    key: 'currentCarMarketValue',
                     label: '현재 차량 시세',
-                    value: formData.currentCarValue,
-                    onChange: (value) => update('currentCarValue', value),
-                    helperText: '현재는 입력값 보관용이며 계산에는 직접 반영하지 않습니다.',
+                    value: formData.currentCarMarketValue,
+                    onChange: (value) => update('currentCarMarketValue', value),
+                    helperText: '현재 차량 시세는 추후 재산 항목으로 확장할 수 있도록 보관합니다.',
                   },
                   {
                     key: 'carYearlyCost',
                     label: '1년 차량 유지비',
                     value: formData.carYearlyCost,
                     onChange: (value) => update('carYearlyCost', value),
-                    helperText: '12개월로 나눠서 계산됩니다.',
+                    helperText: '자동차세·보험료·유류비를 합친 예상 비용이며 12개월로 나눠서 계산됩니다.',
                   },
                 ]}
               />
             ) : null}
           </div>
         )
-
       case 'cashReserve':
         return (
           <div className="question-stack">
@@ -1143,7 +1071,6 @@ export function QuestionScreen({
             </section>
           </div>
         )
-
       default:
         return null
     }

@@ -1,4 +1,4 @@
-export type HouseholdType = 'single' | 'couple'
+﻿export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
@@ -101,7 +101,7 @@ export interface RetireCalcFormData {
   telecomMonthly: number
   nationalPensionMonthly: number
   hasCar: boolean
-  currentCarValue: number
+  currentCarMarketValue: number
   carYearlyCost: number
   loanInterestMonthly: number
   loanInterestYears: number

@@ -467,6 +467,13 @@
   }
 }
 
+
+.table-shell .result-table .result-input-cell .table-edit-group-caption-center > .table-edit-label {
+  width: 100%;
+  text-align: center;
+  position: static;
+}
+
 /* ------------------------------------------------------------------
    집값행 최종 디자인 전용 보정
    이 구간만 보면 시가/공시가격 정렬과 간격을 이해할 수 있습니다.
@@ -475,8 +482,9 @@
   gap: var(--result-housing-cluster-gap);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market,
-.table-shell .result-table .result-input-cell .table-edit-group-housing-official {
+.table-shell .result-table .result-input-cell .table-edit-group-housing,
+.table-shell .result-table .result-input-cell .table-edit-group-market,
+.table-shell .result-table .result-input-cell .table-edit-group-official {
   width: var(--result-col-2-content);
   min-width: var(--result-col-2-content);
   max-width: var(--result-col-2-content);
@@ -485,29 +493,34 @@
   text-align: left;
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-label,
-.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-label {
+.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   display: block;
   width: 100%;
   text-align: var(--result-housing-label-align);
   position: relative;
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-label {
+.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label {
   top: var(--result-housing-market-label-offset);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-label {
+.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   top: var(--result-housing-official-label-offset);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-stack,
-.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-stack {
+.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-stack,
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-stack,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-stack {
   width: 100%;
   min-width: 0;
 }
 
 /* 공시가격 위쪽 여백은 첫 번째 블록 하단 여백 하나로만 관리 */
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market {
+.table-shell .result-table .result-input-cell .table-edit-group-housing-market,
+.table-shell .result-table .result-input-cell .table-edit-group-market {
   margin-bottom: var(--result-housing-market-bottom-gap);
 }
