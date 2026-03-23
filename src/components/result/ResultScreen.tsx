@@ -807,8 +807,10 @@ function InlineLabeledAmountInput({
   onChange: (value: number) => void
   className?: string
 }) {
+  const groupClassName = className ? `table-edit-group ${className}` : 'table-edit-group'
+
   return (
-    <div className={className ? `table-edit-group ${className}` : "table-edit-group"}>
+    <div className={groupClassName}>
       <span className="table-edit-label">{caption}</span>
       <InlineAmountInput
         label={label}
@@ -830,14 +832,14 @@ function HousingAmountEditor({
     return (
       <div className="table-edit-cluster table-edit-cluster-housing">
         <InlineLabeledAmountInput
-          className="table-edit-group-market"
+          className="table-edit-group-housing table-edit-group-housing-market table-edit-group-market"
           caption="시가"
           label="주택 시가"
           value={formData.homeMarketValue}
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
-          className="table-edit-group-official"
+          className="table-edit-group-housing table-edit-group-housing-official table-edit-group-official"
           caption="공시가격"
           label="주택 공시가격"
           value={formData.homeOfficialValue}

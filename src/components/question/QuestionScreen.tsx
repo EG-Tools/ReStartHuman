@@ -198,16 +198,10 @@ function QuestionNumberFields({
   columns?: number
   fields: QuestionNumberFieldConfig[]
 }) {
+  const gridClassName = `question-number-grid question-number-grid-${columns > 1 ? 2 : 1}`
+
   return (
-    <div
-      className="question-stack"
-      style={{
-        display: 'grid',
-        gridTemplateColumns:
-          columns > 1 ? 'repeat(auto-fit, minmax(240px, 1fr))' : 'minmax(0, 1fr)',
-        gap: '12px',
-      }}
-    >
+    <div className={gridClassName}>
       {fields.map((field) => {
         const isCurrency = field.display !== 'number'
         const suffix = field.suffix ?? (isCurrency ? '만원' : '')
@@ -217,27 +211,10 @@ function QuestionNumberFields({
 
         return (
           <section key={field.key} className="question-block">
-            <div
-              className="question-block-header"
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                gap: '12px',
-              }}
-            >
+            <div className="question-block-header question-number-header">
               <h2>{field.label}</h2>
               {isCurrency ? (
-                <span
-                  style={{
-                    fontSize: '12px',
-                    lineHeight: 1.2,
-                    color: 'rgba(214, 225, 229, 0.74)',
-                    textAlign: 'right',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                >
+                <span className="question-number-conversion">
                   {conversionText}
                 </span>
               ) : null}
@@ -254,41 +231,15 @@ function QuestionNumberFields({
               display={isCurrency ? 'currency' : 'number'}
               commitMode="change"
               idleZeroDisplay="zero"
-              inlineClassName="input-inline"
-              shellClassName="input-shell"
-              inputClassName="input-control"
-              suffixClassName="input-suffix"
+              inlineClassName="input-inline question-number-inline"
+              shellClassName="input-shell question-number-shell"
+              inputClassName="input-control question-number-input"
+              suffixClassName="input-suffix question-number-suffix"
               inputAriaLabel={field.label}
-              inlineStyle={{
-                alignItems: 'center',
-                gap: '3px',
-              }}
-              shellStyle={{
-                flex: 1,
-                backgroundColor: 'rgba(227, 236, 240, 0.08)',
-                border: '1px solid rgba(227, 236, 240, 0.18)',
-                borderRadius: '999px',
-              }}
-              inputStyle={{
-                width: '100%',
-                boxSizing: 'border-box',
-                background: 'transparent',
-                border: 'none',
-                boxShadow: 'none',
-                color: '#f4fbfd',
-              }}
-              suffixStyle={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                lineHeight: 1,
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-                marginTop: '-4px',
-              }}
             />
 
             {field.helperText && isCurrency ? (
-              <p className="screen-copy" style={{ marginTop: '8px' }}>
+              <p className="screen-copy question-number-helper">
                 {field.helperText}
               </p>
             ) : null}

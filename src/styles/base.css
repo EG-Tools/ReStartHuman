@@ -337,6 +337,70 @@ p {
   margin-bottom: 14px;
 }
 
+
+.question-number-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.question-number-grid-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.question-number-grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.question-number-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.question-number-conversion {
+  font-size: 12px;
+  line-height: 1.2;
+  color: rgba(214, 225, 229, 0.74);
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.question-number-inline {
+  align-items: center;
+  gap: 3px;
+}
+
+.question-number-shell {
+  flex: 1;
+  background-color: rgba(227, 236, 240, 0.08);
+  border: 1px solid rgba(227, 236, 240, 0.18);
+  border-radius: 999px;
+}
+
+.question-number-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #f4fbfd;
+}
+
+.question-number-suffix {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-top: -4px;
+}
+
+.question-number-helper {
+  margin-top: 8px;
+}
+
 .toggle-group {
   display: grid;
   gap: 12px;

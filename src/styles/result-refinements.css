@@ -167,6 +167,13 @@
   --result-edit-input-font-size: 0.95rem;
   --result-edit-suffix-font-size: 0.95rem;
   --result-edit-helper-font-size: 0.76rem;
+  --result-edit-label-offset: 2px;
+  --result-edit-suffix-offset: 1px;
+
+  --result-housing-cluster-gap: 15px;
+  --result-housing-market-label-offset: 5px;
+  --result-housing-official-label-offset: 3px;
+  --result-housing-market-bottom-gap: 5px;
 
   table-layout: fixed;
   width: var(--result-table-fixed-width);
@@ -313,7 +320,7 @@
 .table-shell .result-table .result-input-cell .table-edit-suffix {
   text-align: right;
   position: relative;
-  top: 2px;
+  top: var(--result-edit-label-offset);
 }
 
 .table-shell .result-table .result-input-cell .table-edit-input {
@@ -326,7 +333,7 @@
   white-space: nowrap;
   font-size: var(--result-edit-suffix-font-size);
   position: relative;
-  top: 1px;
+  top: var(--result-edit-suffix-offset);
 }
 
 .table-shell .result-table .result-input-cell .table-edit-helper {
@@ -450,11 +457,15 @@
   }
 }
 
-/* 집값행 라벨/간격 전용 보정 */
+/* ------------------------------------------------------------------
+   집값행 최종 디자인 전용 보정
+   이 구간만 보면 시가/공시가격 정렬과 간격을 이해할 수 있습니다.
+------------------------------------------------------------------- */
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing {
-  gap: 15px;
+  gap: var(--result-housing-cluster-gap);
 }
 
+.table-shell .result-table .result-input-cell .table-edit-group-housing,
 .table-shell .result-table .result-input-cell .table-edit-group-market,
 .table-shell .result-table .result-input-cell .table-edit-group-official {
   width: var(--result-col-2-content);
@@ -465,6 +476,7 @@
   text-align: left;
 }
 
+.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-label,
 .table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label,
 .table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   display: block;
@@ -473,21 +485,25 @@
   position: relative;
 }
 
+.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-label,
 .table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label {
-  top: 5px;
+  top: var(--result-housing-market-label-offset);
 }
 
+.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-label,
 .table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
-  top: 3px;
+  top: var(--result-housing-official-label-offset);
 }
 
+.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-stack,
 .table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-stack,
 .table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-stack {
   width: 100%;
   min-width: 0;
 }
 
-/* 집값행: 공시가격 위 간격은 첫 번째 블록 하단 여백으로 직접 확보 */
+/* 공시가격 위쪽 여백은 첫 번째 블록 하단 여백 하나로만 관리 */
+.table-shell .result-table .result-input-cell .table-edit-group-housing-market,
 .table-shell .result-table .result-input-cell .table-edit-group-market {
-  margin-bottom: 5px;
+  margin-bottom: var(--result-housing-market-bottom-gap);
 }
