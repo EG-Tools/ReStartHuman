@@ -756,11 +756,8 @@ const RESULT_EDIT_CLASS = {
   group: 'table-edit-group',
   cluster: 'table-edit-cluster',
   housingCluster: 'table-edit-cluster-housing',
-  housingGroup: 'table-edit-group-housing',
   housingMarket: 'table-edit-group-housing-market',
   housingOfficial: 'table-edit-group-housing-official',
-  marketGroup: 'table-edit-group-market',
-  officialGroup: 'table-edit-group-official',
 } as const
 
 function joinClassNames(...tokens: Array<string | undefined | false | null>) {
@@ -863,22 +860,14 @@ function HousingAmountEditor({
     return (
       <div className={joinClassNames(RESULT_EDIT_CLASS.cluster, RESULT_EDIT_CLASS.housingCluster)}>
         <InlineLabeledAmountInput
-          className={joinClassNames(
-            RESULT_EDIT_CLASS.housingGroup,
-            RESULT_EDIT_CLASS.housingMarket,
-            RESULT_EDIT_CLASS.marketGroup,
-          )}
+          className={RESULT_EDIT_CLASS.housingMarket}
           caption="시가"
           label="주택 시가"
           value={formData.homeMarketValue}
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
-          className={joinClassNames(
-            RESULT_EDIT_CLASS.housingGroup,
-            RESULT_EDIT_CLASS.housingOfficial,
-            RESULT_EDIT_CLASS.officialGroup,
-          )}
+          className={RESULT_EDIT_CLASS.housingOfficial}
           caption="공시가격"
           label="주택 공시가격"
           value={formData.homeOfficialValue}

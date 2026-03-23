@@ -34,6 +34,14 @@ If the task is unrelated to UI layout, this file is probably not the right place
 - Use only if the real final owner is proven to be there.
 - Do not start there by default.
 
+## 2-1) Current canonical housing classes
+Use only these names for the result-table housing row:
+- `table-edit-cluster-housing`
+- `table-edit-group-housing-market`
+- `table-edit-group-housing-official`
+
+Avoid reviving older alias-style names if the housing-only classes already solve the task.
+
 ## 3) TSX vs CSS rule
 ### TSX should handle
 - semantic structure
@@ -61,9 +69,9 @@ The housing row is a special-case UI row.
 ### Required structure idea
 Use explicit, readable classes for housing-specific parts.
 Examples:
-- housing row container
-- market value group
-- official value group
+- `table-edit-cluster-housing`
+- `table-edit-group-housing-market`
+- `table-edit-group-housing-official`
 
 Do not rely on vague selectors like deep descendant chains when a dedicated class can be added safely.
 
@@ -108,9 +116,3 @@ Default delivery format for project edits:
 - overwrite-ready ZIP
 - original folder structure preserved
 - no patch file unless the user explicitly asks for one
-
-
-## 2026-03 UI cleanup note
-- 집값행 최종 보정은 `result-refinements.css` 하단 한 곳에서만 관리합니다.
-- `app-chrome.css`에는 결과표 세부 보정(집값행 정렬/간격)을 다시 넣지 않습니다.
-- 남아 있는 미사용 후보 파일(`src/styles/result-landscape-columns.css`, `src/styles/result-table-landscape-columns.css`)은 현재 import되지 않으므로, 저장소에서 직접 삭제할 때만 정리합니다.
