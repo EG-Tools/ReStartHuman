@@ -415,7 +415,7 @@ p {
   border: none;
   background: transparent;
   padding: 12px 0;
-  line-height: 1.05;
+  line-height: 1;
   outline: none;
   color: var(--ink);
 }
@@ -784,7 +784,7 @@ p {
   background: transparent;
   color: var(--ink);
   padding: 8px 0;
-  line-height: 1.05;
+  line-height: 1;
   outline: none;
 }
 
