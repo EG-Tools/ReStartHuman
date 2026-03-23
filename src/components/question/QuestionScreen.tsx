@@ -299,7 +299,7 @@ function QuestionNumberFields({
                     lineHeight: 1,
                     flexShrink: 0,
                     whiteSpace: 'nowrap',
-                    marginTop: '5px',
+                    marginTop: '-2px',
                   }}
                 >
                   {suffix}
