@@ -1,4 +1,5 @@
 /* Result visual refinements */
+
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -22,47 +23,45 @@
   color: #ffd2c6;
 }
 
-.result-table tbody tr.result-category-tax td {
-  background: #24191b;
-  color: #e5cfca;
-  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
+/* 결과표 색상은 행별 변수만 지정하고 공통 규칙 한 번만 적용 */
+.result-table {
+  --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
+  --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
 }
 
-.result-table tbody tr.result-category-expense td {
-  background: #24182f;
-  color: #dccff0;
-  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
+.result-table tbody tr.result-category-tax {
+  --result-row-bg: #24191b;
+  --result-row-color: #e5cfca;
 }
 
+.result-table tbody tr.result-category-expense {
+  --result-row-bg: #24182f;
+  --result-row-color: #dccff0;
+}
+
+.result-table tbody tr.result-category-outcome {
+  --result-row-bg: #0e2923;
+  --result-row-color: #bfe2d6;
+}
+
+.result-table tbody tr.result-category-tax td,
+.result-table tbody tr.result-category-expense td,
 .result-table tbody tr.result-category-outcome td {
-  background: #0e2923;
-  color: #bfe2d6;
-  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
+  background: var(--result-row-bg);
+  color: var(--result-row-color);
+  box-shadow: var(--result-row-divider-shadow);
 }
 
+/* ------------------------------------------------------------------
+   1열 고정 잔재 제거
+------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 2;
   font-weight: 800;
-  box-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
-}
-
-.result-table tbody tr.result-category-tax td:first-child {
-  background: #24191b;
-  color: #e5cfca;
-}
-
-.result-table tbody tr.result-category-expense td:first-child {
-  background: #24182f;
-  color: #dccff0;
-}
-
-.result-table tbody tr.result-category-outcome td:first-child {
-  background: #0e2923;
-  color: #bfe2d6;
+  background: var(--result-row-bg);
+  color: var(--result-row-color);
+  box-shadow: var(--result-row-sticky-divider-shadow);
 }
 
 .projection-inline-row {
@@ -116,6 +115,281 @@
   padding-block: 11px;
 }
 
+/* ------------------------------------------------------------------
+   결과표 단일 레이아웃
+   조절은 이 블록 숫자만 바꾸면 됩니다.
+------------------------------------------------------------------- */
+.table-shell .result-table {
+  --result-table-font-size: 0.86rem;
+  --result-cell-pad-y: 12px;
+  --result-cell-pad-x: 12px;
+
+  --result-col-1: 55px;
+  --result-col-2: 175px;
+  --result-col-3: 90px;
+  --result-col-4: 105px;
+  --result-col-5: 125px;
+  --result-col-6: 180px;
+
+  --result-table-fixed-width: calc(
+    var(--result-col-1) +
+    var(--result-col-2) +
+    var(--result-col-3) +
+    var(--result-col-4) +
+    var(--result-col-5) +
+    var(--result-col-6)
+  );
+
+  --result-col-2-content: calc(var(--result-col-2) - (var(--result-cell-pad-x) * 2));
+  --result-col-6-content: calc(var(--result-col-6) - (var(--result-cell-pad-x) * 2));
+
+  --result-note-icon-size: 20px;
+  --result-note-gap: 6px;
+  --result-note-text-width-full: var(--result-col-6-content);
+  --result-note-text-width-with-icon: calc(
+    var(--result-col-6-content) -
+    var(--result-note-icon-size) -
+    var(--result-note-gap)
+  );
+
+  /* 최적화:
+     아이콘이 없는 비고 행은 아이콘 칸을 예약하지 않음.
+     그래서 '생활비·고정지출 차감 전' 같은 문구가 괜히 한 글자만
+     아래 줄로 떨어지지 않게 합니다. */
+  --result-note-overflow-wrap: normal;
+  --result-note-word-break: keep-all;
+
+  --result-edit-inline-gap: 6px;
+  --result-input-box-width: 96px;
+  --result-suffix-min-width: 28px;
+  --result-action-min-width: 0px;
+  --result-edit-field-pad-x: 8px;
+  --result-edit-input-font-size: 0.95rem;
+  --result-edit-suffix-font-size: 0.95rem;
+  --result-edit-helper-font-size: 0.76rem;
+
+  table-layout: fixed;
+  width: var(--result-table-fixed-width);
+  min-width: var(--result-table-fixed-width);
+  max-width: var(--result-table-fixed-width);
+  font-size: var(--result-table-font-size);
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.table-shell {
+  margin-inline: 0;
+  padding-bottom: 0;
+}
+
+/* colgroup 기반 열 고정 */
+.table-shell .result-table col.result-col-item {
+  width: var(--result-col-1);
+}
+
+.table-shell .result-table col.result-col-input {
+  width: var(--result-col-2);
+}
+
+.table-shell .result-table col.result-col-monthly {
+  width: var(--result-col-3);
+}
+
+.table-shell .result-table col.result-col-annual {
+  width: var(--result-col-4);
+}
+
+.table-shell .result-table col.result-col-horizon {
+  width: var(--result-col-5);
+}
+
+.table-shell .result-table col.result-col-note {
+  width: var(--result-col-6);
+}
+
+.table-shell .result-table th,
+.table-shell .result-table td {
+  padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
+}
+
+.table-shell .result-table thead th {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table-shell .result-table tbody td {
+  vertical-align: middle;
+}
+
+.table-shell .result-table th:not(:last-child),
+.table-shell .result-table td:not(:last-child) {
+  border-right: 1px solid rgba(82, 90, 98, 0.34);
+}
+
+/* 1열 */
+.table-shell .result-table .result-item-cell {
+  text-align: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.table-shell .result-table .result-item-label {
+  display: grid;
+  gap: 2px;
+  line-height: 1.06;
+  font-weight: 700;
+  justify-items: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.table-shell .result-table .result-item-label span {
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 2열 단일 정렬 규칙 */
+.table-shell .result-table .result-input-cell {
+  text-align: right;
+}
+
+.table-shell .result-table .result-input-cell > span,
+.table-shell .result-table .result-input-cell > div,
+.table-shell .result-table .result-input-cell > p {
+  display: block;
+  width: var(--result-col-2-content);
+  min-width: var(--result-col-2-content);
+  max-width: var(--result-col-2-content);
+  margin-left: auto;
+  text-align: right;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-cluster,
+.table-shell .result-table .result-input-cell .table-edit-group,
+.table-shell .result-table .result-input-cell .table-edit-stack {
+  width: var(--result-col-2-content);
+  min-width: var(--result-col-2-content);
+  max-width: var(--result-col-2-content);
+  margin-left: auto;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-inline {
+  display: grid;
+  grid-template-columns:
+    var(--result-input-box-width)
+    minmax(var(--result-suffix-min-width), max-content)
+    minmax(var(--result-action-min-width), max-content);
+  align-items: center;
+  width: var(--result-col-2-content);
+  min-width: var(--result-col-2-content);
+  max-width: var(--result-col-2-content);
+  gap: var(--result-edit-inline-gap);
+  justify-content: end;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-field {
+  width: var(--result-input-box-width);
+  min-width: var(--result-input-box-width);
+  max-width: var(--result-input-box-width);
+  padding-left: var(--result-edit-field-pad-x);
+  padding-right: var(--result-edit-field-pad-x);
+}
+
+.table-shell .result-table .result-input-cell .table-edit-input,
+.table-shell .result-table .result-input-cell .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-suffix {
+  text-align: right;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-input {
+  min-width: 0;
+  width: 100%;
+  font-size: var(--result-edit-input-font-size);
+}
+
+.table-shell .result-table .result-input-cell .table-edit-suffix {
+  white-space: nowrap;
+  font-size: var(--result-edit-suffix-font-size);
+}
+
+.table-shell .result-table .result-input-cell .table-edit-helper {
+  font-size: var(--result-edit-helper-font-size);
+}
+
+.table-shell .result-table .result-input-cell .table-edit-action {
+  white-space: nowrap;
+  width: auto;
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------------------
+   비고열 단일 규칙
+   기본은 1칸.
+   설명 아이콘이 실제로 있는 행만 2칸 그리드로 바꿉니다.
+------------------------------------------------------------------- */
+.table-shell .result-table .result-note-cell {
+  white-space: normal;
+  text-align: right;
+}
+
+.table-shell .result-table .note-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  width: var(--result-col-6-content);
+  min-width: var(--result-col-6-content);
+  max-width: var(--result-col-6-content);
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+  justify-content: end;
+}
+
+.table-shell .result-table .note-cell:has(.note-popover) {
+  grid-template-columns: var(--result-note-text-width-with-icon) var(--result-note-icon-size);
+  gap: var(--result-note-gap);
+}
+
+.table-shell .result-table .note-cell-text {
+  width: var(--result-note-text-width-full);
+  min-width: 0;
+  max-width: var(--result-note-text-width-full);
+  white-space: normal;
+  overflow-wrap: var(--result-note-overflow-wrap);
+  word-break: var(--result-note-word-break);
+  line-height: 1.28;
+}
+
+.table-shell .result-table .note-cell:has(.note-popover) .note-cell-text {
+  width: var(--result-note-text-width-with-icon);
+  max-width: var(--result-note-text-width-with-icon);
+}
+
+.table-shell .result-table .note-popover-trigger {
+  width: var(--result-note-icon-size);
+  height: var(--result-note-icon-size);
+  min-width: var(--result-note-icon-size);
+  min-height: var(--result-note-icon-size);
+}
+
+.interpretation-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.interpretation-list li {
+  line-height: 1.55;
+}
+
+/* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
     gap: 8px;
@@ -162,194 +436,4 @@
   .inflation-toggle.is-on .inflation-toggle-thumb {
     transform: translateX(16px);
   }
-}
-
-.interpretation-list {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 10px;
-  color: var(--ink);
-}
-
-.interpretation-list li {
-  line-height: 1.55;
-}
-
-@media (min-width: 901px) and (orientation: landscape) {
-  .result-table {
-    table-layout: fixed;
-  }
-
-  .result-table th:nth-child(1),
-  .result-table td:nth-child(1) {
-    width: 72px;
-    min-width: 72px;
-    max-width: 72px;
-  }
-
-  .result-table th:nth-child(2),
-  .result-table td:nth-child(2) {
-    width: 120px;
-    min-width: 120px;
-    max-width: 120px;
-  }
-
-  .result-table th:nth-child(3),
-  .result-table td:nth-child(3) {
-    width: 86px;
-    min-width: 86px;
-    max-width: 86px;
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-
-  .result-table th:nth-child(4),
-  .result-table td:nth-child(4) {
-    width: 106px;
-    min-width: 106px;
-    max-width: 106px;
-  }
-
-  .result-table th:nth-child(5),
-  .result-table td:nth-child(5) {
-    width: 116px;
-    min-width: 116px;
-    max-width: 116px;
-  }
-
-  .result-table th:nth-child(6),
-  .result-table td:nth-child(6) {
-    width: 116px;
-    min-width: 116px;
-    max-width: 116px;
-  }
-
-  .result-table td:nth-child(6) .note-cell {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-/* ------------------------------------------------------------------
-   최신 GitHub 기준 최소 복구
-   1) 2열 입력 UI 우측 정렬 복구
-   2) 마지막열 물음표 복구
-   - 다른 열 폭/가로세로 규칙은 건드리지 않음
-------------------------------------------------------------------- */
-
-/* 2열 */
-.result-table .result-input-cell {
-  text-align: right;
-}
-
-.result-table .result-input-cell > span,
-.result-table .result-input-cell > div,
-.result-table .result-input-cell > p {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  margin-left: auto;
-  text-align: right;
-}
-
-.result-table .result-input-cell .table-edit-cluster,
-.result-table .result-input-cell .table-edit-group,
-.result-table .result-input-cell .table-edit-stack {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  margin-left: auto;
-}
-
-.result-table .result-input-cell .table-edit-inline {
-  display: grid;
-  grid-template-columns: 96px max-content max-content;
-  align-items: center;
-  justify-content: end;
-  width: 100%;
-  min-width: 0;
-  gap: 6px;
-}
-
-.result-table .result-input-cell .table-edit-field {
-  width: 96px;
-  min-width: 96px;
-  max-width: 96px;
-  justify-self: end;
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-.result-table .result-input-cell .table-edit-input,
-.result-table .result-input-cell .table-edit-label,
-.result-table .result-input-cell .table-edit-suffix {
-  text-align: right;
-}
-
-.result-table .result-input-cell .table-edit-input {
-  min-width: 0;
-  width: 100%;
-  font-size: 0.95rem;
-}
-
-.result-table .result-input-cell .table-edit-suffix {
-  white-space: nowrap;
-  font-size: 0.95rem;
-}
-
-.result-table .result-input-cell .table-edit-helper {
-  font-size: 0.76rem;
-}
-
-.result-table .result-input-cell .table-edit-action {
-  white-space: nowrap;
-  width: auto;
-  justify-content: flex-end;
-}
-
-/* 마지막열 */
-.result-table td:nth-child(3) {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.result-table td:nth-child(6) {
-  text-align: right;
-  white-space: normal;
-}
-
-.result-table td:nth-child(6) .note-cell {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-}
-
-.result-table td:nth-child(6) .note-cell > span {
-  min-width: 0;
-  white-space: nowrap;
-  overflow-wrap: normal;
-  word-break: keep-all;
-  line-height: 1.28;
-  text-align: right;
-}
-
-.result-table td:nth-child(6) .note-popover {
-  display: inline-block;
-  flex: 0 0 auto;
-}
-
-.result-table td:nth-child(6) .note-popover-trigger {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
-  visibility: visible;
-  opacity: 1;
-  white-space: nowrap;
 }
