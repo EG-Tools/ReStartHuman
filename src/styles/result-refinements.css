@@ -1,5 +1,12 @@
 /* Result visual refinements */
 
+/* ------------------------------------------------------------------
+   최신 GitHub 구조 기준
+   - ResultTable 은 colgroup 없음
+   - 마지막열은 td > .note-cell > span + details.note-popover 구조
+   - 이 파일은 2열 / 3열 / 마지막열 복구에 맞춘 단일 규칙만 둡니다
+------------------------------------------------------------------- */
+
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -23,7 +30,6 @@
   color: #ffd2c6;
 }
 
-/* 결과표 색상은 행별 변수만 지정하고 공통 규칙 한 번만 적용 */
 .result-table {
   --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
   --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
@@ -52,7 +58,7 @@
   box-shadow: var(--result-row-divider-shadow);
 }
 
-/* 1열 고정 잔재 제거 */
+/* 1열 sticky 잔재 제거 */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
@@ -114,7 +120,7 @@
 }
 
 /* ------------------------------------------------------------------
-   결과표 단일 레이아웃
+   결과표 단일 레이아웃 변수
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -128,32 +134,16 @@
   --result-col-5: 125px;
   --result-col-6: 180px;
 
-  --result-table-fixed-width: calc(
-    var(--result-col-1) +
-    var(--result-col-2) +
-    var(--result-col-3) +
-    var(--result-col-4) +
-    var(--result-col-5) +
-    var(--result-col-6)
-  );
-
   --result-col-2-content: calc(var(--result-col-2) - (var(--result-cell-pad-x) * 2));
   --result-col-6-content: calc(var(--result-col-6) - (var(--result-cell-pad-x) * 2));
 
   --result-note-icon-size: 20px;
   --result-note-gap: 6px;
-  --result-note-text-width-full: var(--result-col-6-content);
   --result-note-text-width-with-icon: calc(
     var(--result-col-6-content) -
     var(--result-note-icon-size) -
     var(--result-note-gap)
   );
-
-  /* 최적화:
-     아이콘이 없는 비고 행은 아이콘 칸을 예약하지 않음.
-     아이콘이 있는 행만 2칸 그리드를 사용 */
-  --result-note-overflow-wrap: normal;
-  --result-note-word-break: keep-all;
 
   --result-edit-inline-gap: 6px;
   --result-input-box-width: 96px;
@@ -165,9 +155,8 @@
   --result-edit-helper-font-size: 0.76rem;
 
   table-layout: fixed;
-  width: var(--result-table-fixed-width);
-  min-width: var(--result-table-fixed-width);
-  max-width: var(--result-table-fixed-width);
+  width: max-content;
+  min-width: max-content;
   font-size: var(--result-table-font-size);
 
   -webkit-text-size-adjust: 100%;
@@ -177,31 +166,6 @@
 .table-shell {
   margin-inline: 0;
   padding-bottom: 0;
-}
-
-/* colgroup 기반 열 고정 */
-.table-shell .result-table col.result-col-item {
-  width: var(--result-col-1);
-}
-
-.table-shell .result-table col.result-col-input {
-  width: var(--result-col-2);
-}
-
-.table-shell .result-table col.result-col-monthly {
-  width: var(--result-col-3);
-}
-
-.table-shell .result-table col.result-col-annual {
-  width: var(--result-col-4);
-}
-
-.table-shell .result-table col.result-col-horizon {
-  width: var(--result-col-5);
-}
-
-.table-shell .result-table col.result-col-note {
-  width: var(--result-col-6);
 }
 
 .table-shell .result-table th,
@@ -221,6 +185,49 @@
 .table-shell .result-table th:not(:last-child),
 .table-shell .result-table td:not(:last-child) {
   border-right: 1px solid rgba(82, 90, 98, 0.34);
+}
+
+/* 열 폭: 최신 TSX 구조 기준으로 nth-child만 사용 */
+.table-shell .result-table th:nth-child(1),
+.table-shell .result-table td:nth-child(1) {
+  width: var(--result-col-1);
+  min-width: var(--result-col-1);
+  max-width: var(--result-col-1);
+}
+
+.table-shell .result-table th:nth-child(2),
+.table-shell .result-table td:nth-child(2) {
+  width: var(--result-col-2);
+  min-width: var(--result-col-2);
+  max-width: var(--result-col-2);
+}
+
+.table-shell .result-table th:nth-child(3),
+.table-shell .result-table td:nth-child(3) {
+  width: var(--result-col-3);
+  min-width: var(--result-col-3);
+  max-width: var(--result-col-3);
+}
+
+.table-shell .result-table th:nth-child(4),
+.table-shell .result-table td:nth-child(4) {
+  width: var(--result-col-4);
+  min-width: var(--result-col-4);
+  max-width: var(--result-col-4);
+}
+
+.table-shell .result-table th:nth-child(5),
+.table-shell .result-table td:nth-child(5) {
+  width: var(--result-col-5);
+  min-width: var(--result-col-5);
+  max-width: var(--result-col-5);
+}
+
+.table-shell .result-table th:nth-child(6),
+.table-shell .result-table td:nth-child(6) {
+  width: var(--result-col-6);
+  min-width: var(--result-col-6);
+  max-width: var(--result-col-6);
 }
 
 /* 1열 */
@@ -249,7 +256,10 @@
   white-space: nowrap;
 }
 
-/* 2열 단일 정렬 규칙 */
+/* ------------------------------------------------------------------
+   2열 정상화
+   - 일반 텍스트와 에디터를 같은 폭 / 같은 우측 정렬 기준으로 통일
+------------------------------------------------------------------- */
 .table-shell .result-table .result-input-cell {
   text-align: right;
 }
@@ -263,6 +273,13 @@
   max-width: var(--result-col-2-content);
   margin-left: auto;
   text-align: right;
+}
+
+/* 일반 문구가 줄바꿈될 때도 오른쪽 기준 유지 */
+.table-shell .result-table .result-input-cell > span br,
+.table-shell .result-table .result-input-cell > div br,
+.table-shell .result-table .result-input-cell > p br {
+  content: "";
 }
 
 .table-shell .result-table .result-input-cell .table-edit-cluster,
@@ -323,17 +340,24 @@
   justify-content: flex-end;
 }
 
-/* ------------------------------------------------------------------
-   비고열 단일 규칙
-   기본은 1칸.
-   설명 아이콘이 실제로 있는 행만 2칸 그리드로 바꿉니다.
-------------------------------------------------------------------- */
-.table-shell .result-table .result-note-cell {
-  white-space: normal;
+/* 3열은 숫자 열이므로 안정적으로 유지 */
+.table-shell .result-table tbody td:nth-child(3) {
   text-align: right;
+  white-space: nowrap;
 }
 
-.table-shell .result-table .note-cell {
+/* ------------------------------------------------------------------
+   마지막열 물음표 복구
+   최신 TSX 구조: td > div.note-cell > span + details.note-popover
+   - 아이콘 없는 행은 1칸
+   - 아이콘 있는 행만 2칸
+------------------------------------------------------------------- */
+.table-shell .result-table tbody td:nth-child(6) {
+  text-align: right;
+  white-space: normal;
+}
+
+.table-shell .result-table tbody td:nth-child(6) .note-cell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
@@ -346,35 +370,38 @@
   justify-content: end;
 }
 
-.table-shell .result-table .note-cell:has(.note-popover) {
+.table-shell .result-table tbody td:nth-child(6) .note-cell:has(.note-popover) {
   grid-template-columns: var(--result-note-text-width-with-icon) var(--result-note-icon-size);
   gap: var(--result-note-gap);
 }
 
-.table-shell .result-table .note-cell-text,
-.table-shell .result-table .note-cell > span {
-  width: var(--result-note-text-width-full);
+.table-shell .result-table tbody td:nth-child(6) .note-cell > span {
+  width: var(--result-col-6-content);
   min-width: 0;
-  max-width: var(--result-note-text-width-full);
+  max-width: var(--result-col-6-content);
   white-space: normal;
-  overflow-wrap: var(--result-note-overflow-wrap);
-  word-break: var(--result-note-word-break);
+  overflow-wrap: normal;
+  word-break: keep-all;
   line-height: 1.28;
 }
 
-.table-shell .result-table .note-cell:has(.note-popover) .note-cell-text,
-.table-shell .result-table .note-cell:has(.note-popover) > span {
+.table-shell .result-table tbody td:nth-child(6) .note-cell:has(.note-popover) > span {
   width: var(--result-note-text-width-with-icon);
   max-width: var(--result-note-text-width-with-icon);
 }
 
-.table-shell .result-table .note-popover-trigger {
+.table-shell .result-table tbody td:nth-child(6) .note-popover {
+  display: inline-block;
+}
+
+.table-shell .result-table tbody td:nth-child(6) .note-popover-trigger {
+  display: inline-grid;
+  place-items: center;
   width: var(--result-note-icon-size);
   height: var(--result-note-icon-size);
   min-width: var(--result-note-icon-size);
   min-height: var(--result-note-icon-size);
-  display: inline-grid;
-  place-items: center;
+  white-space: nowrap;
 }
 
 .interpretation-list {
@@ -389,7 +416,6 @@
   line-height: 1.55;
 }
 
-/* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
     gap: 8px;
