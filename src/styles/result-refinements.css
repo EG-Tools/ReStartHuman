@@ -282,7 +282,7 @@
   display: grid;
   grid-template-columns:
     var(--result-input-box-width)
-    minmax(var(--result-suffix-min-width), max-content)
+    minmax(0, 1fr)
     minmax(var(--result-action-min-width), max-content);
   align-items: center;
   width: var(--result-col-2-content);
@@ -313,6 +313,7 @@
 }
 
 .table-shell .result-table .result-input-cell .table-edit-suffix {
+  justify-self: end;
   white-space: nowrap;
   font-size: var(--result-edit-suffix-font-size);
 }
