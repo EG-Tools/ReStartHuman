@@ -449,3 +449,12 @@
     transform: translateX(16px);
   }
 }
+
+
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing {
+  gap: 13px;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing .table-edit-label {
+  text-align: left;
+}
