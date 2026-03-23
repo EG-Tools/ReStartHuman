@@ -292,6 +292,14 @@
   justify-content: end;
 }
 
+.table-shell .result-table .result-input-cell .table-edit-inline.table-edit-inline-no-action {
+  grid-template-columns: var(--result-input-box-width) max-content;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-inline.table-edit-inline-no-action .table-edit-suffix {
+  justify-self: end;
+}
+
 .table-shell .result-table .result-input-cell .table-edit-field {
   width: var(--result-input-box-width);
   min-width: var(--result-input-box-width);

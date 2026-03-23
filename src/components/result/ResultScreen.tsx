@@ -784,7 +784,7 @@ function InlineAmountInput({
         min={0}
         step={1}
         display="currency"
-        inlineClassName="table-edit-inline"
+        inlineClassName={action ? 'table-edit-inline table-edit-inline-with-action' : 'table-edit-inline table-edit-inline-no-action'}
         shellClassName="table-edit-field"
         inputClassName="table-edit-input"
         suffixClassName="table-edit-suffix"
