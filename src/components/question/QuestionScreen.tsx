@@ -32,7 +32,7 @@ interface QuestionNumberFieldConfig {
 
 const householdOptions = [
   { value: 'single', label: '1인가구' },
-  { value: 'couple', label: '부부합산' },
+  { value: 'couple', label: '공동명의' },
 ] as const
 
 const housingOptions = [
@@ -120,8 +120,8 @@ const healthInsuranceOptions = [
 ] as const
 
 const healthInsuranceOptionRows = [
-  [healthInsuranceOptions[0], healthInsuranceOptions[1]],
-  [healthInsuranceOptions[3], healthInsuranceOptions[4]],
+  [healthInsuranceOptions[0], healthInsuranceOptions[3]],
+  [healthInsuranceOptions[1], healthInsuranceOptions[4]],
   [healthInsuranceOptions[2], healthInsuranceOptions[5]],
 ] as const
 
@@ -274,12 +274,22 @@ export function QuestionScreen({
     onPatchFormData({ [key]: value } as Pick<RetireCalcFormData, K>)
   }
 
+  const handleHouseholdTypeChange = (value: RetireCalcFormData['householdType']) => {
+    onPatchFormData({
+      householdType: value,
+      isJointOwnership: value === 'couple',
+    })
+  }
+
   const singleIsaType = formData.isaType === 'workingClass' ? 'workingClass' : 'general'
   const myIsaType = formData.myIsaType === 'workingClass' ? 'workingClass' : 'general'
   const spouseIsaType =
     formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
 
   const hasIsaQuestion = formData.isaAssets > 0 || formData.isaDividendAnnual > 0
+  const showLoanQuestions = formData.hasLoan || formData.loanInterestMonthly > 0
+  const showCarQuestions =
+    formData.hasCar || formData.carYearlyCost > 0 || formData.currentCarValue > 0
   const usesSalaryQuestion =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
@@ -336,14 +346,28 @@ export function QuestionScreen({
           <div className="question-stack">
             <section className="question-block household-choice-block">
               <div className="question-block-header">
-                <h2>가구</h2>
+                <h2>가구 명의</h2>
               </div>
               <ChoiceQuestion
                 value={formData.householdType}
                 options={householdOptions}
-                onChange={(value) => update('householdType', value)}
+                onChange={(value) => handleHouseholdTypeChange(value)}
               />
             </section>
+            <NumberFields
+              fields={[
+                {
+                  key: 'currentAge',
+                  label: '현재 나이',
+                  value: formData.currentAge,
+                  onChange: (value) => update('currentAge', value),
+                  display: 'number',
+                  suffix: '세',
+                  min: 1,
+                  step: 1,
+                },
+              ]}
+            />
             <section className="question-block">
               <div className="question-block-header">
                 <h2>자녀가 있나요?</h2>
@@ -381,6 +405,12 @@ export function QuestionScreen({
                 ]}
               />
             ) : null}
+          </div>
+        )
+
+      case 'housingDetails':
+        return (
+          <div className="question-stack">
             <section className="question-block housing-choice-block">
               <div className="question-block-header">
                 <h2>주거 형태</h2>
@@ -388,69 +418,46 @@ export function QuestionScreen({
               <ChoiceQuestion
                 value={formData.housingType}
                 options={housingOptions}
-                onChange={(value) => update('housingType', value)}
+                onChange={(value) =>
+                  onPatchFormData({
+                    housingType: value,
+                    isSingleHomeOwner: value === 'own' ? true : formData.isSingleHomeOwner,
+                  })
+                }
               />
             </section>
-          </div>
-        )
 
-      case 'housingDetails':
-        return (
-          <div className="question-stack">
             {formData.housingType === 'own' ? (
-              <>
-                <QuestionNumberFields
-                  columns={2}
-                  fields={[
-                    {
-                      key: 'homeMarketValue',
-                      label: '시가',
-                      value: formData.homeMarketValue,
-                      onChange: (value) => update('homeMarketValue', value),
-                    },
-                    {
-                      key: 'homeOfficialValue',
-                      label: '공시가격',
-                      value: formData.homeOfficialValue,
-                      onChange: (value) => update('homeOfficialValue', value),
-                    },
-                  ]}
-                />
-                {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
-                  update('isJointOwnership', value),
-                )}
-                {formData.isJointOwnership ? (
-                  <p className="screen-copy question-copy-note-tight">
-                    본인 50%, 배우자 50% 자동 적용됩니다.
-                  </p>
-                ) : null}
-                {renderBooleanChoice('1주택자로 볼 수 있나요?', formData.isSingleHomeOwner, (value) =>
-                  update('isSingleHomeOwner', value),
-                )}
-              </>
+              <QuestionNumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'homeMarketValue',
+                    label: '시가',
+                    value: formData.homeMarketValue,
+                    onChange: (value) => update('homeMarketValue', value),
+                  },
+                  {
+                    key: 'homeOfficialValue',
+                    label: '공시가격',
+                    value: formData.homeOfficialValue,
+                    onChange: (value) => update('homeOfficialValue', value),
+                  },
+                ]}
+              />
             ) : null}
 
             {formData.housingType === 'jeonse' ? (
-              <>
-                <QuestionNumberFields
-                  fields={[
-                    {
-                      key: 'jeonseDeposit',
-                      label: '전세 보증금',
-                      value: formData.jeonseDeposit,
-                      onChange: (value) => update('jeonseDeposit', value),
-                    },
-                  ]}
-                />
-                {renderBooleanChoice('공동명의 인가요?', formData.isJointOwnership, (value) =>
-                  update('isJointOwnership', value),
-                )}
-                {formData.isJointOwnership ? (
-                  <p className="screen-copy question-copy-note-tight">
-                    본인 50%, 배우자 50% 자동 적용됩니다.
-                  </p>
-                ) : null}
-              </>
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'jeonseDeposit',
+                    label: '전세 보증금',
+                    value: formData.jeonseDeposit,
+                    onChange: (value) => update('jeonseDeposit', value),
+                  },
+                ]}
+              />
             ) : null}
 
             {formData.housingType === 'monthlyRent' ? (
@@ -493,6 +500,7 @@ export function QuestionScreen({
             ) : null}
           </div>
         )
+
       case 'propertyAssets':
         return (
           <div className="question-stack">
@@ -659,7 +667,7 @@ export function QuestionScreen({
                 },
                 {
                   key: 'pensionMonthlyAmount',
-                  label: '연금 월 실수령액',
+                  label: '국민연금 월 실수령액 예상',
                   value: formData.pensionMonthlyAmount,
                   onChange: (value) => update('pensionMonthlyAmount', value),
                   helperText: '세후 기준, 실제 통장에 들어오는 금액을 입력합니다.',
@@ -928,67 +936,78 @@ export function QuestionScreen({
         )
       case 'fixedExpenses':
         return (
-          <QuestionNumberFields
-            columns={2}
-            fields={[
-              {
-                key: 'insuranceMonthly',
-                label: '보험료',
-                value: formData.insuranceMonthly,
-                onChange: (value) => update('insuranceMonthly', value),
-              },
-              {
-                key: 'maintenanceMonthly',
-                label: '관리비',
-                value: formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly,
-                onChange: (value) => update('maintenanceMonthly', value),
-                disabled: formData.housingType === 'monthlyRent',
-                helperText:
-                  formData.housingType === 'monthlyRent'
-                    ? '월세 주거비에서 계산되어 여기서는 제외됩니다.'
-                    : undefined,
-              },
-              {
-                key: 'telecomMonthly',
-                label: '통신비',
-                value: formData.telecomMonthly,
-                onChange: (value) => update('telecomMonthly', value),
-              },
-              {
-                key: 'loanInterestMonthly',
-                label: '대출 이자',
-                value: formData.loanInterestMonthly,
-                onChange: (value) => update('loanInterestMonthly', value),
-              },
-              ...(formData.loanInterestMonthly > 0
-                ? [{
+          <div className="question-stack">
+            <QuestionNumberFields
+              columns={2}
+              fields={[
+                {
+                  key: 'insuranceMonthly',
+                  label: '보험료',
+                  value: formData.insuranceMonthly,
+                  onChange: (value) => update('insuranceMonthly', value),
+                },
+                {
+                  key: 'maintenanceMonthly',
+                  label: '관리비',
+                  value: formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly,
+                  onChange: (value) => update('maintenanceMonthly', value),
+                  disabled: formData.housingType === 'monthlyRent',
+                  helperText:
+                    formData.housingType === 'monthlyRent'
+                      ? '월세 주거비에서 계산되어 여기서는 제외됩니다.'
+                      : undefined,
+                },
+                {
+                  key: 'telecomMonthly',
+                  label: '통신비',
+                  value: formData.telecomMonthly,
+                  onChange: (value) => update('telecomMonthly', value),
+                },
+                {
+                  key: 'otherFixedMonthly',
+                  label: '기타 고정지출',
+                  value: formData.otherFixedMonthly,
+                  onChange: (value) => update('otherFixedMonthly', value),
+                },
+              ]}
+            />
+            {renderBooleanChoice('대출금이 있나요?', showLoanQuestions, (value) =>
+              onPatchFormData(
+                value
+                  ? { hasLoan: true }
+                  : {
+                      hasLoan: false,
+                      loanInterestMonthly: 0,
+                      loanInterestYears: 0,
+                    },
+              )
+            )}
+            {showLoanQuestions ? (
+              <QuestionNumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'loanInterestMonthly',
+                    label: '대출 이자',
+                    value: formData.loanInterestMonthly,
+                    onChange: (value) => update('loanInterestMonthly', value),
+                  },
+                  {
                     key: 'loanInterestYears',
-                    label: '대출 이자 반영 년수',
+                    label: '반영 년도',
                     value: formData.loanInterestYears,
-                    onChange: (value: number) => update('loanInterestYears', Math.max(value, 0)),
-                    display: 'number' as const,
+                    onChange: (value) => update('loanInterestYears', Math.max(value, 0)),
+                    display: 'number',
                     suffix: '년',
                     min: 0,
                     step: 1,
-                    helperText: '예: 10 입력 시 10년 동안만 반영됩니다.',
-                  }]
-                : []),
-              {
-                key: 'carYearlyCost',
-                label: '자동차 1년 유지비',
-                value: formData.carYearlyCost,
-                onChange: (value) => update('carYearlyCost', value),
-                helperText: '12개월로 나눠서 계산됩니다.',
-              },
-              {
-                key: 'otherFixedMonthly',
-                label: '기타 고정지출',
-                value: formData.otherFixedMonthly,
-                onChange: (value) => update('otherFixedMonthly', value),
-              },
-            ]}
-          />
+                  },
+                ]}
+              />
+            ) : null}
+          </div>
         )
+
       case 'livingCosts':
         return (
           <div className="question-stack">
@@ -1055,13 +1074,45 @@ export function QuestionScreen({
                 ]}
               />
             )}
+            {renderBooleanChoice('자동차를 보유하고 있나요?', showCarQuestions, (value) =>
+              onPatchFormData(
+                value
+                  ? { hasCar: true }
+                  : {
+                      hasCar: false,
+                      currentCarValue: 0,
+                      carYearlyCost: 0,
+                    },
+              )
+            )}
+            {showCarQuestions ? (
+              <QuestionNumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'currentCarValue',
+                    label: '현재 차량 시세',
+                    value: formData.currentCarValue,
+                    onChange: (value) => update('currentCarValue', value),
+                    helperText: '현재는 입력값 보관용이며 계산에는 직접 반영하지 않습니다.',
+                  },
+                  {
+                    key: 'carYearlyCost',
+                    label: '1년 차량 유지비',
+                    value: formData.carYearlyCost,
+                    onChange: (value) => update('carYearlyCost', value),
+                    helperText: '12개월로 나눠서 계산됩니다.',
+                  },
+                ]}
+              />
+            ) : null}
           </div>
         )
+
       case 'cashReserve':
         return (
           <div className="question-stack">
             <QuestionNumberFields
-              columns={2}
               fields={[
                 {
                   key: 'startingCashReserve',
@@ -1069,17 +1120,6 @@ export function QuestionScreen({
                   value: formData.startingCashReserve,
                   onChange: (value) => update('startingCashReserve', value),
                   helperText: '현금 흐름 그래프의 시작 금액 입니다.',
-                },
-                {
-                  key: 'currentAge',
-                  label: '현재 나이',
-                  value: formData.currentAge,
-                  onChange: (value) => update('currentAge', value),
-                  display: 'number',
-                  suffix: '세',
-                  min: 1,
-                  step: 1,
-                  helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
                 },
               ]}
             />
@@ -1103,6 +1143,7 @@ export function QuestionScreen({
             </section>
           </div>
         )
+
       default:
         return null
     }

@@ -71,6 +71,8 @@ export const defaultFormData: RetireCalcFormData = {
   maintenanceMonthly: 0,
   telecomMonthly: 0,
   nationalPensionMonthly: 0,
+  hasCar: false,
+  currentCarValue: 0,
   carYearlyCost: 0,
   loanInterestMonthly: 0,
   loanInterestYears: 0,

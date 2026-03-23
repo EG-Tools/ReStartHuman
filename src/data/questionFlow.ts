@@ -7,13 +7,13 @@ const hasIsaStep = (formData: RetireCalcFormData) =>
 export const questionFlow: QuestionStep[] = [
   {
     id: 'household',
-    title: '계산 기준',
+    title: '가구 기준 정보',
     description: '',
     visibility: () => true,
   },
   {
     id: 'housingDetails',
-    title: '주거 상세 정보',
+    title: '주거 형태 및 상세 정보',
     description: '선택한 주거 형태에 필요한 항목만 보여줍니다.',
     visibility: () => true,
   },
@@ -55,20 +55,20 @@ export const questionFlow: QuestionStep[] = [
   },
   {
     id: 'fixedExpenses',
-    title: '월 고정지출, 자동차 1년 유지비',
+    title: '월 고정지출 및 대출',
     description: '',
     visibility: () => true,
   },
   {
     id: 'livingCosts',
-    title: '월 생활비용',
+    title: '생활비 및 차량유지비',
     description: '',
     visibility: () => true,
   },
   {
     id: 'cashReserve',
-    title: '현재 보유 현금, 나이',
-    description: '현재 보유한 현금과, 나이를 참고해서 최종 결과에 반영합니다.',
+    title: '현재 보유 현금',
+    description: '현재 보유한 현금과 예상 현금흐름 반영 기간을 최종 결과에 반영합니다.',
     visibility: () => true,
   },
 ]
