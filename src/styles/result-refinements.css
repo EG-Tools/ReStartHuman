@@ -452,7 +452,11 @@
 
 
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing {
-  gap: 13px;
+  gap: 16px;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market {
+  gap: 4px;
 }
 
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing .table-edit-label {
