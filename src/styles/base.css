@@ -434,6 +434,8 @@ p {
 
 .input-suffix {
   white-space: nowrap;
+  position: relative;
+  top: 1px;
 }
 
 .summary-card {
