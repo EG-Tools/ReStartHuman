@@ -437,8 +437,3 @@
     transform: translateX(16px);
   }
 }
-
-/* 입력 박스 외곽을 1px 올려 숫자와 접미사 라인이 더 자연스럽게 보이게 조정 */
-.table-shell .result-table .result-input-cell .table-edit-field {
-  transform: translateY(-3px);
-}
