@@ -52,9 +52,7 @@
   box-shadow: var(--result-row-divider-shadow);
 }
 
-/* ------------------------------------------------------------------
-   1열 고정 잔재 제거
-------------------------------------------------------------------- */
+/* 1열 고정 잔재 제거 */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
@@ -117,7 +115,6 @@
 
 /* ------------------------------------------------------------------
    결과표 단일 레이아웃
-   조절은 이 블록 숫자만 바꾸면 됩니다.
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -152,10 +149,7 @@
     var(--result-note-gap)
   );
 
-  /* 최적화:
-     아이콘이 없는 비고 행은 아이콘 칸을 예약하지 않음.
-     그래서 '생활비·고정지출 차감 전' 같은 문구가 괜히 한 글자만
-     아래 줄로 떨어지지 않게 합니다. */
+  /* 비고 줄바꿈 정책 */
   --result-note-overflow-wrap: normal;
   --result-note-word-break: keep-all;
 
