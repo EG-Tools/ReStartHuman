@@ -304,6 +304,8 @@
 .table-shell .result-table .result-input-cell .table-edit-label,
 .table-shell .result-table .result-input-cell .table-edit-suffix {
   text-align: right;
+  position: relative;
+  top: 1px;
 }
 
 .table-shell .result-table .result-input-cell .table-edit-input {
