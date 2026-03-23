@@ -480,12 +480,8 @@
   min-width: 0;
 }
 
-/* 집값행: 시가 블록 내부(시가 ↔ 아래 만원) 간격 축소 */
-.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-stack {
-  gap: 3px;
-}
-
 /* 집값행: 공시가격 위 간격은 첫 번째 블록 하단 여백으로 직접 확보 */
 .table-shell .result-table .result-input-cell .table-edit-group-market {
+  gap: 3px;
   margin-bottom: 5px;
 }
