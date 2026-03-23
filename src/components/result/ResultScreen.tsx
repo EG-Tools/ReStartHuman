@@ -33,19 +33,6 @@ interface ResultRow {
   noteDetail?: string
 }
 
-interface HoldingTaxDerived {
-  breakdownSummary: string
-  inputSummary: string
-  baseSummary: string
-}
-
-interface ComprehensiveTaxDerived {
-  inputSummary: string
-  allocationSummary: string
-  zeroReason: string
-  note: string
-}
-
 const MANWON = 10_000
 
 const formatDraftValue = (value: number) =>
@@ -216,78 +203,54 @@ const formatIsaLimitSummary = (breakdown: RetireCalcResult['isaTaxBreakdown']) =
     .join(', ')
 }
 
-/* ------------------------------------------------------------------
-   B 최적화:
-   보유세 / 종합소득세 파생 문자열 계산을 한 곳에서 만든 뒤 재사용합니다.
-   이전에는 같은 breakdown 배열을 filter / map / join으로 여러 번 순회했습니다.
-------------------------------------------------------------------- */
-const getHoldingTaxDerived = (result: RetireCalcResult): HoldingTaxDerived => {
-  const activeAnnualBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
-  const activeBaseBreakdown = result.holdingTaxBreakdown.filter((item) => item.baseValue > 0)
+const getHoldingTaxBreakdownSummary = (result: RetireCalcResult) => {
+  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
 
-  return {
-    breakdownSummary:
-      activeAnnualBreakdown.length === 0
-        ? '해당 없음'
-        : activeAnnualBreakdown
-            .map((item) => `${item.label} ${formatCompactCurrency(item.annual)}`)
-            .join(', '),
-    inputSummary:
-      activeAnnualBreakdown.length === 0
-        ? '해당 없음'
-        : activeAnnualBreakdown.map((item) => item.label).join(' · '),
-    baseSummary:
-      activeBaseBreakdown.length === 0
-        ? '해당 자산 없음'
-        : activeBaseBreakdown
-            .map((item) => `${item.label} 기준가 ${formatCompactCurrency(item.baseValue)}`)
-            .join(', '),
+  if (activeBreakdown.length === 0) {
+    return '해당 없음'
   }
+
+  return activeBreakdown
+    .map((item) => `${item.label} ${formatCompactCurrency(item.annual)}`)
+    .join(', ')
 }
 
-const getComprehensiveTaxDerived = (
-  result: RetireCalcResult,
-): ComprehensiveTaxDerived => {
-  const exceededBreakdown = result.comprehensiveTaxBreakdown.filter((item) => item.exceedsThreshold)
-  const allocatedBreakdown = result.comprehensiveTaxBreakdown.filter(
-    (item) => item.attributedDividendAnnual > 0,
-  )
-  const additionalBreakdown = result.comprehensiveTaxBreakdown.filter(
-    (item) => item.additionalTaxAnnual > 0,
-  )
+const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
+  const activeLabels = result.holdingTaxBreakdown
+    .filter((item) => item.annual > 0)
+    .map((item) => item.label)
 
-  const allocationSummary = allocatedBreakdown
-    .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
-    .join(', ')
-
-  const inputSummary =
-    exceededBreakdown.length === 0
-      ? `일반계좌 배당 인별 ${formatCompactCurrency(result.comprehensiveTaxThresholdAnnual)} 이하`
-      : `${exceededBreakdown.map((item) => item.label).join(' / ')} 기준 초과`
-
-  const zeroReason =
-    exceededBreakdown.length === 0
-      ? `인별 귀속 배당이 모두 ${formatCompactCurrency(result.comprehensiveTaxThresholdAnnual)} 이하라`
-      : `${exceededBreakdown
-          .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
-          .join(', ')} 기준으로 인별 판정했고, 원천징수세액이 비교세액보다 크거나 같아`
-
-  const additionalSummary = additionalBreakdown
-    .map((item) => `${item.label} 추가 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
-    .join(', ')
-
-  const note = !result.comprehensiveTaxIncluded
-    ? `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}`
-    : additionalSummary.length === 0
-      ? `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${zeroReason} 추가 납부는 0원`
-      : `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
-
-  return {
-    inputSummary,
-    allocationSummary,
-    zeroReason,
-    note,
+  if (activeLabels.length === 0) {
+    return '해당 없음'
   }
+
+  const otherPropertyIndex = activeLabels.findIndex((label) =>
+    label.includes('기타부동산'),
+  )
+
+  if (otherPropertyIndex <= 0) {
+    return activeLabels.join(' · ')
+  }
+
+  return (
+    <span>
+      {activeLabels.slice(0, otherPropertyIndex).join(' · ')}
+      <br />
+      {activeLabels.slice(otherPropertyIndex).join(' · ')}
+    </span>
+  )
+}
+
+const getHoldingTaxBaseSummary = (result: RetireCalcResult) => {
+  const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.baseValue > 0)
+
+  if (activeBreakdown.length === 0) {
+    return '해당 자산 없음'
+  }
+
+  return activeBreakdown
+    .map((item) => `${item.label} 기준가 ${formatCompactCurrency(item.baseValue)}`)
+    .join(', ')
 }
 
 const getTaxableDividendNote = (result: RetireCalcResult) => {
@@ -314,6 +277,56 @@ const getIsaDividendNote = (result: RetireCalcResult) => {
   }
 
   return `세후 입력 그대로 사용합니다. 귀속: ${ownershipSummary}, 참고 한도: ${limitSummary}. 세후 입력에서는 ISA 유형별 절세 차이를 다시 계산하지 않고, 종합소득세에도 합산하지 않습니다.`
+}
+
+const getComprehensiveTaxInput = (result: RetireCalcResult) => {
+  const exceededLabels = result.comprehensiveTaxBreakdown
+    .filter((item) => item.exceedsThreshold)
+    .map((item) => item.label)
+
+  if (exceededLabels.length === 0) {
+    return `일반계좌 배당 인별 ${formatCompactCurrency(result.comprehensiveTaxThresholdAnnual)} 이하`
+  }
+
+  return `${exceededLabels.join(' / ')} 기준 초과`
+}
+
+const formatComprehensiveTaxAllocationSummary = (result: RetireCalcResult) =>
+  result.comprehensiveTaxBreakdown
+    .filter((item) => item.attributedDividendAnnual > 0)
+    .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
+    .join(', ')
+
+const getComprehensiveTaxZeroReason = (result: RetireCalcResult) => {
+  const exceededBreakdown = result.comprehensiveTaxBreakdown.filter((item) => item.exceedsThreshold)
+
+  if (exceededBreakdown.length === 0) {
+    return `인별 귀속 배당이 모두 ${formatCompactCurrency(result.comprehensiveTaxThresholdAnnual)} 이하라`
+  }
+
+  const exceededSummary = exceededBreakdown
+    .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
+    .join(', ')
+
+  return `${exceededSummary} 기준으로 인별 판정했고, 원천징수세액이 비교세액보다 크거나 같아`
+}
+
+const getComprehensiveTaxNote = (result: RetireCalcResult) => {
+  const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
+  const additionalSummary = result.comprehensiveTaxBreakdown
+    .filter((item) => item.additionalTaxAnnual > 0)
+    .map((item) => `${item.label} 추가 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
+    .join(', ')
+
+  if (!result.comprehensiveTaxIncluded) {
+    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}`
+  }
+
+  if (additionalSummary.length === 0) {
+    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원`
+  }
+
+  return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
 }
 
 const splitSummaryValue = (value: string) => {
@@ -608,6 +621,7 @@ const CashFlowChart = memo(function CashFlowChart({
             </text>
           </g>
         ))}
+
       </svg>
     </section>
   )
@@ -665,6 +679,14 @@ const ResultTable = memo(function ResultTable({
   return (
     <div className="table-shell">
       <table className="result-table">
+        <colgroup>
+          <col className="result-col-item" />
+          <col className="result-col-input" />
+          <col className="result-col-monthly" />
+          <col className="result-col-annual" />
+          <col className="result-col-horizon" />
+          <col className="result-col-note" />
+        </colgroup>
         <thead>
           <tr>
             <th><span className="result-head-text">구분</span></th>
@@ -691,8 +713,15 @@ const ResultTable = memo(function ResultTable({
               <td className="result-col-horizon-cell">{row.tenYear}</td>
               <td className="result-note-cell">
                 <div className="note-cell">
-                  <span>{row.note}</span>
-                  {row.noteDetail ? <HelpPopover detail={row.noteDetail} /> : null}
+                  <span className="note-cell-text">{row.note}</span>
+                  {row.noteDetail ? (
+                    <details className="note-popover">
+                      <summary className="note-popover-trigger" aria-label="설명 보기">
+                        ?
+                      </summary>
+                      <div className="note-popover-bubble">{row.noteDetail}</div>
+                    </details>
+                  ) : null}
                 </div>
               </td>
             </tr>
@@ -819,7 +848,6 @@ function InlineAmountInput({
     </div>
   )
 }
-
 function InlineLabeledAmountInput({
   caption,
   label,
@@ -834,9 +862,13 @@ function InlineLabeledAmountInput({
   className?: string
 }) {
   return (
-    <div className={className ? `table-edit-group ${className}` : 'table-edit-group'}>
+    <div className={className ? `table-edit-group ${className}` : "table-edit-group"}>
       <span className="table-edit-label">{caption}</span>
-      <InlineAmountInput label={label} value={value} onChange={onChange} />
+      <InlineAmountInput
+        label={label}
+        value={value}
+        onChange={onChange}
+      />
     </div>
   )
 }
@@ -1025,31 +1057,17 @@ export function ResultScreen({
     formData.telecomMonthly +
     formData.otherFixedMonthly
   const fixedExpenseAnnualBase = fixedExpenseMonthlyBase * 12
-
   const captureRef = useRef<HTMLDivElement | null>(null)
   const [exportState, setExportState] = useState<'idle' | 'sharing'>('idle')
   const [exportMessage, setExportMessage] = useState<string | null>(null)
-
   const ageBenchmark = useMemo(
     () => getAgeAssetBenchmark(formData.currentAge),
     [formData.currentAge],
   )
-
   const totalAssetEstimate = useMemo(
     () => getHouseholdAssetEstimate(formData),
     [formData],
   )
-
-  const holdingTaxDerived = useMemo(
-    () => getHoldingTaxDerived(result),
-    [result],
-  )
-
-  const comprehensiveTaxDerived = useMemo(
-    () => getComprehensiveTaxDerived(result),
-    [result],
-  )
-
   const assetInterpretation = useMemo(
     () =>
       getAssetInterpretationMessage({
@@ -1065,7 +1083,6 @@ export function ResultScreen({
       totalAssetEstimate,
     ],
   )
-
   const highestComprehensiveTaxBreakdown = useMemo(
     () =>
       result.comprehensiveTaxBreakdown.reduce<
@@ -1079,7 +1096,6 @@ export function ResultScreen({
       }, null),
     [result.comprehensiveTaxBreakdown],
   )
-
   const effectiveComprehensiveRate = useMemo(
     () =>
       highestComprehensiveTaxBreakdown &&
@@ -1092,18 +1108,17 @@ export function ResultScreen({
         : 0,
     [highestComprehensiveTaxBreakdown],
   )
-
   const interpretationItems = useMemo(
     () => [
       result.holdingTaxAnnual >= 10_000_000
-        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${holdingTaxDerived.breakdownSummary}이 반영됐고, ${holdingTaxDerived.baseSummary} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
         : result.holdingTaxAnnual > 0
-          ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${holdingTaxDerived.breakdownSummary}이 반영됐고, ${holdingTaxDerived.baseSummary} 기준으로 추정했습니다.`
+          ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 추정했습니다.`
           : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
       result.comprehensiveTaxIncluded
         ? result.comprehensiveTaxImpactAnnual > 0
           ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-          : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${comprehensiveTaxDerived.zeroReason} 추가 세 부담은 0원입니다.`
+          : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
         : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
       result.healthInsuranceMonthly >= 1_000_000
         ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
@@ -1115,11 +1130,9 @@ export function ResultScreen({
     ],
     [
       assetInterpretation,
-      comprehensiveTaxDerived.zeroReason,
       effectiveComprehensiveRate,
       formData.healthInsuranceType,
-      holdingTaxDerived.baseSummary,
-      holdingTaxDerived.breakdownSummary,
+      formData.homeOfficialValue,
       result.comprehensiveTaxImpactAnnual,
       result.comprehensiveTaxIncluded,
       result.healthInsuranceMonthly,
@@ -1376,17 +1389,17 @@ export function ResultScreen({
     {
       category: '세금',
       item: '종합소득세',
-      input: comprehensiveTaxDerived.inputSummary,
+      input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
       tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
       note: '일반계좌만 반영',
-      noteDetail: comprehensiveTaxDerived.note,
+      noteDetail: getComprehensiveTaxNote(result),
     },
     {
       category: '세금',
       item: '보유세',
-      input: holdingTaxDerived.inputSummary,
+      input: getHoldingTaxInputSummary(result),
       monthly:
         result.holdingTaxAnnual > 0
           ? formatCompactCurrency(result.holdingTaxMonthly)
@@ -1405,7 +1418,7 @@ export function ResultScreen({
           : '해당 없음',
       noteDetail:
         result.holdingTaxAnnual > 0
-          ? `${holdingTaxDerived.breakdownSummary} 기준. ${policyConfig.holdingTax.note}`
+          ? `${getHoldingTaxBreakdownSummary(result)} 기준. ${policyConfig.holdingTax.note}`
           : undefined,
     },
     {
@@ -1495,14 +1508,10 @@ export function ResultScreen({
     },
   ],
     [
-      comprehensiveTaxDerived.inputSummary,
-      comprehensiveTaxDerived.note,
       dividendBasisLabel,
       fixedExpenseAnnualBase,
       fixedExpenseMonthlyBase,
       formData,
-      holdingTaxDerived.breakdownSummary,
-      holdingTaxDerived.inputSummary,
       householdSummary,
       housingRowLabel,
       housingRowNote,
@@ -1525,12 +1534,7 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <CashFlowChart
-          result={result}
-          inflationEnabled={formData.inflationEnabled}
-          inflationRateAnnual={formData.inflationRateAnnual}
-          projectionYears={formData.simulationYears}
-        />
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} />
 
         <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
