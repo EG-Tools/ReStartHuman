@@ -1,12 +1,5 @@
 /* Result visual refinements */
 
-/* ------------------------------------------------------------------
-   최신 GitHub 구조 기준
-   - ResultTable 은 colgroup 없음
-   - 마지막열은 td > .note-cell > span + details.note-popover 구조
-   - 이 파일은 2열 / 3열 / 마지막열 복구에 맞춘 단일 규칙만 둡니다
-------------------------------------------------------------------- */
-
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -30,42 +23,48 @@
   color: #ffd2c6;
 }
 
-.result-table {
-  --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
-  --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
+/* 최신 GitHub 기본 행 색상 유지 */
+.result-table tbody tr.result-category-tax td {
+  background: #24191b;
+  color: #e5cfca;
+  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
 }
 
-.result-table tbody tr.result-category-tax {
-  --result-row-bg: #24191b;
-  --result-row-color: #e5cfca;
+.result-table tbody tr.result-category-expense td {
+  background: #24182f;
+  color: #dccff0;
+  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
 }
 
-.result-table tbody tr.result-category-expense {
-  --result-row-bg: #24182f;
-  --result-row-color: #dccff0;
-}
-
-.result-table tbody tr.result-category-outcome {
-  --result-row-bg: #0e2923;
-  --result-row-color: #bfe2d6;
-}
-
-.result-table tbody tr.result-category-tax td,
-.result-table tbody tr.result-category-expense td,
 .result-table tbody tr.result-category-outcome td {
-  background: var(--result-row-bg);
-  color: var(--result-row-color);
-  box-shadow: var(--result-row-divider-shadow);
+  background: #0e2923;
+  color: #bfe2d6;
+  box-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
 }
 
-/* 1열 sticky 잔재 제거 */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
   font-weight: 800;
-  background: var(--result-row-bg);
-  color: var(--result-row-color);
-  box-shadow: var(--result-row-sticky-divider-shadow);
+  box-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
+}
+
+.result-table tbody tr.result-category-tax td:first-child {
+  background: #24191b;
+  color: #e5cfca;
+}
+
+.result-table tbody tr.result-category-expense td:first-child {
+  background: #24182f;
+  color: #dccff0;
+}
+
+.result-table tbody tr.result-category-outcome td:first-child {
+  background: #0e2923;
+  color: #bfe2d6;
 }
 
 .projection-inline-row {
@@ -119,147 +118,47 @@
   padding-block: 11px;
 }
 
+.interpretation-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.interpretation-list li {
+  line-height: 1.55;
+}
+
 /* ------------------------------------------------------------------
-   결과표 단일 레이아웃 변수
+   2열 / 마지막열 정상화
+   최신 TSX 구조 기준:
+   - 2열: td.result-input-cell 내부에 일반 텍스트 또는 table-edit-* 구조
+   - 마지막열: td > .note-cell > span + details.note-popover
 ------------------------------------------------------------------- */
+
 .table-shell .result-table {
-  --result-table-font-size: 0.86rem;
-  --result-cell-pad-y: 12px;
   --result-cell-pad-x: 12px;
-
-  --result-col-1: 55px;
   --result-col-2: 175px;
-  --result-col-3: 90px;
-  --result-col-4: 105px;
-  --result-col-5: 125px;
   --result-col-6: 180px;
-
   --result-col-2-content: calc(var(--result-col-2) - (var(--result-cell-pad-x) * 2));
   --result-col-6-content: calc(var(--result-col-6) - (var(--result-cell-pad-x) * 2));
-
   --result-note-icon-size: 20px;
   --result-note-gap: 6px;
   --result-note-text-width-with-icon: calc(
-    var(--result-col-6-content) -
-    var(--result-note-icon-size) -
-    var(--result-note-gap)
+    var(--result-col-6-content) - var(--result-note-icon-size) - var(--result-note-gap)
   );
-
-  --result-edit-inline-gap: 6px;
   --result-input-box-width: 96px;
   --result-suffix-min-width: 28px;
   --result-action-min-width: 0px;
+  --result-edit-inline-gap: 6px;
   --result-edit-field-pad-x: 8px;
   --result-edit-input-font-size: 0.95rem;
   --result-edit-suffix-font-size: 0.95rem;
   --result-edit-helper-font-size: 0.76rem;
-
-  table-layout: fixed;
-  width: max-content;
-  min-width: max-content;
-  font-size: var(--result-table-font-size);
-
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
 }
 
-.table-shell {
-  margin-inline: 0;
-  padding-bottom: 0;
-}
-
-.table-shell .result-table th,
-.table-shell .result-table td {
-  padding: var(--result-cell-pad-y) var(--result-cell-pad-x);
-}
-
-.table-shell .result-table thead th {
-  text-align: center;
-  white-space: nowrap;
-}
-
-.table-shell .result-table tbody td {
-  vertical-align: middle;
-}
-
-.table-shell .result-table th:not(:last-child),
-.table-shell .result-table td:not(:last-child) {
-  border-right: 1px solid rgba(82, 90, 98, 0.34);
-}
-
-/* 열 폭: 최신 TSX 구조 기준으로 nth-child만 사용 */
-.table-shell .result-table th:nth-child(1),
-.table-shell .result-table td:nth-child(1) {
-  width: var(--result-col-1);
-  min-width: var(--result-col-1);
-  max-width: var(--result-col-1);
-}
-
-.table-shell .result-table th:nth-child(2),
-.table-shell .result-table td:nth-child(2) {
-  width: var(--result-col-2);
-  min-width: var(--result-col-2);
-  max-width: var(--result-col-2);
-}
-
-.table-shell .result-table th:nth-child(3),
-.table-shell .result-table td:nth-child(3) {
-  width: var(--result-col-3);
-  min-width: var(--result-col-3);
-  max-width: var(--result-col-3);
-}
-
-.table-shell .result-table th:nth-child(4),
-.table-shell .result-table td:nth-child(4) {
-  width: var(--result-col-4);
-  min-width: var(--result-col-4);
-  max-width: var(--result-col-4);
-}
-
-.table-shell .result-table th:nth-child(5),
-.table-shell .result-table td:nth-child(5) {
-  width: var(--result-col-5);
-  min-width: var(--result-col-5);
-  max-width: var(--result-col-5);
-}
-
-.table-shell .result-table th:nth-child(6),
-.table-shell .result-table td:nth-child(6) {
-  width: var(--result-col-6);
-  min-width: var(--result-col-6);
-  max-width: var(--result-col-6);
-}
-
-/* 1열 */
-.table-shell .result-table .result-item-cell {
-  text-align: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.table-shell .result-table .result-item-label {
-  display: grid;
-  gap: 2px;
-  line-height: 1.06;
-  font-weight: 700;
-  justify-items: center;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.table-shell .result-table .result-item-label span {
-  display: block;
-  width: 100%;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* ------------------------------------------------------------------
-   2열 정상화
-   - 일반 텍스트와 에디터를 같은 폭 / 같은 우측 정렬 기준으로 통일
-------------------------------------------------------------------- */
+/* 2열: 일반 텍스트와 에디터를 같은 폭 / 같은 우측정렬 기준으로 통일 */
 .table-shell .result-table .result-input-cell {
   text-align: right;
 }
@@ -273,13 +172,6 @@
   max-width: var(--result-col-2-content);
   margin-left: auto;
   text-align: right;
-}
-
-/* 일반 문구가 줄바꿈될 때도 오른쪽 기준 유지 */
-.table-shell .result-table .result-input-cell > span br,
-.table-shell .result-table .result-input-cell > div br,
-.table-shell .result-table .result-input-cell > p br {
-  content: "";
 }
 
 .table-shell .result-table .result-input-cell .table-edit-cluster,
@@ -340,24 +232,19 @@
   justify-content: flex-end;
 }
 
-/* 3열은 숫자 열이므로 안정적으로 유지 */
-.table-shell .result-table tbody td:nth-child(3) {
+/* 3열 숫자열은 오른쪽 정렬 유지 */
+.table-shell .result-table td:nth-child(3) {
   text-align: right;
   white-space: nowrap;
 }
 
-/* ------------------------------------------------------------------
-   마지막열 물음표 복구
-   최신 TSX 구조: td > div.note-cell > span + details.note-popover
-   - 아이콘 없는 행은 1칸
-   - 아이콘 있는 행만 2칸
-------------------------------------------------------------------- */
-.table-shell .result-table tbody td:nth-child(6) {
+/* 마지막열: 아이콘 없는 행은 1칸, 아이콘 있는 행만 2칸 */
+.table-shell .result-table td:nth-child(6) {
   text-align: right;
   white-space: normal;
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-cell {
+.table-shell .result-table td:nth-child(6) .note-cell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
@@ -370,12 +257,12 @@
   justify-content: end;
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-cell:has(.note-popover) {
+.table-shell .result-table td:nth-child(6) .note-cell:has(.note-popover) {
   grid-template-columns: var(--result-note-text-width-with-icon) var(--result-note-icon-size);
   gap: var(--result-note-gap);
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-cell > span {
+.table-shell .result-table td:nth-child(6) .note-cell > span {
   width: var(--result-col-6-content);
   min-width: 0;
   max-width: var(--result-col-6-content);
@@ -385,16 +272,16 @@
   line-height: 1.28;
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-cell:has(.note-popover) > span {
+.table-shell .result-table td:nth-child(6) .note-cell:has(.note-popover) > span {
   width: var(--result-note-text-width-with-icon);
   max-width: var(--result-note-text-width-with-icon);
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-popover {
+.table-shell .result-table td:nth-child(6) .note-popover {
   display: inline-block;
 }
 
-.table-shell .result-table tbody td:nth-child(6) .note-popover-trigger {
+.table-shell .result-table td:nth-child(6) .note-popover-trigger {
   display: inline-grid;
   place-items: center;
   width: var(--result-note-icon-size);
@@ -402,18 +289,8 @@
   min-width: var(--result-note-icon-size);
   min-height: var(--result-note-icon-size);
   white-space: nowrap;
-}
-
-.interpretation-list {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 10px;
-  color: var(--ink);
-}
-
-.interpretation-list li {
-  line-height: 1.55;
+  visibility: visible;
+  opacity: 1;
 }
 
 @media (max-width: 900px) {
@@ -461,5 +338,60 @@
 
   .inflation-toggle.is-on .inflation-toggle-thumb {
     transform: translateX(16px);
+  }
+}
+
+@media (min-width: 901px) and (orientation: landscape) {
+  .result-table {
+    table-layout: fixed;
+  }
+
+  .result-table th:nth-child(1),
+  .result-table td:nth-child(1) {
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+  }
+
+  .result-table th:nth-child(2),
+  .result-table td:nth-child(2) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
+
+  .result-table th:nth-child(3),
+  .result-table td:nth-child(3) {
+    width: 86px;
+    min-width: 86px;
+    max-width: 86px;
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .result-table th:nth-child(4),
+  .result-table td:nth-child(4) {
+    width: 106px;
+    min-width: 106px;
+    max-width: 106px;
+  }
+
+  .result-table th:nth-child(5),
+  .result-table td:nth-child(5) {
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
+  }
+
+  .result-table th:nth-child(6),
+  .result-table td:nth-child(6) {
+    width: 116px;
+    min-width: 116px;
+    max-width: 116px;
+  }
+
+  .result-table td:nth-child(6) .note-cell {
+    width: 100%;
+    max-width: none;
   }
 }
