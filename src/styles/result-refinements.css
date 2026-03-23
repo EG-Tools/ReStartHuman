@@ -1,5 +1,12 @@
 /* Result visual refinements */
 
+/* ------------------------------------------------------------------
+   결과표 유지보수 원칙
+   - 최신 TSX 구조를 그대로 사용
+   - 2열/3열은 이 파일의 단일 변수 블록만 기준으로 제어
+   - 가로/세로 별도 테이블 규칙을 두지 않음
+------------------------------------------------------------------- */
+
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -23,7 +30,7 @@
   color: #ffd2c6;
 }
 
-/* 결과표 색상은 행별 변수만 지정하고 공통 규칙 한 번만 적용 */
+/* 결과표 행 색상은 공통 규칙 한 번만 적용 */
 .result-table {
   --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
   --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
@@ -52,7 +59,11 @@
   box-shadow: var(--result-row-divider-shadow);
 }
 
-/* 1열 고정 잔재 제거 */
+/* ------------------------------------------------------------------
+   1열 sticky 잔재 제거
+   최신 GitHub에는 첫 열 sticky가 남아 있었는데, 이게 세로 스크롤에서
+   락처럼 보이는 원인 중 하나였습니다.
+------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
 .result-table tbody tr.result-category-outcome td:first-child {
@@ -114,7 +125,8 @@
 }
 
 /* ------------------------------------------------------------------
-   결과표 단일 레이아웃
+   결과표 단일 레이아웃 변수 블록
+   조절은 여기 숫자만 바꾸면 됩니다.
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -122,20 +134,11 @@
   --result-cell-pad-x: 12px;
 
   --result-col-1: 55px;
-  --result-col-2: 175px;
-  --result-col-3: 90px;
-  --result-col-4: 105px;
-  --result-col-5: 125px;
-  --result-col-6: 180px;
-
-  --result-table-fixed-width: calc(
-    var(--result-col-1) +
-    var(--result-col-2) +
-    var(--result-col-3) +
-    var(--result-col-4) +
-    var(--result-col-5) +
-    var(--result-col-6)
-  );
+  --result-col-2: 175px;  /* 입력값 */
+  --result-col-3: 90px;   /* 월 기준 */
+  --result-col-4: 105px;  /* 1년 결과 */
+  --result-col-5: 125px;  /* N년 결과 */
+  --result-col-6: 180px;  /* 비고 */
 
   --result-col-2-content: calc(var(--result-col-2) - (var(--result-cell-pad-x) * 2));
   --result-col-6-content: calc(var(--result-col-6) - (var(--result-cell-pad-x) * 2));
@@ -149,7 +152,6 @@
     var(--result-note-gap)
   );
 
-  /* 비고 줄바꿈 정책 */
   --result-note-overflow-wrap: normal;
   --result-note-word-break: keep-all;
 
@@ -163,9 +165,8 @@
   --result-edit-helper-font-size: 0.76rem;
 
   table-layout: fixed;
-  width: var(--result-table-fixed-width);
-  min-width: var(--result-table-fixed-width);
-  max-width: var(--result-table-fixed-width);
+  width: max-content;
+  min-width: max-content;
   font-size: var(--result-table-font-size);
 
   -webkit-text-size-adjust: 100%;
@@ -175,31 +176,6 @@
 .table-shell {
   margin-inline: 0;
   padding-bottom: 0;
-}
-
-/* colgroup 기반 열 고정 */
-.table-shell .result-table col.result-col-item {
-  width: var(--result-col-1);
-}
-
-.table-shell .result-table col.result-col-input {
-  width: var(--result-col-2);
-}
-
-.table-shell .result-table col.result-col-monthly {
-  width: var(--result-col-3);
-}
-
-.table-shell .result-table col.result-col-annual {
-  width: var(--result-col-4);
-}
-
-.table-shell .result-table col.result-col-horizon {
-  width: var(--result-col-5);
-}
-
-.table-shell .result-table col.result-col-note {
-  width: var(--result-col-6);
 }
 
 .table-shell .result-table th,
@@ -219,6 +195,61 @@
 .table-shell .result-table th:not(:last-child),
 .table-shell .result-table td:not(:last-child) {
   border-right: 1px solid rgba(82, 90, 98, 0.34);
+}
+
+/* ------------------------------------------------------------------
+   열 폭 단일 규칙
+   최신 GitHub에 있던 orientation 전용 nth-child 규칙은 제거하고,
+   이 블록만 기준으로 통일합니다.
+------------------------------------------------------------------- */
+.table-shell .result-table th:nth-child(1),
+.table-shell .result-table td:nth-child(1) {
+  width: var(--result-col-1);
+  min-width: var(--result-col-1);
+  max-width: var(--result-col-1);
+}
+
+.table-shell .result-table th:nth-child(2),
+.table-shell .result-table td:nth-child(2) {
+  width: var(--result-col-2);
+  min-width: var(--result-col-2);
+  max-width: var(--result-col-2);
+}
+
+.table-shell .result-table th.result-col-monthly,
+.table-shell .result-table td.result-col-monthly,
+.table-shell .result-table th:nth-child(3),
+.table-shell .result-table td:nth-child(3) {
+  width: var(--result-col-3);
+  min-width: var(--result-col-3);
+  max-width: var(--result-col-3);
+}
+
+.table-shell .result-table th.result-col-annual-cell,
+.table-shell .result-table td.result-col-annual-cell,
+.table-shell .result-table th:nth-child(4),
+.table-shell .result-table td:nth-child(4) {
+  width: var(--result-col-4);
+  min-width: var(--result-col-4);
+  max-width: var(--result-col-4);
+}
+
+.table-shell .result-table th.result-col-horizon-cell,
+.table-shell .result-table td.result-col-horizon-cell,
+.table-shell .result-table th:nth-child(5),
+.table-shell .result-table td:nth-child(5) {
+  width: var(--result-col-5);
+  min-width: var(--result-col-5);
+  max-width: var(--result-col-5);
+}
+
+.table-shell .result-table th.result-note-cell,
+.table-shell .result-table td.result-note-cell,
+.table-shell .result-table th:nth-child(6),
+.table-shell .result-table td:nth-child(6) {
+  width: var(--result-col-6);
+  min-width: var(--result-col-6);
+  max-width: var(--result-col-6);
 }
 
 /* 1열 */
@@ -247,7 +278,10 @@
   white-space: nowrap;
 }
 
-/* 2열 단일 정렬 규칙 */
+/* ------------------------------------------------------------------
+   2열 단일 정렬 규칙
+   일반 텍스트와 에디터 구조를 같은 폭/같은 정렬 기준으로 통일합니다.
+------------------------------------------------------------------- */
 .table-shell .result-table .result-input-cell {
   text-align: right;
 }
@@ -261,6 +295,11 @@
   max-width: var(--result-col-2-content);
   margin-left: auto;
   text-align: right;
+}
+
+/* 2열 일반 문구가 여러 줄일 때도 오른쪽 기준 유지 */
+.table-shell .result-table .result-input-cell br {
+  content: "";
 }
 
 .table-shell .result-table .result-input-cell .table-edit-cluster,
@@ -321,11 +360,13 @@
   justify-content: flex-end;
 }
 
-/* ------------------------------------------------------------------
-   비고열 단일 규칙
-   기본은 1칸.
-   설명 아이콘이 실제로 있는 행만 2칸 그리드로 바꿉니다.
-------------------------------------------------------------------- */
+/* 3열은 숫자 열이므로 좁고 안정적으로 유지 */
+.table-shell .result-table .result-col-monthly {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* 비고열 */
 .table-shell .result-table .result-note-cell {
   white-space: normal;
   text-align: right;
@@ -349,7 +390,9 @@
   gap: var(--result-note-gap);
 }
 
-.table-shell .result-table .note-cell-text {
+.table-shell .result-table .note-cell-text,
+.table-shell .result-table .result-note-cell > span,
+.table-shell .result-table .result-note-cell > div {
   width: var(--result-note-text-width-full);
   min-width: 0;
   max-width: var(--result-note-text-width-full);
@@ -357,6 +400,7 @@
   overflow-wrap: var(--result-note-overflow-wrap);
   word-break: var(--result-note-word-break);
   line-height: 1.28;
+  margin-left: auto;
 }
 
 .table-shell .result-table .note-cell:has(.note-popover) .note-cell-text {
@@ -383,7 +427,6 @@
   line-height: 1.55;
 }
 
-/* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
     gap: 8px;
