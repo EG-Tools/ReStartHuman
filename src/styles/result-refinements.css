@@ -263,20 +263,18 @@
 }
 
 .result-table .result-input-cell .table-edit-inline {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) max-content;
+  display: flex;
   align-items: center;
-  justify-content: end;
   width: 100%;
   min-width: 0;
   gap: 6px;
 }
 
 .result-table .result-input-cell .table-edit-field {
+  flex: 0 0 96px;
   width: 96px;
   min-width: 96px;
   max-width: 96px;
-  justify-self: end;
   padding-left: 8px;
   padding-right: 8px;
 }
@@ -294,7 +292,8 @@
 }
 
 .result-table .result-input-cell .table-edit-suffix {
-  justify-self: end;
+  margin-left: auto;
+  text-align: right;
   white-space: nowrap;
   font-size: 0.95rem;
 }
@@ -310,6 +309,11 @@
 }
 
 /* 마지막열 */
+.result-table td:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+}
+
 .result-table td:nth-child(6) {
   text-align: right;
   white-space: normal;
@@ -326,7 +330,7 @@
 
 .result-table td:nth-child(6) .note-cell > span {
   min-width: 0;
-  white-space: normal;
+  white-space: nowrap;
   overflow-wrap: normal;
   word-break: keep-all;
   line-height: 1.28;
