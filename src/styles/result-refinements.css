@@ -480,8 +480,10 @@
   min-width: 0;
 }
 
-/* 집값행: 공시가격 위 간격은 첫 번째 블록 하단 여백으로 직접 확보 */
+/* 집값행: 시가 블록은 직접 2행 그리드로 바꿔 내부 간격을 정확히 제어 */
 .table-shell .result-table .result-input-cell .table-edit-group-market {
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 3px;
   margin-bottom: 5px;
 }
