@@ -338,6 +338,19 @@ p {
 }
 
 
+/* ------------------------------------------------------------------
+   질문 화면 숫자입력 구조
+   - question-number-* : 질문 화면 숫자입력 전용 보정
+   - input-inline / input-shell / input-control / input-suffix : 공통 입력 뼈대
+   - 질문 화면 숫자입력 미세조정은 이 구간 숫자만 바꾸면 됩니다.
+------------------------------------------------------------------- */
+.question-screen {
+  --question-number-inline-gap: 3px;
+  --question-number-suffix-offset: -4px;
+  --question-copy-note-gap: 10px;
+  --question-copy-note-tight-gap: -2px;
+}
+
 .question-number-grid {
   display: grid;
   gap: 12px;
@@ -369,7 +382,7 @@ p {
 
 .question-number-inline {
   align-items: center;
-  gap: 3px;
+  gap: var(--question-number-inline-gap);
 }
 
 .question-number-shell {
@@ -394,11 +407,23 @@ p {
   line-height: 1;
   flex-shrink: 0;
   white-space: nowrap;
-  margin-top: -4px;
+  margin-top: var(--question-number-suffix-offset);
 }
 
 .question-number-helper {
   margin-top: 8px;
+}
+
+.question-stack-compact {
+  gap: 10px;
+}
+
+.question-copy-note {
+  margin-top: var(--question-copy-note-gap);
+}
+
+.question-copy-note-tight {
+  margin-top: var(--question-copy-note-tight-gap);
 }
 
 .toggle-group {

@@ -1,3 +1,12 @@
+/*
+  결과표 전용 스타일 안내
+  - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
+  - base.css는 질문 화면 공통 입력만 담당합니다.
+  - app-chrome.css는 앱 프레임 / 가로모드 대응만 담당합니다.
+
+  따라서 결과표 세부 정렬이 어긋나면 먼저 이 파일을 확인합니다.
+*/
+
 /* Result visual refinements */
 
 .summary-card.tone-neutral,
@@ -171,6 +180,7 @@
   --result-edit-suffix-offset: 1px;
 
   --result-housing-cluster-gap: 15px;
+  --result-housing-label-align: center;
   --result-housing-market-label-offset: 5px;
   --result-housing-official-label-offset: 3px;
   --result-housing-market-bottom-gap: 5px;
@@ -481,7 +491,7 @@
 .table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: var(--result-housing-label-align);
   position: relative;
 }
 

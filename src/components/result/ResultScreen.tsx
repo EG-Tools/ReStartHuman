@@ -744,6 +744,29 @@ const ResultInterpretation = memo(function ResultInterpretation({
   )
 })
 
+const RESULT_EDIT_CLASS = {
+  stack: 'table-edit-stack',
+  inline: 'table-edit-inline',
+  inlineNoAction: 'table-edit-inline-no-action',
+  inlineWithAction: 'table-edit-inline-with-action',
+  field: 'table-edit-field',
+  input: 'table-edit-input',
+  suffix: 'table-edit-suffix',
+  action: 'table-edit-action',
+  group: 'table-edit-group',
+  cluster: 'table-edit-cluster',
+  housingCluster: 'table-edit-cluster-housing',
+  housingGroup: 'table-edit-group-housing',
+  housingMarket: 'table-edit-group-housing-market',
+  housingOfficial: 'table-edit-group-housing-official',
+  marketGroup: 'table-edit-group-market',
+  officialGroup: 'table-edit-group-official',
+} as const
+
+function joinClassNames(...tokens: Array<string | undefined | false | null>) {
+  return tokens.filter(Boolean).join(' ')
+}
+
 function HelpPopover({
   detail,
   label = '설명 보기',
@@ -777,19 +800,22 @@ function InlineAmountInput({
   action?: ReactNode
 }) {
   return (
-    <div className="table-edit-stack">
+    <div className={RESULT_EDIT_CLASS.stack}>
       <InlineNumericField
         value={value}
         onChange={onChange}
         min={0}
         step={1}
         display="currency"
-        inlineClassName={action ? 'table-edit-inline table-edit-inline-with-action' : 'table-edit-inline table-edit-inline-no-action'}
-        shellClassName="table-edit-field"
-        inputClassName="table-edit-input"
-        suffixClassName="table-edit-suffix"
+        inlineClassName={joinClassNames(
+          RESULT_EDIT_CLASS.inline,
+          action ? RESULT_EDIT_CLASS.inlineWithAction : RESULT_EDIT_CLASS.inlineNoAction,
+        )}
+        shellClassName={RESULT_EDIT_CLASS.field}
+        inputClassName={RESULT_EDIT_CLASS.input}
+        suffixClassName={RESULT_EDIT_CLASS.suffix}
         inputAriaLabel={label}
-        action={action ? <div className="table-edit-action">{action}</div> : null}
+        action={action ? <div className={RESULT_EDIT_CLASS.action}>{action}</div> : null}
       />
     </div>
   )
@@ -807,7 +833,7 @@ function InlineLabeledAmountInput({
   onChange: (value: number) => void
   className?: string
 }) {
-  const groupClassName = className ? `table-edit-group ${className}` : 'table-edit-group'
+  const groupClassName = className ? joinClassNames(RESULT_EDIT_CLASS.group, className) : RESULT_EDIT_CLASS.group
 
   return (
     <div className={groupClassName}>
@@ -821,6 +847,11 @@ function InlineLabeledAmountInput({
   )
 }
 
+/**
+ * 집값행은 결과표에서 유일한 2단 입력행입니다.
+ * 구조/클래스는 이 함수에서 고정하고, 위치/간격은 result-refinements.css 하단
+ * '집값행 최종 디자인 전용 보정' 구간에서만 조정합니다.
+ */
 function HousingAmountEditor({
   formData,
   onPatchFormData,
@@ -830,16 +861,24 @@ function HousingAmountEditor({
 }) {
   if (formData.housingType === 'own') {
     return (
-      <div className="table-edit-cluster table-edit-cluster-housing">
+      <div className={joinClassNames(RESULT_EDIT_CLASS.cluster, RESULT_EDIT_CLASS.housingCluster)}>
         <InlineLabeledAmountInput
-          className="table-edit-group-housing table-edit-group-housing-market table-edit-group-market"
+          className={joinClassNames(
+            RESULT_EDIT_CLASS.housingGroup,
+            RESULT_EDIT_CLASS.housingMarket,
+            RESULT_EDIT_CLASS.marketGroup,
+          )}
           caption="시가"
           label="주택 시가"
           value={formData.homeMarketValue}
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
-          className="table-edit-group-housing table-edit-group-housing-official table-edit-group-official"
+          className={joinClassNames(
+            RESULT_EDIT_CLASS.housingGroup,
+            RESULT_EDIT_CLASS.housingOfficial,
+            RESULT_EDIT_CLASS.officialGroup,
+          )}
           caption="공시가격"
           label="주택 공시가격"
           value={formData.homeOfficialValue}
@@ -861,7 +900,7 @@ function HousingAmountEditor({
   }
 
   return (
-    <div className="table-edit-cluster">
+    <div className={RESULT_EDIT_CLASS.cluster}>
       <InlineLabeledAmountInput
         caption="보증금"
         label="월세 보증금"

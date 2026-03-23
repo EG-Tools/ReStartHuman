@@ -306,7 +306,7 @@ export function QuestionScreen({
     optionRows: readonly (readonly { value: T; label: string; description?: string }[])[],
     onChange: (nextValue: T) => void,
   ) => (
-    <div className="question-stack" style={{ gap: '10px' }}>
+    <div className="question-stack question-stack-compact">
       {optionRows.map((row, rowIndex) => (
         <ChoiceQuestion
           key={`row-${rowIndex}`}
@@ -350,7 +350,7 @@ export function QuestionScreen({
                   })
                 }
               />
-              <p className="screen-copy" style={{ marginTop: '10px' }}>
+              <p className="screen-copy question-copy-note">
                 현재는 참고용이며, 추후 계산 구조에 반영할 예정입니다.
               </p>
             </section>
@@ -409,7 +409,7 @@ export function QuestionScreen({
                   update('isJointOwnership', value),
                 )}
                 {formData.isJointOwnership ? (
-                  <p className="screen-copy" style={{ marginTop: '-2px' }}>
+                  <p className="screen-copy question-copy-note-tight">
                     본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
@@ -435,7 +435,7 @@ export function QuestionScreen({
                   update('isJointOwnership', value),
                 )}
                 {formData.isJointOwnership ? (
-                  <p className="screen-copy" style={{ marginTop: '-2px' }}>
+                  <p className="screen-copy question-copy-note-tight">
                     본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
@@ -526,7 +526,7 @@ export function QuestionScreen({
                   }
                 />
                 {formData.landOwnershipType === 'split' ? (
-                  <p className="screen-copy" style={{ marginTop: '10px' }}>
+                  <p className="screen-copy question-copy-note">
                     본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
@@ -574,7 +574,7 @@ export function QuestionScreen({
                   }
                 />
                 {formData.otherPropertyOwnershipType === 'split' ? (
-                  <p className="screen-copy" style={{ marginTop: '10px' }}>
+                  <p className="screen-copy question-copy-note">
                     본인 50%, 배우자 50% 자동 적용됩니다.
                   </p>
                 ) : null}
@@ -1035,7 +1035,7 @@ export function QuestionScreen({
                   )
                 }
               />
-              <p className="screen-copy" style={{ marginTop: '10px' }}>
+              <p className="screen-copy question-copy-note">
                 최소 10년, 최대 50년 결과를 시뮬레이션 합니다.
               </p>
             </section>
