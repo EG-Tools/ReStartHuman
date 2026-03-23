@@ -317,6 +317,8 @@
 .table-shell .result-table .result-input-cell .table-edit-suffix {
   white-space: nowrap;
   font-size: var(--result-edit-suffix-font-size);
+  position: relative;
+  top: 1px;
 }
 
 .table-shell .result-table .result-input-cell .table-edit-helper {
