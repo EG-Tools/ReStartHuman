@@ -775,6 +775,8 @@ p {
   border-radius: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
 }
 
 .table-edit-input {
@@ -783,7 +785,7 @@ p {
   border: none;
   background: transparent;
   color: var(--ink);
-  padding: 8px 0;
+  padding: 0;
   line-height: 1;
   outline: none;
 }
