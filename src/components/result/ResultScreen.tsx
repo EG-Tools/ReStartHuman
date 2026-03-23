@@ -50,6 +50,7 @@ const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
       formData.necessitiesMonthly +
       formData.diningOutMonthly +
       formData.hobbyMonthly +
+      (formData.academyMonthly ?? 0) +
       formData.otherLivingMonthly
 
 const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
@@ -1011,7 +1012,8 @@ function LivingExpenseEditor({
     formData.foodMonthly +
     formData.necessitiesMonthly +
     formData.diningOutMonthly +
-    formData.hobbyMonthly
+    formData.hobbyMonthly +
+    (formData.academyMonthly ?? 0)
 
   return (
     <InlineAmountInput
