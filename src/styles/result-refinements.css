@@ -451,14 +451,19 @@
 }
 
 
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing {
-  gap: 16px;
-}
-
+/* 집값행 미세 정렬: 시가/공시가격 왼쪽정렬 + 그룹 간격 보정 */
 .table-shell .result-table .result-input-cell .table-edit-group-market {
   gap: 4px;
 }
 
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing .table-edit-label {
+.table-shell .result-table .result-input-cell .table-edit-group-official {
+  margin-top: 3px;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label,
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
+  align-self: stretch;
   text-align: left;
+  position: static;
+  top: auto;
 }

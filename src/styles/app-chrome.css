@@ -495,23 +495,5 @@
     font-size: clamp(1.35rem, 3.2vw, 2rem);
     line-height: 1;
   }
-
-
-  /* 집값행 최종 미세조정: result-refinements보다 app-chrome이 나중에 로드되므로 여기서 확정 */
-  .result-screen .table-edit-group-market {
-    gap: 4px;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group {
-    margin-top: 3px;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-label,
-  .result-screen .table-edit-group-market .table-edit-label {
-    width: 100%;
-    text-align: left;
-    align-self: flex-start;
-  }
-
 }
 
