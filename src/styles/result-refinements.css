@@ -282,7 +282,7 @@
   display: grid;
   grid-template-columns:
     var(--result-input-box-width)
-    minmax(0, 1fr)
+    minmax(var(--result-suffix-min-width), max-content)
     minmax(var(--result-action-min-width), max-content);
   align-items: center;
   width: var(--result-col-2-content);
@@ -313,7 +313,6 @@
 }
 
 .table-shell .result-table .result-input-cell .table-edit-suffix {
-  justify-self: end;
   white-space: nowrap;
   font-size: var(--result-edit-suffix-font-size);
 }
@@ -437,4 +436,14 @@
   .inflation-toggle.is-on .inflation-toggle-thumb {
     transform: translateX(16px);
   }
+}
+
+
+/* 2열 만원만 우측 끝 정렬: action 없는 행만 2칸 grid로 축소 */
+.table-shell .result-table .result-input-cell .table-edit-inline:not(:has(.table-edit-action)) {
+  grid-template-columns: var(--result-input-box-width) max-content;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-inline:not(:has(.table-edit-action)) .table-edit-suffix {
+  justify-self: end;
 }
