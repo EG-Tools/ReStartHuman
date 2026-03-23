@@ -452,7 +452,7 @@
 
 /* 집값행 라벨/간격 전용 보정 */
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing {
-  gap: 15px;
+  gap: 20px;
 }
 
 .table-shell .result-table .result-input-cell .table-edit-group-market,
