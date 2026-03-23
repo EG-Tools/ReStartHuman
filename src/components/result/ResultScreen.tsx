@@ -837,6 +837,7 @@ function HousingAmountEditor({
           onChange={(value) => onPatchFormData({ homeMarketValue: value })}
         />
         <InlineLabeledAmountInput
+          className="table-edit-group-official"
           caption="공시가격"
           label="주택 공시가격"
           value={formData.homeOfficialValue}

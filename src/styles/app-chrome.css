@@ -212,10 +212,12 @@
   }
 
   .result-screen .table-edit-cluster-housing {
+    display: grid;
     width: fit-content;
     min-width: 0;
     max-width: none;
     justify-items: end;
+    row-gap: 15px;
     margin-left: auto;
     margin-right: 0;
   }
@@ -225,6 +227,23 @@
     width: fit-content;
     min-width: 0;
     justify-self: end;
+  }
+
+  .result-screen .table-edit-group-market,
+  .result-screen .table-edit-group-official {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .result-screen .table-edit-group-official {
+    margin-top: 5px;
+  }
+
+  .result-screen .table-edit-group-market .table-edit-label,
+  .result-screen .table-edit-group-official .table-edit-label {
+    align-self: flex-start;
+    text-align: left;
+    position: static;
   }
 
   .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-stack,
@@ -257,22 +276,6 @@
 
   .result-screen .table-edit-suffix {
     justify-self: end;
-  }
-
-  .result-screen .table-edit-cluster-housing {
-    row-gap: 15px;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group,
-  .result-screen .table-edit-group-market {
-    align-items: start;
-    text-align: left;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-label,
-  .result-screen .table-edit-group-market .table-edit-label {
-    align-self: flex-start;
-    text-align: left;
   }
 
   .result-screen .table-edit-action {
