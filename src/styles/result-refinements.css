@@ -439,17 +439,7 @@
 }
 
 
-/* 2열 만원만 우측 끝 정렬: action 없는 행만 2칸 grid로 축소 */
-.table-shell .result-table .result-input-cell .table-edit-inline:not(:has(.table-edit-action)) {
-  grid-template-columns: var(--result-input-box-width) max-content;
-}
-
-.table-shell .result-table .result-input-cell .table-edit-inline:not(:has(.table-edit-action)) .table-edit-suffix {
-  justify-self: end;
-}
-
-
-/* 집값행만 그룹 사이 간격을 아주 조금 더 넓힘 */
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing {
-  gap: 14px;
+/* 집값행: 시가 밑 만원 ↔ 공시가격 간격만 소폭 추가 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group + .table-edit-group {
+  margin-top: 4px;
 }
