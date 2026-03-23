@@ -227,6 +227,21 @@
     justify-self: end;
   }
 
+  .result-screen .table-edit-cluster-housing > .table-edit-group {
+    align-items: start;
+    text-align: left;
+  }
+
+  .result-screen .table-edit-cluster-housing > .table-edit-group:not(.table-edit-group-market) {
+    margin-top: 5px;
+  }
+
+  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-label {
+    width: 100%;
+    text-align: left;
+    align-self: flex-start;
+  }
+
   .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-stack,
   .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-inline,
   .result-screen .table-edit-group-market .table-edit-stack,
