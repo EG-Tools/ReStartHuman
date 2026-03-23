@@ -689,7 +689,12 @@ const ResultTable = memo(function ResultTable({
               <td className="result-col-monthly">{row.monthly}</td>
               <td className="result-col-annual-cell">{row.annual}</td>
               <td className="result-col-horizon-cell">{row.tenYear}</td>
-              <td className="result-note-cell">{row.note}</td>
+              <td className="result-note-cell">
+                <div className="note-cell">
+                  <span>{row.note}</span>
+                  {row.noteDetail ? <HelpPopover detail={row.noteDetail} /> : null}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

@@ -12,9 +12,9 @@
 
   .table-shell > .result-table th:nth-child(6),
   .table-shell > .result-table td:nth-child(6) {
-    width: 126px !important;
-    min-width: 126px !important;
-    max-width: 126px !important;
+    width: 142px !important;
+    min-width: 142px !important;
+    max-width: 142px !important;
   }
 
   .table-shell > .result-table td:nth-child(6) .note-cell {

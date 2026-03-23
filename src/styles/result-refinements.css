@@ -309,6 +309,11 @@
 }
 
 /* 마지막열 */
+.result-table td:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+}
+
 .result-table td:nth-child(6) {
   text-align: right;
   white-space: normal;
@@ -325,7 +330,7 @@
 
 .result-table td:nth-child(6) .note-cell > span {
   min-width: 0;
-  white-space: normal;
+  white-space: nowrap;
   overflow-wrap: normal;
   word-break: keep-all;
   line-height: 1.28;
