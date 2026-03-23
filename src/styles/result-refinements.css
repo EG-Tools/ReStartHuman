@@ -284,7 +284,7 @@
     var(--result-input-box-width)
     minmax(var(--result-suffix-min-width), max-content)
     minmax(var(--result-action-min-width), max-content);
-  align-items: center;
+  align-items: baseline;
   width: var(--result-col-2-content);
   min-width: var(--result-col-2-content);
   max-width: var(--result-col-2-content);
