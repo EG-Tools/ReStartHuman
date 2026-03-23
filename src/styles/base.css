@@ -414,7 +414,7 @@ p {
   width: 100%;
   border: none;
   background: transparent;
-  padding: 14px 0;
+  padding: 12px 0;
   outline: none;
   color: var(--ink);
 }
@@ -769,7 +769,7 @@ p {
 
 .table-edit-field {
   flex: 1;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 10px;
   border-radius: 14px;
   border: 1px solid var(--line);
@@ -782,7 +782,7 @@ p {
   border: none;
   background: transparent;
   color: var(--ink);
-  padding: 10px 0;
+  padding: 8px 0;
   outline: none;
 }
 
