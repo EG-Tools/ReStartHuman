@@ -471,6 +471,13 @@
   width: 100%;
   text-align: left;
   position: relative;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label {
+  top: 5px;
+}
+
+.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   top: 3px;
 }
 
