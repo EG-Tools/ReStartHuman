@@ -475,9 +475,8 @@
   gap: var(--result-housing-cluster-gap);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing,
-.table-shell .result-table .result-input-cell .table-edit-group-market,
-.table-shell .result-table .result-input-cell .table-edit-group-official {
+/* 집값행 두 블록(시가 / 공시가격)의 폭과 기본 정렬 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group {
   width: var(--result-col-2-content);
   min-width: var(--result-col-2-content);
   max-width: var(--result-col-2-content);
@@ -486,34 +485,30 @@
   text-align: left;
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-label,
-.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label,
-.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
+/* 집값행 라벨 공통 규칙: 폭은 꽉 채우고, 실제 보정값은 아래 market/official 에서만 분기 */
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group > .table-edit-label {
   display: block;
   width: 100%;
   text-align: var(--result-housing-label-align);
   position: relative;
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market > .table-edit-label,
+/* 시가 라벨 보정 */
 .table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-label {
   top: var(--result-housing-market-label-offset);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing-official > .table-edit-label,
+/* 공시가격 라벨 보정 */
 .table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-label {
   top: var(--result-housing-official-label-offset);
 }
 
-.table-shell .result-table .result-input-cell .table-edit-group-housing > .table-edit-stack,
-.table-shell .result-table .result-input-cell .table-edit-group-market > .table-edit-stack,
-.table-shell .result-table .result-input-cell .table-edit-group-official > .table-edit-stack {
+.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group > .table-edit-stack {
   width: 100%;
   min-width: 0;
 }
 
-/* 공시가격 위쪽 여백은 첫 번째 블록 하단 여백 하나로만 관리 */
-.table-shell .result-table .result-input-cell .table-edit-group-housing-market,
+/* 공시가격 위쪽 여백은 '시가 블록 하단 여백' 하나로만 관리 */
 .table-shell .result-table .result-input-cell .table-edit-group-market {
   margin-bottom: var(--result-housing-market-bottom-gap);
 }

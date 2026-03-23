@@ -211,49 +211,9 @@
     text-align: right;
   }
 
-  .result-screen .table-edit-cluster-housing {
-    display: grid;
-    width: fit-content;
-    min-width: 0;
-    max-width: none;
-    justify-items: end;
-    row-gap: 15px;
-    margin-left: auto;
-    margin-right: 0;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group,
-  .result-screen .table-edit-group-market {
-    width: fit-content;
-    min-width: 0;
-    justify-self: end;
-  }
-
-  .result-screen .table-edit-group-market,
-  .result-screen .table-edit-group-official {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .result-screen .table-edit-group-official {
-    margin-top: 5px;
-  }
-
-  .result-screen .table-edit-group-market .table-edit-label,
-  .result-screen .table-edit-group-official .table-edit-label {
-    align-self: flex-start;
-    text-align: left;
-    position: static;
-  }
-
-  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-stack,
-  .result-screen .table-edit-cluster-housing > .table-edit-group .table-edit-inline,
-  .result-screen .table-edit-group-market .table-edit-stack,
-  .result-screen .table-edit-group-market .table-edit-inline {
-    width: fit-content;
-    min-width: 0;
-    justify-self: end;
-  }
+  /* 집값행 최종 정렬/간격은 result-refinements.css 하단의
+     '집값행 최종 디자인 전용 보정' 한 곳에서만 관리합니다.
+     여기 app-chrome.css 에서는 가로모드 공통 폭/배치만 담당합니다. */
 
   .result-screen .table-edit-inline {
     display: grid;
