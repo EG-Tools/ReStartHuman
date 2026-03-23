@@ -449,10 +449,3 @@
     transform: translateX(16px);
   }
 }
-
-
-/* 집값행 내부 간격만 축소: 시가↔만원, 공시가격↔만원 */
-.table-shell .result-table .result-input-cell .table-edit-cluster-housing > .table-edit-group,
-.table-shell .result-table .result-input-cell .table-edit-group-market {
-  gap: 3px;
-}
