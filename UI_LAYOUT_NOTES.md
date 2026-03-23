@@ -34,14 +34,6 @@ If the task is unrelated to UI layout, this file is probably not the right place
 - Use only if the real final owner is proven to be there.
 - Do not start there by default.
 
-## 2-1) Current canonical housing classes
-Use only these names for the result-table housing row:
-- `table-edit-cluster-housing`
-- `table-edit-group-housing-market`
-- `table-edit-group-housing-official`
-
-Avoid reviving older alias-style names if the housing-only classes already solve the task.
-
 ## 3) TSX vs CSS rule
 ### TSX should handle
 - semantic structure
@@ -69,9 +61,9 @@ The housing row is a special-case UI row.
 ### Required structure idea
 Use explicit, readable classes for housing-specific parts.
 Examples:
-- `table-edit-cluster-housing`
-- `table-edit-group-housing-market`
-- `table-edit-group-housing-official`
+- housing row container
+- market value group
+- official value group
 
 Do not rely on vague selectors like deep descendant chains when a dedicated class can be added safely.
 
@@ -116,3 +108,18 @@ Default delivery format for project edits:
 - overwrite-ready ZIP
 - original folder structure preserved
 - no patch file unless the user explicitly asks for one
+
+## 9) Conditional question flow
+### Main owner
+- `src/data/questionFlow.ts`
+- `src/hooks/useRetireCalcFlow.ts`
+
+### Responsibility
+- step-level visibility
+- visible question list order
+- skipping hidden steps in next/previous navigation
+
+### Related screen owner
+- `src/components/question/QuestionScreen.tsx`
+- Use this file for in-step conditional rendering only.
+- Do not move step-visibility rules into CSS.

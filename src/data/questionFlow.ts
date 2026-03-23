@@ -1,4 +1,8 @@
-import type { QuestionStep } from '../types/retireCalc'
+import type { QuestionStep, RetireCalcFormData } from '../types/retireCalc'
+
+const hasIsaStep = (formData: RetireCalcFormData) =>
+  formData.isaAssets > 0 || formData.isaDividendAnnual > 0
+
 
 export const questionFlow: QuestionStep[] = [
   {
@@ -30,6 +34,12 @@ export const questionFlow: QuestionStep[] = [
     title: '배당금과 연금 예상액',
     description: '',
     visibility: () => true,
+  },
+  {
+    id: 'isa',
+    title: 'ISA 상세 정보',
+    description: 'ISA 자산이나 배당금이 있을 때만 보여줍니다.',
+    visibility: hasIsaStep,
   },
   {
     id: 'income',
