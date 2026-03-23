@@ -482,6 +482,6 @@
 
 /* 집값행: 공시가격 위 간격은 첫 번째 블록 하단 여백으로 직접 확보 */
 .table-shell .result-table .result-input-cell .table-edit-group-market {
-  gap: 3px;
+  gap: 6px;
   margin-bottom: 5px;
 }
