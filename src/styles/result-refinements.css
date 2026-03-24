@@ -627,6 +627,11 @@
   width: auto;
 }
 
+.cashflow-hero-meta span:first-child,
+.cashflow-hero-meta span:last-child {
+  padding-inline: 14px;
+}
+
 .cashflow-hero-meta span:nth-child(2) {
   flex: 1 1 210px;
   justify-content: center;
@@ -644,6 +649,11 @@
     width: auto;
     padding-inline: 8px;
     font-size: 0.74rem;
+  }
+
+  .cashflow-hero-meta span:first-child,
+  .cashflow-hero-meta span:last-child {
+    padding-inline: 11px;
   }
 
   .cashflow-hero-meta span:nth-child(2) {

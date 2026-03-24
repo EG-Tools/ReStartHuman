@@ -1,4 +1,5 @@
-﻿import { PrimaryButton } from '../common/Ui'
+import { useEffect, useMemo, useState } from 'react'
+import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
 
@@ -18,6 +19,12 @@ interface SaveSlotModalProps {
 
 const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
 
+const normalizeDraftSlotName = (slotId: number, nextName: string) => {
+  const collapsedName = nextName.replace(/\s+/g, ' ')
+  const trimmedName = collapsedName.trim().slice(0, 24)
+  return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
+}
+
 export function SaveSlotModal({
   mode,
   slotCount,
@@ -35,6 +42,45 @@ export function SaveSlotModal({
   const showModeTabs = mode === 'manage'
   const title =
     activeMode === 'save' ? '현재 계산 저장' : '저장된 계산 불러오기'
+
+  const resolvedSlotNames = useMemo(() => {
+    const nextMap = new Map<number, string>()
+
+    Array.from({ length: slotCount }, (_, index) => index + 1).forEach((slotId) => {
+      nextMap.set(
+        slotId,
+        slotNamesById.get(slotId) ?? slotsById.get(slotId)?.name ?? getDefaultSlotName(slotId),
+      )
+    })
+
+    return nextMap
+  }, [slotCount, slotNamesById, slotsById])
+
+  const [nameDraftsById, setNameDraftsById] = useState<Record<number, string>>({})
+
+  useEffect(() => {
+    setNameDraftsById((currentDrafts) => {
+      const nextDrafts: Record<number, string> = {}
+
+      resolvedSlotNames.forEach((slotName, slotId) => {
+        nextDrafts[slotId] = currentDrafts[slotId] ?? slotName
+      })
+
+      return nextDrafts
+    })
+  }, [resolvedSlotNames])
+
+  const commitSlotName = (slotId: number) => {
+    const committedName = normalizeDraftSlotName(slotId, nameDraftsById[slotId] ?? '')
+
+    setNameDraftsById((currentDrafts) => ({
+      ...currentDrafts,
+      [slotId]: committedName,
+    }))
+
+    onRenameSlotName(slotId, committedName)
+    return committedName
+  }
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -79,7 +125,7 @@ export function SaveSlotModal({
         <div className="slot-list">
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
-            const slotName = slotNamesById.get(slotId) ?? slot?.name ?? getDefaultSlotName(slotId)
+            const slotName = nameDraftsById[slotId] ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
             const savedAtLabel = slot
               ? `저장날짜 ${formatDateTime(slot.savedAt)}`
               : '아직 저장되지 않음'
@@ -94,7 +140,19 @@ export function SaveSlotModal({
                       className="slot-name-input"
                       value={slotName}
                       maxLength={24}
-                      onChange={(event) => onRenameSlotName(slotId, event.target.value)}
+                      onChange={(event) =>
+                        setNameDraftsById((currentDrafts) => ({
+                          ...currentDrafts,
+                          [slotId]: event.target.value,
+                        }))
+                      }
+                      onBlur={() => commitSlotName(slotId)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault()
+                          event.currentTarget.blur()
+                        }
+                      }}
                       aria-label={`${slotId}번 슬롯 이름`}
                     />
                   </div>
@@ -111,7 +169,13 @@ export function SaveSlotModal({
                   >
                     불러오기
                   </PrimaryButton>
-                  <PrimaryButton onClick={() => onSave(slotId)} disabled={!canSave}>
+                  <PrimaryButton
+                    onClick={() => {
+                      commitSlotName(slotId)
+                      onSave(slotId)
+                    }}
+                    disabled={!canSave}
+                  >
                     저장
                   </PrimaryButton>
                   <PrimaryButton

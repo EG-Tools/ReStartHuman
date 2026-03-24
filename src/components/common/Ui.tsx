@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 
 const MANWON = 10_000
@@ -43,7 +43,6 @@ function useNumericDraftController({
 }: UseNumericDraftControllerProps) {
   const displayValue = Number.isFinite(value) ? toDisplayValue(value, display) : 0
   const [editBuffer, setEditBuffer] = useState<string | null>(null)
-  const replaceOnNextEntryRef = useRef(false)
 
   const draftValue = editBuffer ?? formatDraftValue(displayValue, idleZeroDisplay)
 
@@ -66,7 +65,6 @@ function useNumericDraftController({
         setEditBuffer((currentValue) =>
           currentValue ?? formatDraftValue(displayValue, idleZeroDisplay),
         )
-        replaceOnNextEntryRef.current = true
 
         requestAnimationFrame(() => {
           const input = event.currentTarget
@@ -79,63 +77,17 @@ function useNumericDraftController({
           commitRawValue(draftValue)
         }
 
-        replaceOnNextEntryRef.current = false
         setEditBuffer(null)
       },
       onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
-          replaceOnNextEntryRef.current = false
           event.currentTarget.blur()
           return
         }
 
         if (event.key === 'Escape') {
-          replaceOnNextEntryRef.current = false
           setEditBuffer(null)
           event.currentTarget.blur()
-          return
-        }
-
-        if (replaceOnNextEntryRef.current) {
-          const isDigitKey = /^[0-9]$/.test(event.key)
-          const isDecimalKey = event.key === '.' || event.key === ','
-          const isDeleteKey = event.key === 'Backspace' || event.key === 'Delete'
-          const isNavigationKey =
-            event.key === 'ArrowLeft' ||
-            event.key === 'ArrowRight' ||
-            event.key === 'Home' ||
-            event.key === 'End'
-
-          if (isDigitKey || isDecimalKey || isDeleteKey) {
-            event.preventDefault()
-            const replacementValue = isDeleteKey ? '' : isDecimalKey ? '0.' : event.key
-            setEditBuffer(replacementValue)
-            replaceOnNextEntryRef.current = false
-
-            if (commitMode === 'change') {
-              commitRawValue(replacementValue)
-            }
-
-            return
-          }
-
-          if (isNavigationKey) {
-            replaceOnNextEntryRef.current = false
-          }
-        }
-      },
-      onPaste: (event: React.ClipboardEvent<HTMLInputElement>) => {
-        if (!replaceOnNextEntryRef.current) {
-          return
-        }
-
-        event.preventDefault()
-        const pastedText = event.clipboardData.getData('text')
-        setEditBuffer(pastedText)
-        replaceOnNextEntryRef.current = false
-
-        if (commitMode === 'change') {
-          commitRawValue(pastedText)
         }
       },
       onWheel: (event: React.WheelEvent<HTMLInputElement>) => {
@@ -146,7 +98,6 @@ function useNumericDraftController({
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
         const nextDraftValue = event.target.value
         setEditBuffer(nextDraftValue)
-        replaceOnNextEntryRef.current = false
 
         if (commitMode === 'change') {
           commitRawValue(nextDraftValue)
