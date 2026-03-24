@@ -1,4 +1,4 @@
-﻿import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { InlineNumericField, PrimaryButton } from '../common/Ui'
 import type {
@@ -327,9 +327,10 @@ const splitSummaryValue = (value: string) => {
 
   if (eokMatched) {
     return {
-      amount: `${eokMatched[1]}억`,
-      secondary: eokMatched[2] ?? '',
-      unit: eokMatched[3] ?? '',
+      amountNumber: eokMatched[1],
+      amountUnit: '억',
+      secondaryNumber: eokMatched[2] ?? '',
+      secondaryUnit: eokMatched[3] ?? '',
     }
   }
 
@@ -337,41 +338,19 @@ const splitSummaryValue = (value: string) => {
 
   if (!matched) {
     return {
-      amount: normalized,
-      secondary: '',
-      unit: '',
+      amountNumber: normalized,
+      amountUnit: '',
+      secondaryNumber: '',
+      secondaryUnit: '',
     }
   }
 
   return {
-    amount: matched[1],
-    secondary: '',
-    unit: matched[2].trim(),
+    amountNumber: matched[1],
+    amountUnit: '',
+    secondaryNumber: '',
+    secondaryUnit: matched[2].trim(),
   }
-}
-
-function InflationSwitch({
-  enabled,
-  onToggle,
-}: {
-  enabled: boolean
-  onToggle: (nextValue: boolean) => void
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      aria-label={enabled ? '물가반영 On' : '물가미반영 Off'}
-      className={`inflation-toggle ${enabled ? 'is-on' : 'is-off'}`}
-      onClick={() => onToggle(!enabled)}
-    >
-      <span className="inflation-toggle-copy">{enabled ? 'On' : 'Off'}</span>
-      <span className="inflation-toggle-track" aria-hidden="true">
-        <span className="inflation-toggle-thumb" />
-      </span>
-    </button>
-  )
 }
 
 const SummaryCards = memo(function SummaryCards({
@@ -407,15 +386,22 @@ const SummaryCards = memo(function SummaryCards({
   return (
     <div className="summary-grid">
       {cards.map((card) => {
-        const { amount, secondary, unit } = splitSummaryValue(card.value)
+        const { amountNumber, amountUnit, secondaryNumber, secondaryUnit } = splitSummaryValue(card.value)
 
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
             <h2 className="summary-value">
-              <span>{amount}</span>
-              {secondary ? <span className="summary-value-secondary">{secondary}</span> : null}
-              {unit ? <span className="summary-value-unit">{unit}</span> : null}
+              <span className="summary-value-primary">{amountNumber}</span>
+              {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
+              {secondaryNumber ? (
+                <span className="summary-value-secondary-group">
+                  <span className="summary-value-secondary">{secondaryNumber}</span>
+                  {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
+                </span>
+              ) : secondaryUnit ? (
+                <span className="summary-value-unit">{secondaryUnit}</span>
+              ) : null}
             </h2>
           </article>
         )
@@ -620,9 +606,9 @@ const CashFlowChart = memo(function CashFlowChart({
                 textAnchor={textAnchor}
                 dominantBaseline="hanging"
                 style={{
-                  fill: labelColor,
-                  fontSize: 11,
-                  fontWeight: 700,
+                  fill: '#d6e1e5',
+                  fontSize: 13,
+                  fontWeight: 800,
                 }}
               >
                 {tick.ageLabel}
@@ -784,27 +770,6 @@ const RESULT_EDIT_CLASS = {
 
 function joinClassNames(...tokens: Array<string | undefined | false | null>) {
   return tokens.filter(Boolean).join(' ')
-}
-
-function HelpPopover({
-  detail,
-  label = '설명 보기',
-  align = 'right',
-}: {
-  detail: string
-  label?: string
-  align?: 'left' | 'right'
-}) {
-  const className = `note-popover ${align === 'left' ? 'note-popover-left' : ''}`.trim()
-
-  return (
-    <details className={className}>
-      <summary className="note-popover-trigger" aria-label={label}>
-        ?
-      </summary>
-      <div className="note-popover-bubble">{detail}</div>
-    </details>
-  )
 }
 
 function InlineAmountInput({
@@ -1581,13 +1546,6 @@ export function ResultScreen({
 
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">
-            <div className="title-with-help projection-inline-title">
-              <HelpPopover
-                detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 보유세는 고정으로 둡니다."
-                label="물가반영 설명 보기"
-                align="left"
-              />
-            </div>
             <div className="projection-inline-controls">
               <div className="projection-inline-field">
                 <span className="projection-inline-field-label">나이</span>
@@ -1629,7 +1587,12 @@ export function ResultScreen({
                 <span className="projection-inline-field-label">물가상승율</span>
                 <InlineNumericField
                   value={Math.round(formData.inflationRateAnnual * 100)}
-                  onChange={(value) => onPatchFormData({ inflationRateAnnual: Math.max(0, value) / 100 })}
+                  onChange={(value) =>
+                    onPatchFormData({
+                      inflationRateAnnual: Math.max(0, value) / 100,
+                      inflationEnabled: value > 0,
+                    })
+                  }
                   min={0}
                   step={0.5}
                   max={20}
@@ -1643,10 +1606,6 @@ export function ResultScreen({
                   inputAriaLabel="물가상승율"
                 />
               </div>
-              <InflationSwitch
-                enabled={formData.inflationEnabled}
-                onToggle={(nextValue) => onPatchFormData({ inflationEnabled: nextValue })}
-              />
             </div>
           </div>
         </section>
