@@ -526,22 +526,46 @@
 
 @media (max-width: 640px) {
   .projection-inline-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 10px;
     row-gap: 8px;
   }
 
-  .projection-inline-field,
-  .projection-inline-field:nth-child(1),
-  .projection-inline-field:nth-child(2),
-  .projection-inline-field:nth-child(3) {
+  .projection-inline-field {
+    gap: 5px;
+  }
+
+  .projection-inline-field:nth-child(1) {
+    justify-content: flex-start;
+  }
+
+  .projection-inline-field:nth-child(2) {
     justify-content: center;
   }
 
-  .projection-inline-field .projection-inline-field-label,
-  .projection-inline-field:nth-child(1) .projection-inline-field-label,
-  .projection-inline-field:nth-child(2) .projection-inline-field-label,
-  .projection-inline-field:nth-child(3) .projection-inline-field-label {
-    text-align: center;
+  .projection-inline-field:nth-child(3) {
+    justify-content: flex-end;
+  }
+
+  .projection-inline-field-label {
+    font-size: 0.78rem;
+  }
+
+  .projection-inline-input {
+    gap: 3px;
+  }
+
+  .projection-inline-input .input-shell {
+    width: 50px;
+    min-width: 50px;
+  }
+
+  .projection-inline-input .input-control {
+    font-size: 0.92rem;
+  }
+
+  .projection-inline-input .input-suffix {
+    font-size: 0.78rem;
   }
 }
 
