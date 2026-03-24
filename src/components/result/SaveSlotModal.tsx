@@ -129,7 +129,6 @@ export function SaveSlotModal({
             const slot = slotsById.get(slotId)
             const defaultSlotName = getDefaultSlotName(slotId)
             const slotName = resolvedSlotNames.get(slotId) ?? defaultSlotName
-            const usesDefaultDisplayName = slotName === defaultSlotName
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
@@ -149,8 +148,7 @@ export function SaveSlotModal({
                       autoCapitalize="off"
                       spellCheck={false}
                       className="slot-name-input"
-                      defaultValue={usesDefaultDisplayName ? '' : slotName}
-                      placeholder={defaultSlotName}
+                      defaultValue={slotName}
                       maxLength={24}
                       onFocus={(event) => {
                         moveCaretToEnd(event.currentTarget)
