@@ -50,28 +50,35 @@
   display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
+  gap: 0.03em;
   white-space: nowrap;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-chunk::after {
-  content: attr(data-unit);
+.summary-card .summary-value-number,
+.summary-card .summary-value-unit {
   display: inline-block;
-  margin-left: 0.03em;
-  font-size: 0.48em;
   line-height: 1;
+}
+
+.summary-card .summary-value-number {
+  transform: translateY(0.035em);
+}
+
+.summary-card .summary-value-unit {
+  font-size: 0.48em;
+  transform: translateY(0.02em);
 }
 
 .summary-card .summary-value-chunk-primary {
   font-size: 1em;
-  transform: translateY(0.05em);
 }
 
 .summary-card .summary-value-chunk-secondary {
   font-size: 0.8em;
-  transform: translateY(0.03em);
+  transform: translateY(0.02em);
 }
 
 .summary-card.tone-surplus .summary-value {
