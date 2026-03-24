@@ -434,9 +434,9 @@ const SummaryCards = memo(function SummaryCards({
                   <span
                     key={chunk.key}
                     className={`summary-value-chunk summary-value-chunk-${chunk.tone}`}
+                    data-unit={chunk.unit || undefined}
                   >
-                    <span className="summary-value-number">{chunk.number}</span>
-                    {chunk.unit ? <span className="summary-value-unit">{chunk.unit}</span> : null}
+                    {chunk.number}
                   </span>
                 ))}
               </span>

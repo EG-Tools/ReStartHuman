@@ -50,33 +50,28 @@
   display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 0.04em;
   white-space: nowrap;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.summary-card .summary-value-chunk::after {
+  content: attr(data-unit);
+  display: inline-block;
+  margin-left: 0.03em;
+  font-size: 0.48em;
   line-height: 1;
 }
 
 .summary-card .summary-value-chunk-primary {
   font-size: 1em;
+  transform: translateY(0.05em);
 }
 
 .summary-card .summary-value-chunk-secondary {
   font-size: 0.8em;
-}
-
-.summary-card .summary-value-number {
-  display: inline-block;
-  line-height: 0.9;
-  font-variant-numeric: tabular-nums;
-}
-
-.summary-card .summary-value-chunk-primary .summary-value-number {
-  transform: translateY(0.04em);
-}
-
-.summary-card .summary-value-unit {
-  display: inline-block;
-  font-size: 0.48em;
-  line-height: 0.9;
+  transform: translateY(0.03em);
 }
 
 .summary-card.tone-surplus .summary-value {
