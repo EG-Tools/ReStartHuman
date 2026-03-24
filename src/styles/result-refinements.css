@@ -1,4 +1,4 @@
-﻿/*
+/*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
   - base.css는 질문 화면 공통 입력만 담당합니다.
@@ -20,14 +20,40 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
+.summary-card .summary-value {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.05em;
+  flex-wrap: nowrap;
+  line-height: 0.96;
+}
+
+.summary-card .summary-value-primary {
+  line-height: 0.94;
+}
+
+.summary-card .summary-value-primary-unit {
+  font-size: 0.52em;
+  line-height: 1;
+  transform: translateY(0.16em);
+}
+
+.summary-card .summary-value-secondary-group {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.04em;
+  transform: translateY(0.08em);
+}
+
 .summary-card .summary-value-secondary {
-  font-size: 0.72em;
-  line-height: 1.05;
-  padding-bottom: 0.08em;
+  font-size: 0.8em;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-unit {
-  font-size: 0.56em;
+  font-size: 0.52em;
+  line-height: 1;
+  transform: translateY(0.08em);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -84,37 +110,19 @@
 }
 
 .projection-inline-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.projection-inline-title {
-  min-width: 0;
-  justify-self: start;
-  flex-wrap: nowrap;
-  gap: 6px;
-}
-
-.projection-inline-title .note-popover-trigger {
-  flex: 0 0 auto;
-}
-
-.projection-inline-label {
-  color: var(--ink);
-  font-size: 1rem;
-  font-weight: 800;
-  white-space: nowrap;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .projection-inline-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  justify-content: end;
-  gap: 8px 10px;
-  min-width: max-content;
+  justify-content: flex-start;
+  gap: 8px 8px;
+  min-width: 0;
 }
 
 .projection-inline-field {
@@ -139,13 +147,13 @@
 }
 
 .projection-inline-input .input-shell {
-  width: 56px;
-  min-width: 56px;
+  width: 54px;
+  min-width: 54px;
 }
 
 .projection-inline-input .input-control {
   text-align: right;
-  padding-block: 9px;
+  padding-block: 8px;
 }
 
 /* ------------------------------------------------------------------
@@ -445,11 +453,7 @@
 /* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
-    gap: 8px;
-  }
-
-  .projection-inline-label {
-    font-size: 0.94rem;
+    gap: 6px;
   }
 
   .projection-inline-controls {
@@ -457,37 +461,12 @@
   }
 
   .projection-inline-input .input-shell {
-    width: 52px;
-    min-width: 52px;
+    width: 50px;
+    min-width: 50px;
   }
 
   .projection-inline-input .input-control {
-    padding-block: 9px;
-  }
-
-  .inflation-toggle {
-    gap: 5px;
-    padding: 6px 8px 6px 10px;
-  }
-
-  .inflation-toggle-copy {
-    min-width: 22px;
-    font-size: 0.74rem;
-  }
-
-  .inflation-toggle-track {
-    width: 40px;
-    height: 24px;
-    padding: 3px;
-  }
-
-  .inflation-toggle-thumb {
-    width: 18px;
-    height: 18px;
-  }
-
-  .inflation-toggle.is-on .inflation-toggle-thumb {
-    transform: translateX(16px);
+    padding-block: 7px;
   }
 }
 
