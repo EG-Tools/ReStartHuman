@@ -53,15 +53,16 @@
   line-height: 1;
 }
 
-/* 억 + 만원처럼 앞/뒤 묶음이 함께 있을 때는 앞 숫자가 살짝 뜨기 쉬워서
-   앞 숫자만 아주 조금 내려 기준선을 맞춥니다. */
+/* 억 + 만원 조합은 글자 기준선보다 각 span 박스의 바닥이 더 중요합니다.
+   padding-bottom 으로 박스 바닥을 늘리면 앞 숫자가 위로 뜨므로,
+   숫자/단위는 공통 line-height 로 두고 단위만 transform 으로 미세 보정합니다. */
 .summary-card .summary-value:has(.summary-value-secondary-group) .summary-value-primary {
-  transform: translateY(0.02em);
+  transform: translateY(0.03em);
 }
 
 .summary-card .summary-value-primary {
   display: inline-block;
-  line-height: 0.88;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -69,7 +70,7 @@
   display: inline-block;
   font-size: 0.48em;
   line-height: 1;
-  padding-bottom: 0.07em;
+  transform: translateY(-0.02em);
 }
 
 .summary-card .summary-value-secondary-group {
@@ -77,7 +78,7 @@
   align-items: flex-end;
   gap: 0.03em;
   line-height: 1;
-  transform: translateY(0.03em);
+  transform: translateY(0.02em);
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -87,7 +88,7 @@
 .summary-card .summary-value-secondary {
   display: inline-block;
   font-size: 0.8em;
-  line-height: 0.88;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -95,7 +96,7 @@
   display: inline-block;
   font-size: 0.48em;
   line-height: 1;
-  padding-bottom: 0.05em;
+  transform: translateY(-0.01em);
 }
 
 .summary-card.tone-surplus .summary-value {
