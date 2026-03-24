@@ -322,18 +322,31 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
 }
 
 const splitSummaryValue = (value: string) => {
-  const matched = value.match(/^([+-]?[\d.,]+)(.*)$/)
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  const eokMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+))?(만원)?$/)
+
+  if (eokMatched) {
+    return {
+      amount: `${eokMatched[1]}억`,
+      secondary: eokMatched[2] ?? '',
+      unit: eokMatched[3] ?? '',
+    }
+  }
+
+  const matched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
 
   if (!matched) {
     return {
-      amount: value,
+      amount: normalized,
+      secondary: '',
       unit: '',
     }
   }
 
   return {
     amount: matched[1],
-    unit: matched[2],
+    secondary: '',
+    unit: matched[2].trim(),
   }
 }
 
@@ -394,13 +407,14 @@ const SummaryCards = memo(function SummaryCards({
   return (
     <div className="summary-grid">
       {cards.map((card) => {
-        const { amount, unit } = splitSummaryValue(card.value)
+        const { amount, secondary, unit } = splitSummaryValue(card.value)
 
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
             <h2 className="summary-value">
               <span>{amount}</span>
+              {secondary ? <span className="summary-value-secondary">{secondary}</span> : null}
               {unit ? <span className="summary-value-unit">{unit}</span> : null}
             </h2>
           </article>
@@ -498,15 +512,10 @@ const CashFlowChart = memo(function CashFlowChart({
   const totalYears = Math.max(points[points.length - 1]?.year ?? projectionYears, projectionYears)
   const midYear1 = Math.max(1, Math.round(totalYears / 3))
   const midYear2 = Math.max(midYear1 + 1, Math.round((totalYears * 2) / 3))
-  const xTicks = [
-    { label: '현재', yearOffset: 0 },
-    { label: `${midYear1}년`, yearOffset: midYear1 },
-    { label: `${midYear2}년`, yearOffset: midYear2 },
-    { label: `${totalYears}년`, yearOffset: totalYears },
-  ].map((tick) => ({
-    ...tick,
-    ageLabel: `${currentAge + tick.yearOffset}세`,
-    x: paddingLeft + (Math.min(tick.yearOffset, totalYears) / totalYears) * chartWidth,
+  const xTicks = [0, midYear1, midYear2, totalYears].map((yearOffset) => ({
+    yearOffset,
+    ageLabel: `${currentAge + yearOffset}세`,
+    x: paddingLeft + (Math.min(yearOffset, totalYears) / totalYears) * chartWidth,
   }))
 
   return (
@@ -593,10 +602,10 @@ const CashFlowChart = memo(function CashFlowChart({
 
         {xTicks.map((tick) => {
           const textAnchor =
-            tick.label === '현재' ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'
-          const labelY = borderY + borderHeight + xLabelGap
+            tick.yearOffset === 0 ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'
+          const labelY = borderY + borderHeight + xLabelGap + 2
           return (
-            <g key={`x-tick-${tick.label}`}>
+            <g key={`x-tick-${tick.yearOffset}`}>
               <line
                 className="cashflow-year-tick"
                 x1={tick.x}
@@ -614,19 +623,6 @@ const CashFlowChart = memo(function CashFlowChart({
                   fill: labelColor,
                   fontSize: 11,
                   fontWeight: 700,
-                }}
-              >
-                {tick.label}
-              </text>
-              <text
-                x={tick.x}
-                y={labelY + 14}
-                textAnchor={textAnchor}
-                dominantBaseline="hanging"
-                style={{
-                  fill: 'rgba(214, 225, 229, 0.68)',
-                  fontSize: 10,
-                  fontWeight: 600,
                 }}
               >
                 {tick.ageLabel}
@@ -1586,7 +1582,6 @@ export function ResultScreen({
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">
             <div className="title-with-help projection-inline-title">
-              <span className="projection-inline-label">다시 계산</span>
               <HelpPopover
                 detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 보유세는 고정으로 둡니다."
                 label="물가반영 설명 보기"
