@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { RetireCalcFormData, RetireCalcResult, SaveSlotRecord } from '../types/retireCalc'
 import {
   SAVE_SLOT_COUNT,
@@ -9,8 +9,9 @@ import {
   writeSaveSlotRecord,
 } from '../utils/saveSlots'
 
-const readSlots = (): SaveSlotRecord[] =>
-  readSaveSlotRecords(typeof window === 'undefined' ? undefined : window.localStorage)
+const getBrowserStorage = () => (typeof window === 'undefined' ? undefined : window.localStorage)
+
+const readSlots = (): SaveSlotRecord[] => readSaveSlotRecords(getBrowserStorage())
 
 export const useSaveSlots = () => {
   const [slots, setSlots] = useState<SaveSlotRecord[]>(() => readSlots())
@@ -25,36 +26,40 @@ export const useSaveSlots = () => {
     return slotMap
   }, [slots])
 
-  const replaceSlot = (nextRecord: SaveSlotRecord) => {
+  const replaceSlot = useCallback((nextRecord: SaveSlotRecord) => {
     setSlots((currentSlots) => sortSaveSlotRecords([
       ...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId),
       nextRecord,
     ]))
-  }
+  }, [])
 
-  const saveSlot = (
+  const saveSlot = useCallback((
     slotId: number,
     formData: RetireCalcFormData,
     result: RetireCalcResult,
     slotName?: string,
   ) => {
-    if (typeof window === 'undefined') {
+    const storage = getBrowserStorage()
+
+    if (!storage) {
       return
     }
 
     const record = createSaveSlotRecord(slotId, formData, result, slotName)
-    writeSaveSlotRecord(window.localStorage, record)
+    writeSaveSlotRecord(storage, record)
     replaceSlot(record)
-  }
+  }, [replaceSlot])
 
-  const deleteSlot = (slotId: number) => {
-    if (typeof window === 'undefined') {
+  const deleteSlot = useCallback((slotId: number) => {
+    const storage = getBrowserStorage()
+
+    if (!storage) {
       return
     }
 
-    removeSaveSlotRecord(window.localStorage, slotId)
+    removeSaveSlotRecord(storage, slotId)
     setSlots((currentSlots) => currentSlots.filter((slot) => slot.slotId !== slotId))
-  }
+  }, [])
 
   return {
     slotCount: SAVE_SLOT_COUNT,
