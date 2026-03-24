@@ -964,9 +964,19 @@ p {
 }
 
 
-.input-control,
+ .input-control,
 .table-edit-input {
   text-align: right;
+}
+
+.input-control::placeholder,
+.table-edit-input::placeholder {
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+}
+
+.input-control:focus::placeholder,
+.table-edit-input:focus::placeholder {
+  color: transparent;
 }
 
 

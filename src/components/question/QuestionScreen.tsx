@@ -230,7 +230,6 @@ function QuestionNumberFields({
               disabled={field.disabled}
               display={isCurrency ? 'currency' : 'number'}
               commitMode="change"
-              idleZeroDisplay="zero"
               inlineClassName="input-inline question-number-inline"
               shellClassName="input-shell question-number-shell"
               inputClassName="input-control question-number-input"
