@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type {
   RetireCalcFormData,
   RetireCalcResult,
@@ -43,16 +43,22 @@ const readSlots = (): SaveSlotRecord[] => {
 const readSlotNames = () => {
   const slotNameMap = new Map<number, string>()
 
-  Array.from({ length: SLOT_COUNT }, (_, index) => index + 1).forEach((slotId) => {
-    const defaultSlotName = getDefaultSlotName(slotId)
+  if (typeof window === 'undefined') {
+    return slotNameMap
+  }
 
-    if (typeof window === 'undefined') {
-      slotNameMap.set(slotId, defaultSlotName)
+  Array.from({ length: SLOT_COUNT }, (_, index) => index + 1).forEach((slotId) => {
+    const rawName = window.localStorage.getItem(getSlotNameStorageKey(slotId))
+
+    if (!rawName) {
       return
     }
 
-    const rawName = window.localStorage.getItem(getSlotNameStorageKey(slotId))
-    slotNameMap.set(slotId, normalizeSlotName(slotId, rawName ?? defaultSlotName))
+    const normalizedName = normalizeSlotName(slotId, rawName)
+
+    if (normalizedName !== getDefaultSlotName(slotId)) {
+      slotNameMap.set(slotId, normalizedName)
+    }
   })
 
   return slotNameMap
@@ -96,7 +102,13 @@ export const useSaveSlots = () => {
 
     setSlotNamesById((currentNames) => {
       const nextNames = new Map(currentNames)
-      nextNames.set(slotId, normalizedName)
+
+      if (normalizedName === defaultSlotName) {
+        nextNames.delete(slotId)
+      } else {
+        nextNames.set(slotId, normalizedName)
+      }
+
       return nextNames
     })
 

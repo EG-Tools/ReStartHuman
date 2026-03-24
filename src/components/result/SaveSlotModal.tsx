@@ -26,6 +26,10 @@ const normalizeSlotName = (slotId: number, nextName: string) => {
 }
 
 const moveCaretToEnd = (input: HTMLInputElement) => {
+  if (input.value.length === 0) {
+    return
+  }
+
   const caretPosition = input.value.length
 
   try {
@@ -123,7 +127,9 @@ export function SaveSlotModal({
         <div className="slot-list">
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
-            const slotName = resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+            const defaultSlotName = getDefaultSlotName(slotId)
+            const slotName = resolvedSlotNames.get(slotId) ?? defaultSlotName
+            const usesDefaultDisplayName = slotName === defaultSlotName
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
@@ -143,13 +149,10 @@ export function SaveSlotModal({
                       autoCapitalize="off"
                       spellCheck={false}
                       className="slot-name-input"
-                      defaultValue={slotName}
+                      defaultValue={usesDefaultDisplayName ? '' : slotName}
+                      placeholder={defaultSlotName}
                       maxLength={24}
                       onFocus={(event) => {
-                        moveCaretToEnd(event.currentTarget)
-                      }}
-                      onMouseUp={(event) => {
-                        event.preventDefault()
                         moveCaretToEnd(event.currentTarget)
                       }}
                       onBlur={() => {
