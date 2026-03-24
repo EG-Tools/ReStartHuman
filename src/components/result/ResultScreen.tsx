@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
+﻿import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { InlineNumericField, PrimaryButton } from '../common/Ui'
 import type {
@@ -1566,7 +1566,7 @@ export function ResultScreen({
                 />
               </div>
               <div className="projection-inline-field">
-                <span className="projection-inline-field-label">반영년도</span>
+                <span className="projection-inline-field-label">기간</span>
                 <InlineNumericField
                   value={formData.simulationYears}
                   onChange={(value) => onPatchFormData({ simulationYears: Math.min(Math.max(value, 1), 80) })}
@@ -1580,11 +1580,11 @@ export function ResultScreen({
                   inputClassName="input-control"
                   suffixClassName="input-suffix"
                   suffix="년"
-                  inputAriaLabel="반영 년도"
+                  inputAriaLabel="기간"
                 />
               </div>
               <div className="projection-inline-field">
-                <span className="projection-inline-field-label">물가상승율</span>
+                <span className="projection-inline-field-label">물가</span>
                 <InlineNumericField
                   value={Math.round(formData.inflationRateAnnual * 100)}
                   onChange={(value) =>
@@ -1603,7 +1603,7 @@ export function ResultScreen({
                   inputClassName="input-control"
                   suffixClassName="input-suffix"
                   suffix="%"
-                  inputAriaLabel="물가상승율"
+                  inputAriaLabel="물가"
                 />
               </div>
             </div>
