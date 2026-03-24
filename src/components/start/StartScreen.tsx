@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import startHeroImage from '../../assets/start-hero-main.jpg'
+import { APP_VERSION_LABEL } from '../../config/appMeta'
 
 interface StartScreenProps {
   onStart: () => void
@@ -12,7 +13,7 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
   return (
     <section className="screen start-screen">
       <div className="start-topbar">
-        <span className="version-badge">Version 0.10</span>
+        <span className="version-badge">{APP_VERSION_LABEL}</span>
         {headerAction ? <div className="start-topbar-action">{headerAction}</div> : null}
       </div>
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
+import { normalizeSaveSlotName } from '../../utils/saveSlots'
 import type { SaveSlotRecord } from '../../types/retireCalc'
 
 type SaveSlotMode = 'load' | 'save' | 'manage'
@@ -18,25 +19,11 @@ interface SaveSlotModalProps {
   onDelete: (slotId: number) => void
 }
 
-const normalizeDraftName = (rawName?: string) => {
-  const normalizedName = (rawName ?? '').replace(/\s+/g, ' ').trim().slice(0, 24)
-
-  if (
-    normalizedName.length === 0 ||
-    normalizedName === '빈슬롯' ||
-    /^은퇴계산\d*$/.test(normalizedName)
-  ) {
-    return ''
-  }
-
-  return normalizedName
-}
-
 const createDraftNames = (slotCount: number, slotsById: Map<number, SaveSlotRecord>) => {
   const nextDraftNames: Record<number, string> = {}
 
   Array.from({ length: slotCount }, (_, index) => index + 1).forEach((slotId) => {
-    nextDraftNames[slotId] = normalizeDraftName(slotsById.get(slotId)?.name)
+    nextDraftNames[slotId] = normalizeSaveSlotName(slotsById.get(slotId)?.name)
   })
 
   return nextDraftNames
@@ -73,7 +60,7 @@ export function SaveSlotModal({
   }
 
   const handleSave = (slotId: number) => {
-    const normalizedName = normalizeDraftName(draftNames[slotId])
+    const normalizedName = normalizeSaveSlotName(draftNames[slotId])
     updateDraftName(slotId, normalizedName)
     onSave(slotId, normalizedName)
   }
