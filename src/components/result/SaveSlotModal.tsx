@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
@@ -49,8 +49,6 @@ export function SaveSlotModal({
   onRenameSlotName,
 }: SaveSlotModalProps) {
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
-  const composingSlotIdsRef = useRef<Record<number, boolean>>({})
-  const [draftSlotNames, setDraftSlotNames] = useState<Record<number, string>>({})
 
   const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage'
@@ -69,32 +67,14 @@ export function SaveSlotModal({
     return nextMap
   }, [slotCount, slotNamesById, slotsById])
 
-  useEffect(() => {
-    setDraftSlotNames(
-      Array.from({ length: slotCount }, (_, index) => index + 1).reduce<Record<number, string>>(
-        (nextDrafts, slotId) => {
-          nextDrafts[slotId] =
-            resolvedSlotNames.get(slotId) ??
-            slotsById.get(slotId)?.name ??
-            getDefaultSlotName(slotId)
-          return nextDrafts
-        },
-        {},
-      ),
-    )
-  }, [resolvedSlotNames, slotCount, slotsById])
-
   const commitSlotName = (slotId: number) => {
-    const currentDraftValue = draftSlotNames[slotId]
     const input = inputRefs.current[slotId]
-    const rawValue =
-      currentDraftValue ?? input?.value ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    const rawValue = input?.value ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
     const committedName = normalizeSlotName(slotId, rawValue)
 
-    setDraftSlotNames((currentNames) => ({
-      ...currentNames,
-      [slotId]: committedName,
-    }))
+    if (input && input.value !== committedName) {
+      input.value = committedName
+    }
 
     onRenameSlotName(slotId, committedName)
     return committedName
@@ -152,6 +132,7 @@ export function SaveSlotModal({
                   <div className="slot-name-row">
                     <span className="slot-index-badge">슬롯 {slotId}</span>
                     <input
+                      key={`${slotId}-${slotName}`}
                       ref={(node) => {
                         inputRefs.current[slotId] = node
                       }}
@@ -162,7 +143,7 @@ export function SaveSlotModal({
                       autoCapitalize="off"
                       spellCheck={false}
                       className="slot-name-input"
-                      value={draftSlotNames[slotId] ?? slotName}
+                      defaultValue={slotName}
                       maxLength={24}
                       onFocus={(event) => {
                         moveCaretToEnd(event.currentTarget)
@@ -171,28 +152,7 @@ export function SaveSlotModal({
                         event.preventDefault()
                         moveCaretToEnd(event.currentTarget)
                       }}
-                      onCompositionStart={() => {
-                        composingSlotIdsRef.current[slotId] = true
-                      }}
-                      onCompositionEnd={(event) => {
-                        composingSlotIdsRef.current[slotId] = false
-                        setDraftSlotNames((currentNames) => ({
-                          ...currentNames,
-                          [slotId]: event.currentTarget.value,
-                        }))
-                      }}
-                      onChange={(event) => {
-                        const nextValue = event.currentTarget.value
-                        setDraftSlotNames((currentNames) => ({
-                          ...currentNames,
-                          [slotId]: nextValue,
-                        }))
-                      }}
                       onBlur={() => {
-                        if (composingSlotIdsRef.current[slotId]) {
-                          return
-                        }
-
                         commitSlotName(slotId)
                       }}
                       onKeyDown={(event) => {

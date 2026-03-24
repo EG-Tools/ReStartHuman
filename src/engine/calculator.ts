@@ -927,8 +927,8 @@ export const calculateRetireScenario = (
   const otherIncomeMonthlyApplied =
     formData.otherIncomeType === 'none'
       ? 0
-      : formData.otherIncomeType === 'earned' && formData.otherIncomeMonthly <= 0
-        ? formData.salaryMonthly
+      : formData.otherIncomeType === 'earned'
+        ? Math.max(formData.otherIncomeMonthly, formData.salaryMonthly)
         : formData.otherIncomeMonthly
   const estimatedHealthInsurance = estimateHealthInsurance(
     formData,

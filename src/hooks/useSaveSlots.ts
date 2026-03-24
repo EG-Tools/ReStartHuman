@@ -43,18 +43,16 @@ const readSlots = (): SaveSlotRecord[] => {
 const readSlotNames = () => {
   const slotNameMap = new Map<number, string>()
 
-  if (typeof window === 'undefined') {
-    return slotNameMap
-  }
-
   Array.from({ length: SLOT_COUNT }, (_, index) => index + 1).forEach((slotId) => {
-    const rawName = window.localStorage.getItem(getSlotNameStorageKey(slotId))
+    const defaultSlotName = getDefaultSlotName(slotId)
 
-    if (!rawName) {
+    if (typeof window === 'undefined') {
+      slotNameMap.set(slotId, defaultSlotName)
       return
     }
 
-    slotNameMap.set(slotId, normalizeSlotName(slotId, rawName))
+    const rawName = window.localStorage.getItem(getSlotNameStorageKey(slotId))
+    slotNameMap.set(slotId, normalizeSlotName(slotId, rawName ?? defaultSlotName))
   })
 
   return slotNameMap
@@ -98,13 +96,7 @@ export const useSaveSlots = () => {
 
     setSlotNamesById((currentNames) => {
       const nextNames = new Map(currentNames)
-
-      if (normalizedName === defaultSlotName) {
-        nextNames.delete(slotId)
-      } else {
-        nextNames.set(slotId, normalizedName)
-      }
-
+      nextNames.set(slotId, normalizedName)
       return nextNames
     })
 
