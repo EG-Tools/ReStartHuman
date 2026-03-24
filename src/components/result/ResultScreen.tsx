@@ -321,36 +321,60 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
   return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
 }
 
-const splitSummaryValue = (value: string) => {
+const splitSummaryValueChunks = (value: string) => {
   const normalized = value.replace(/\s+/g, ' ').trim()
   const eokMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+))?(만원)?$/)
 
   if (eokMatched) {
-    return {
-      amountNumber: eokMatched[1],
-      amountUnit: '억',
-      secondaryNumber: eokMatched[2] ?? '',
-      secondaryUnit: eokMatched[3] ?? '',
+    const chunks = [
+      {
+        key: 'primary',
+        numberText: eokMatched[1],
+        unitText: '억',
+      },
+    ]
+
+    if (eokMatched[2] || eokMatched[3]) {
+      chunks.push({
+        key: 'secondary',
+        numberText: eokMatched[2] ?? '',
+        unitText: eokMatched[3] ?? undefined,
+      })
     }
+
+    return chunks
   }
 
-  const matched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
+  const simpleMatched = normalized.match(/^([+-]?[\d.,]+)(만원)$/)
 
-  if (!matched) {
-    return {
-      amountNumber: normalized,
-      amountUnit: '',
-      secondaryNumber: '',
-      secondaryUnit: '',
-    }
+  if (simpleMatched) {
+    return [
+      {
+        key: 'single',
+        numberText: simpleMatched[1],
+        unitText: simpleMatched[2] ?? undefined,
+      },
+    ]
   }
 
-  return {
-    amountNumber: matched[1],
-    amountUnit: '',
-    secondaryNumber: '',
-    secondaryUnit: matched[2].trim(),
+  const fallbackMatched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
+
+  if (!fallbackMatched) {
+    return [
+      {
+        key: 'single',
+        numberText: normalized,
+      },
+    ]
   }
+
+  return [
+    {
+      key: 'single',
+      numberText: fallbackMatched[1],
+      unitText: fallbackMatched[2].trim() || undefined,
+    },
+  ]
 }
 
 const SummaryCards = memo(function SummaryCards({
@@ -386,24 +410,22 @@ const SummaryCards = memo(function SummaryCards({
   return (
     <div className="summary-grid">
       {cards.map((card) => {
-        const { amountNumber, amountUnit, secondaryNumber, secondaryUnit } = splitSummaryValue(card.value)
+        const chunks = splitSummaryValueChunks(card.value)
 
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
-            <h2 className="summary-value">
-              <span className="summary-value-primary-group">
-                <span className="summary-value-primary">{amountNumber}</span>
-                {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
+            <h2 className="summary-value-heading">
+              <span className="summary-value">
+                {chunks.map((chunk) => (
+                  <span key={chunk.key} className="summary-value-chunk">
+                    <span className="summary-value-number">{chunk.numberText}</span>
+                    {chunk.unitText ? (
+                      <span className="summary-value-unit">{chunk.unitText}</span>
+                    ) : null}
+                  </span>
+                ))}
               </span>
-              {secondaryNumber || secondaryUnit ? (
-                <span
-                  className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
-                >
-                  {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
-                  {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
-                </span>
-              ) : null}
             </h2>
           </article>
         )
@@ -1542,7 +1564,11 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <section className="result-panel projection-panel projection-panel-top">
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
+
+        <SummaryCards result={result} projectionYears={formData.simulationYears} />
+
+        <section className="result-panel projection-panel">
           <div className="projection-inline-row">
             <div className="projection-inline-controls">
               <div className="projection-inline-field">
@@ -1607,10 +1633,6 @@ export function ResultScreen({
             </div>
           </div>
         </section>
-
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
-
-        <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
         <ResultInterpretation items={interpretationItems} />
 

@@ -1,14 +1,10 @@
-/*
-  결과표 전용 스타일 안내
-  - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
-  - base.css는 질문 화면 공통 입력만 담당합니다.
-  - app-chrome.css는 앱 프레임 / 가로모드 대응만 담당합니다.
+﻿/* Result visual refinements */
 
-  따라서 결과표 세부 정렬이 어긋나면 먼저 이 파일을 확인합니다.
-*/
-
-/* Result visual refinements */
-
+/* ------------------------------------------------------------------
+   결과 요약 카드 숫자 전용 규칙
+   - summary-card h2 공통 스타일과 분리해서 여기만 보면 됩니다.
+   - 숫자 / 억 / 만원 / 보조 숫자 정렬은 아래 묶음만 수정합니다.
+------------------------------------------------------------------- */
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -20,55 +16,50 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
+.summary-card .summary-value-heading {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: clamp(1.56rem, 3.6vw, 2.4rem);
+  text-align: right;
+}
+
 .summary-card .summary-value {
   display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.08em;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.12em;
   flex-wrap: nowrap;
+  width: 100%;
   white-space: nowrap;
-  line-height: 0.92;
-}
-
-.summary-card .summary-value-primary-group {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.04em;
-  line-height: 0.92;
-}
-
-.summary-card .summary-value-primary {
-  display: block;
-  line-height: 0.92;
-}
-
-.summary-card .summary-value-primary-unit {
-  display: block;
-  font-size: 0.48em;
   line-height: 1;
+  font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-secondary-group {
+.summary-card .summary-value-chunk {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.04em;
-  line-height: 0.92;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.12em;
+  white-space: nowrap;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-secondary-group-unit-only {
-  gap: 0;
-}
-
-.summary-card .summary-value-secondary {
-  display: block;
-  font-size: 0.8em;
-  line-height: 0.92;
+.summary-card .summary-value-number {
+  display: inline-block;
+  font-size: 1em;
+  line-height: 1;
 }
 
 .summary-card .summary-value-unit {
-  display: block;
-  font-size: 0.48em;
+  display: inline-block;
+  font-size: 0.5em;
   line-height: 1;
+  transform: translateY(-0.02em);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -516,22 +507,33 @@
 
 @media (max-width: 640px) {
   .projection-inline-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 14px;
     row-gap: 8px;
   }
 
-  .projection-inline-field,
-  .projection-inline-field:nth-child(1),
-  .projection-inline-field:nth-child(2),
-  .projection-inline-field:nth-child(3) {
+  .projection-inline-field:nth-child(1) {
+    justify-content: flex-start;
+  }
+
+  .projection-inline-field:nth-child(2) {
     justify-content: center;
   }
 
-  .projection-inline-field .projection-inline-field-label,
-  .projection-inline-field:nth-child(1) .projection-inline-field-label,
-  .projection-inline-field:nth-child(2) .projection-inline-field-label,
-  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+  .projection-inline-field:nth-child(3) {
+    justify-content: flex-end;
+  }
+
+  .projection-inline-field:nth-child(1) .projection-inline-field-label {
+    text-align: left;
+  }
+
+  .projection-inline-field:nth-child(2) .projection-inline-field-label {
     text-align: center;
+  }
+
+  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+    text-align: right;
   }
 }
 
@@ -591,66 +593,4 @@
 .table-shell .result-table .result-input-cell .table-edit-group-housing-market,
 .table-shell .result-table .result-input-cell .table-edit-group-market {
   margin-bottom: var(--result-housing-market-bottom-gap);
-}
-
-
-/* ------------------------------------------------------------------
-   결과 상단 인라인 입력 / 현금흐름 카드 위치 보정
-------------------------------------------------------------------- */
-.projection-panel-top {
-  margin-top: -6px;
-  margin-bottom: 3px;
-  padding-block: 10px 5px;
-}
-
-.result-capture > .projection-panel-top {
-  order: -1;
-}
-
-.result-capture > .cashflow-hero {
-  width: calc(100% - 20px);
-  margin-inline: auto;
-}
-
-@media (max-width: 900px) {
-  .projection-panel-top {
-    margin-top: -4px;
-    margin-bottom: 2px;
-  }
-
-  .result-capture > .cashflow-hero {
-    width: calc(100% - 16px);
-  }
-}
-
-@media (max-width: 640px) {
-  .projection-inline-controls {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 18px;
-    row-gap: 8px;
-  }
-
-  .projection-inline-field:nth-child(1) {
-    justify-content: flex-start;
-  }
-
-  .projection-inline-field:nth-child(2) {
-    justify-content: center;
-  }
-
-  .projection-inline-field:nth-child(3) {
-    justify-content: flex-end;
-  }
-
-  .projection-inline-field:nth-child(1) .projection-inline-field-label {
-    text-align: left;
-  }
-
-  .projection-inline-field:nth-child(2) .projection-inline-field-label {
-    text-align: center;
-  }
-
-  .projection-inline-field:nth-child(3) .projection-inline-field-label {
-    text-align: right;
-  }
 }
