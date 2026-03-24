@@ -321,66 +321,36 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
   return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
 }
 
-type SummaryValueChunk = {
-  key: string
-  numberText: string
-  unitText?: string
-}
-
-const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
+const splitSummaryValue = (value: string) => {
   const normalized = value.replace(/\s+/g, ' ').trim()
-  const eokAndManwonMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+)만원)?$/)
+  const eokMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+))?(만원)?$/)
 
-  if (eokAndManwonMatched) {
-    const chunks: SummaryValueChunk[] = [
-      {
-        key: 'eok',
-        numberText: eokAndManwonMatched[1],
-        unitText: '억',
-      },
-    ]
-
-    if (eokAndManwonMatched[2]) {
-      chunks.push({
-        key: 'manwon',
-        numberText: eokAndManwonMatched[2],
-        unitText: '만원',
-      })
+  if (eokMatched) {
+    return {
+      amountNumber: eokMatched[1],
+      amountUnit: '억',
+      secondaryNumber: eokMatched[2] ?? '',
+      secondaryUnit: eokMatched[3] ?? '',
     }
-
-    return chunks
   }
 
-  const simpleMatched = normalized.match(/^([+-]?[\d.,]+)(원|만원|억)?$/)
+  const matched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
 
-  if (simpleMatched) {
-    return [
-      {
-        key: 'single',
-        numberText: simpleMatched[1],
-        unitText: simpleMatched[2] ?? undefined,
-      },
-    ]
+  if (!matched) {
+    return {
+      amountNumber: normalized,
+      amountUnit: '',
+      secondaryNumber: '',
+      secondaryUnit: '',
+    }
   }
 
-  const fallbackMatched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
-
-  if (!fallbackMatched) {
-    return [
-      {
-        key: 'single',
-        numberText: normalized,
-      },
-    ]
+  return {
+    amountNumber: matched[1],
+    amountUnit: '',
+    secondaryNumber: '',
+    secondaryUnit: matched[2].trim(),
   }
-
-  return [
-    {
-      key: 'single',
-      numberText: fallbackMatched[1],
-      unitText: fallbackMatched[2].trim() || undefined,
-    },
-  ]
 }
 
 const SummaryCards = memo(function SummaryCards({
@@ -416,22 +386,24 @@ const SummaryCards = memo(function SummaryCards({
   return (
     <div className="summary-grid">
       {cards.map((card) => {
-        const chunks = splitSummaryValueChunks(card.value)
+        const { amountNumber, amountUnit, secondaryNumber, secondaryUnit } = splitSummaryValue(card.value)
 
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
-            <h2 className="summary-value-heading">
-              <span className="summary-value">
-                {chunks.map((chunk) => (
-                  <span key={chunk.key} className="summary-value-chunk">
-                    <span className="summary-value-number">{chunk.numberText}</span>
-                    {chunk.unitText ? (
-                      <span className="summary-value-unit">{chunk.unitText}</span>
-                    ) : null}
-                  </span>
-                ))}
+            <h2 className="summary-value">
+              <span className="summary-value-primary-group">
+                <span className="summary-value-primary">{amountNumber}</span>
+                {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
               </span>
+              {secondaryNumber || secondaryUnit ? (
+                <span
+                  className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
+                >
+                  {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
+                  {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
+                </span>
+              ) : null}
             </h2>
           </article>
         )
@@ -1129,7 +1101,7 @@ export function ResultScreen({
         ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
         : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
       result.otherIncomeMonthlyApplied > 0
-        ? `${formData.otherIncomeType === 'earned' ? '근로소득' : formData.otherIncomeType === 'business' ? '사업소득' : formData.otherIncomeType === 'pension' ? '기타연금' : '기타 월소득'} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+        ? `기타 월소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
         : '기타 월소득은 별도 입력이 없어 반영하지 않았습니다.',
       assetInterpretation,
     ],
@@ -1404,7 +1376,7 @@ export function ResultScreen({
     {
       category: '결과',
       item: '총 유입',
-      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} ${formData.otherIncomeType === 'earned' ? '근로소득' : formData.otherIncomeType === 'business' ? '사업소득' : formData.otherIncomeType === 'pension' ? '기타연금' : '기타소득'} + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
+      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * formData.simulationYears),
@@ -1570,14 +1542,10 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
-
-        <SummaryCards result={result} projectionYears={formData.simulationYears} />
-
-        <section className="result-panel projection-panel">
+        <section className="result-panel projection-panel projection-panel-top">
           <div className="projection-inline-row">
             <div className="projection-inline-controls">
-              <div className="projection-inline-field projection-inline-field-start">
+              <div className="projection-inline-field">
                 <span className="projection-inline-field-label">나이</span>
                 <InlineNumericField
                   value={formData.currentAge}
@@ -1595,7 +1563,7 @@ export function ResultScreen({
                   inputAriaLabel="현재 나이"
                 />
               </div>
-              <div className="projection-inline-field projection-inline-field-center">
+              <div className="projection-inline-field">
                 <span className="projection-inline-field-label">기간</span>
                 <InlineNumericField
                   value={formData.simulationYears}
@@ -1613,7 +1581,7 @@ export function ResultScreen({
                   inputAriaLabel="기간"
                 />
               </div>
-              <div className="projection-inline-field projection-inline-field-end">
+              <div className="projection-inline-field">
                 <span className="projection-inline-field-label">물가</span>
                 <InlineNumericField
                   value={Math.round(formData.inflationRateAnnual * 100)}
@@ -1639,6 +1607,10 @@ export function ResultScreen({
             </div>
           </div>
         </section>
+
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
+
+        <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
         <ResultInterpretation items={interpretationItems} />
 
