@@ -391,19 +391,21 @@ const SummaryCards = memo(function SummaryCards({
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
-            <h2 className={`summary-value${secondaryNumber || secondaryUnit ? '' : ' summary-value-simple'}`}>
-              <span className="summary-value-primary-group">
-                <span className="summary-value-primary">{amountNumber}</span>
-                {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
-              </span>
-              {secondaryNumber || secondaryUnit ? (
-                <span
-                  className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
-                >
-                  {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
-                  {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
+            <h2 className="summary-value-heading">
+              <span className="summary-value">
+                <span className="summary-value-primary-group">
+                  <span className="summary-value-primary">{amountNumber}</span>
+                  {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
                 </span>
-              ) : null}
+                {secondaryNumber || secondaryUnit ? (
+                  <span
+                    className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
+                  >
+                    {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
+                    {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
+                  </span>
+                ) : null}
+              </span>
             </h2>
           </article>
         )
@@ -1549,7 +1551,7 @@ export function ResultScreen({
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">
             <div className="projection-inline-controls">
-              <div className="projection-inline-field">
+              <div className="projection-inline-field projection-inline-field-start">
                 <span className="projection-inline-field-label">나이</span>
                 <InlineNumericField
                   value={formData.currentAge}
@@ -1567,7 +1569,7 @@ export function ResultScreen({
                   inputAriaLabel="현재 나이"
                 />
               </div>
-              <div className="projection-inline-field">
+              <div className="projection-inline-field projection-inline-field-center">
                 <span className="projection-inline-field-label">기간</span>
                 <InlineNumericField
                   value={formData.simulationYears}
@@ -1585,7 +1587,7 @@ export function ResultScreen({
                   inputAriaLabel="기간"
                 />
               </div>
-              <div className="projection-inline-field">
+              <div className="projection-inline-field projection-inline-field-end">
                 <span className="projection-inline-field-label">물가</span>
                 <InlineNumericField
                   value={Math.round(formData.inflationRateAnnual * 100)}
