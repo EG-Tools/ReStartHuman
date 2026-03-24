@@ -256,6 +256,10 @@ export default function App() {
     saveSlots.deleteSlot(slotId)
   }
 
+  const handleRenameSlot = (slotId: number, nextName: string) => {
+    saveSlots.renameSlot(slotId, nextName)
+  }
+
   const startOver = () => {
     startTransition(() => {
       setFormData(defaultFormData)
@@ -301,7 +305,7 @@ export default function App() {
                 result={result}
                 onEditAnswers={() => flow.goToQuestion(0)}
                 onStartOver={startOver}
-                onOpenSaveSlots={() => setSaveSlotMode('manage')}
+                onOpenSaveSlots={() => setSaveSlotMode('save')}
                 onPatchFormData={patchFormData}
                 headerAction={renderOptionsButton()}
               />
@@ -316,10 +320,14 @@ export default function App() {
             mode={saveSlotMode}
             slotCount={saveSlots.slotCount}
             slotsById={saveSlots.slotsById}
+            slotNamesById={saveSlots.slotNamesById}
+            canSave={flow.route === appRoutes.result && Boolean(result)}
             onClose={() => setSaveSlotMode(null)}
+            onModeChange={(nextMode) => setSaveSlotMode(nextMode)}
             onLoad={handleLoadSlot}
             onSave={handleSaveSlot}
             onDelete={handleDeleteSlot}
+            onRenameSlotName={handleRenameSlot}
           />
         </Suspense>
       ) : null}

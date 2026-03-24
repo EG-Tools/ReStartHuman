@@ -432,6 +432,40 @@ body {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+.slot-mode-button {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.slot-mode-button.is-active {
+  background: linear-gradient(135deg, #173f44, #123237);
+  color: #eefbfc;
+  border-color: transparent;
+}
+
+.slot-index-badge {
+  background: rgba(52, 179, 181, 0.12);
+  color: #9ce8e6;
+}
+
+.slot-name-input {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+}
+
+.slot-name-input:focus {
+  border-color: rgba(52, 179, 181, 0.42);
+  box-shadow: 0 0 0 4px rgba(52, 179, 181, 0.12);
+}
+
+.slot-actions .slot-load-button.button-secondary {
+  background: rgba(168, 176, 186, 0.16);
+  border-color: rgba(168, 176, 186, 0.2);
+  color: #d8dde3;
+}
+
 .toggle-card.is-active {
   border-color: rgba(46, 167, 170, 0.36);
   background: linear-gradient(180deg, rgba(46, 167, 170, 0.14), rgba(14, 21, 25, 0.96));

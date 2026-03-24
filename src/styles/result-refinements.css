@@ -9,6 +9,12 @@
 
 /* Result visual refinements */
 
+/* 결과요약과 현금흐름 카드 간격 미세 조정 */
+.result-capture > .cashflow-hero:first-child {
+  margin-top: -5px;
+}
+
+
 /* ------------------------------------------------------------------
    결과 요약 카드 숫자 전용 규칙
    - summary-card h2 공통 스타일과 분리해서 여기만 보면 됩니다.

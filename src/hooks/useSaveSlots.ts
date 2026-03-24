@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type {
   RetireCalcFormData,
   RetireCalcResult,
@@ -7,10 +7,16 @@ import type {
 
 const SLOT_COUNT = 5
 const STORAGE_KEY_PREFIX = 'kr-retire-calc-slot-'
+const SLOT_NAME_STORAGE_KEY_PREFIX = 'kr-retire-calc-slot-name-'
 
 const getStorageKey = (slotId: number) => `${STORAGE_KEY_PREFIX}${slotId}`
-
+const getSlotNameStorageKey = (slotId: number) => `${SLOT_NAME_STORAGE_KEY_PREFIX}${slotId}`
 const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
+
+const normalizeSlotName = (slotId: number, nextName: string) => {
+  const trimmedName = nextName.trim().slice(0, 24)
+  return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
+}
 
 const readSlots = (): SaveSlotRecord[] => {
   if (typeof window === 'undefined') {
@@ -34,8 +40,29 @@ const readSlots = (): SaveSlotRecord[] => {
     .filter((slot): slot is SaveSlotRecord => slot !== null)
 }
 
+const readSlotNames = () => {
+  const slotNameMap = new Map<number, string>()
+
+  if (typeof window === 'undefined') {
+    return slotNameMap
+  }
+
+  Array.from({ length: SLOT_COUNT }, (_, index) => index + 1).forEach((slotId) => {
+    const rawName = window.localStorage.getItem(getSlotNameStorageKey(slotId))
+
+    if (!rawName) {
+      return
+    }
+
+    slotNameMap.set(slotId, normalizeSlotName(slotId, rawName))
+  })
+
+  return slotNameMap
+}
+
 export const useSaveSlots = () => {
   const [slots, setSlots] = useState<SaveSlotRecord[]>(() => readSlots())
+  const [slotNamesById, setSlotNamesById] = useState<Map<number, string>>(() => readSlotNames())
 
   const slotsById = useMemo(() => {
     const slotMap = new Map<number, SaveSlotRecord>()
@@ -55,6 +82,47 @@ export const useSaveSlots = () => {
     )
   }
 
+  const renameSlot = (slotId: number, nextName: string) => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const normalizedName = normalizeSlotName(slotId, nextName)
+    const defaultSlotName = getDefaultSlotName(slotId)
+
+    if (normalizedName === defaultSlotName) {
+      window.localStorage.removeItem(getSlotNameStorageKey(slotId))
+    } else {
+      window.localStorage.setItem(getSlotNameStorageKey(slotId), normalizedName)
+    }
+
+    setSlotNamesById((currentNames) => {
+      const nextNames = new Map(currentNames)
+
+      if (normalizedName === defaultSlotName) {
+        nextNames.delete(slotId)
+      } else {
+        nextNames.set(slotId, normalizedName)
+      }
+
+      return nextNames
+    })
+
+    const currentSlot = slotsById.get(slotId)
+
+    if (!currentSlot) {
+      return
+    }
+
+    const nextRecord: SaveSlotRecord = {
+      ...currentSlot,
+      name: normalizedName,
+    }
+
+    window.localStorage.setItem(getStorageKey(slotId), JSON.stringify(nextRecord))
+    replaceSlot(nextRecord)
+  }
+
   const saveSlot = (
     slotId: number,
     formData: RetireCalcFormData,
@@ -64,9 +132,12 @@ export const useSaveSlots = () => {
       return
     }
 
+    const resolvedSlotName =
+      slotNamesById.get(slotId) ?? slotsById.get(slotId)?.name ?? getDefaultSlotName(slotId)
+
     const record: SaveSlotRecord = {
       slotId,
-      name: getDefaultSlotName(slotId),
+      name: resolvedSlotName,
       savedAt: new Date().toISOString(),
       formData,
       result,
@@ -89,7 +160,9 @@ export const useSaveSlots = () => {
     slotCount: SLOT_COUNT,
     slots,
     slotsById,
+    slotNamesById,
     saveSlot,
     deleteSlot,
+    renameSlot,
   }
 }
