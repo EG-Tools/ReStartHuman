@@ -11,7 +11,7 @@
 
 /* 결과요약과 현금흐름 카드 간격 미세 조정 */
 .result-capture > .cashflow-hero:first-child {
-  margin-top: -5px;
+  margin-top: -10px;
 }
 
 

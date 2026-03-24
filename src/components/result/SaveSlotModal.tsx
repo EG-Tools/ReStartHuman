@@ -33,6 +33,7 @@ export function SaveSlotModal({
 }: SaveSlotModalProps) {
   const activeMode = !canSave || mode === 'load' ? 'load' : 'save'
   const title = activeMode === 'save' ? '저장할 슬롯을 선택하세요' : '불러올 슬롯을 선택하세요'
+  const showModeSwitch = activeMode === 'load' && canSave
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -44,27 +45,29 @@ export function SaveSlotModal({
       >
         <div className="modal-header">
           <div className="slot-modal-heading">
-            <div className="slot-mode-switch" role="tablist" aria-label="저장 슬롯 모드">
-              <button
-                type="button"
-                className={`slot-mode-button ${activeMode === 'save' ? 'is-active' : ''}`.trim()}
-                role="tab"
-                aria-selected={activeMode === 'save'}
-                onClick={() => canSave && onModeChange('save')}
-                disabled={!canSave}
-              >
-                저장
-              </button>
-              <button
-                type="button"
-                className={`slot-mode-button ${activeMode === 'load' ? 'is-active' : ''}`.trim()}
-                role="tab"
-                aria-selected={activeMode === 'load'}
-                onClick={() => onModeChange('load')}
-              >
-                불러오기
-              </button>
-            </div>
+            {showModeSwitch ? (
+              <div className="slot-mode-switch" role="tablist" aria-label="저장 슬롯 모드">
+                <button
+                  type="button"
+                  className={`slot-mode-button ${activeMode === 'save' ? 'is-active' : ''}`.trim()}
+                  role="tab"
+                  aria-selected={activeMode === 'save'}
+                  onClick={() => canSave && onModeChange('save')}
+                  disabled={!canSave}
+                >
+                  저장
+                </button>
+                <button
+                  type="button"
+                  className={`slot-mode-button ${activeMode === 'load' ? 'is-active' : ''}`.trim()}
+                  role="tab"
+                  aria-selected={activeMode === 'load'}
+                  onClick={() => onModeChange('load')}
+                >
+                  불러오기
+                </button>
+              </div>
+            ) : null}
             <h2 id="save-slot-modal-title">{title}</h2>
           </div>
           <button type="button" className="icon-button" onClick={onClose}>
@@ -83,18 +86,16 @@ export function SaveSlotModal({
             return (
               <article key={slotId} className="slot-card">
                 <div className="slot-card-header">
-                  <div className="slot-name-row">
-                    <span className="slot-index-badge">슬롯 {slotId}</span>
-                    <input
-                      type="text"
-                      className="slot-name-input"
-                      value={slotName}
-                      maxLength={24}
-                      onChange={(event) => onRenameSlotName(slotId, event.target.value)}
-                      aria-label={`${slotId}번 슬롯 이름`}
-                    />
-                  </div>
-                  <p>{savedAtLabel}</p>
+                  <span className="slot-index-badge">슬롯 {slotId}</span>
+                  <input
+                    type="text"
+                    className="slot-name-input"
+                    value={slotName}
+                    maxLength={24}
+                    onChange={(event) => onRenameSlotName(slotId, event.target.value)}
+                    aria-label={`${slotId}번 슬롯 이름`}
+                  />
+                  <p className="slot-save-status">{savedAtLabel}</p>
                 </div>
 
                 <div className="slot-actions">
