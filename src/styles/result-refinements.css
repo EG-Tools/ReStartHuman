@@ -1,4 +1,4 @@
-﻿/*
+/*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
   - base.css는 질문 화면 공통 입력만 담당합니다.
@@ -22,7 +22,7 @@
 
 .summary-card .summary-value {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 0.05em;
   flex-wrap: nowrap;
   line-height: 0.96;
@@ -35,14 +35,13 @@
 .summary-card .summary-value-primary-unit {
   font-size: 0.52em;
   line-height: 1;
-  transform: translateY(0.16em);
+  align-self: flex-end;
 }
 
 .summary-card .summary-value-secondary-group {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 0.04em;
-  transform: translateY(0.08em);
 }
 
 .summary-card .summary-value-secondary {
@@ -53,7 +52,7 @@
 .summary-card .summary-value-unit {
   font-size: 0.52em;
   line-height: 1;
-  transform: translateY(0.08em);
+  align-self: flex-end;
 }
 
 .summary-card.tone-surplus .summary-value {
