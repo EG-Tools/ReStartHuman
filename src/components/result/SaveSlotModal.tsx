@@ -20,7 +20,7 @@ interface SaveSlotModalProps {
 const DEFAULT_SLOT_NAME_ROOT = '은퇴계산'
 const getDefaultSlotName = (slotId: number) => `${DEFAULT_SLOT_NAME_ROOT}${slotId}`
 
-const normalizeEditableSlotName = (slotId: number, nextName: string) => {
+const normalizeEditableSlotName = (nextName: string) => {
   const collapsedName = nextName.replace(/\s+/g, ' ')
   const trimmedName = collapsedName.trim().slice(0, 24)
   return trimmedName.length > 0 ? trimmedName : DEFAULT_SLOT_NAME_ROOT
@@ -30,7 +30,7 @@ const toEditableSlotName = (slotId: number, fullName: string) =>
   fullName === getDefaultSlotName(slotId) ? DEFAULT_SLOT_NAME_ROOT : fullName
 
 const toCommittedSlotName = (slotId: number, editableName: string) => {
-  const normalizedEditableName = normalizeEditableSlotName(slotId, editableName)
+  const normalizedEditableName = normalizeEditableSlotName(editableName)
   return normalizedEditableName === DEFAULT_SLOT_NAME_ROOT
     ? getDefaultSlotName(slotId)
     : normalizedEditableName
