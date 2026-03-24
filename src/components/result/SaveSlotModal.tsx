@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
@@ -17,32 +17,37 @@ interface SaveSlotModalProps {
   onRenameSlotName: (slotId: number, nextName: string) => void
 }
 
-const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
+const DEFAULT_SLOT_NAME_ROOT = '은퇴계산'
+const getDefaultSlotName = (slotId: number) => `${DEFAULT_SLOT_NAME_ROOT}${slotId}`
 
-const normalizeSlotName = (slotId: number, nextName: string) => {
+const normalizeEditableSlotName = (slotId: number, nextName: string) => {
   const collapsedName = nextName.replace(/\s+/g, ' ')
   const trimmedName = collapsedName.trim().slice(0, 24)
-  return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
+  return trimmedName.length > 0 ? trimmedName : DEFAULT_SLOT_NAME_ROOT
 }
 
-const moveCaretToEnd = (node: HTMLElement) => {
-  const textLength = node.textContent?.length ?? 0
+const toEditableSlotName = (slotId: number, fullName: string) =>
+  fullName === getDefaultSlotName(slotId) ? DEFAULT_SLOT_NAME_ROOT : fullName
 
-  if (textLength === 0) {
+const toCommittedSlotName = (slotId: number, editableName: string) => {
+  const normalizedEditableName = normalizeEditableSlotName(slotId, editableName)
+  return normalizedEditableName === DEFAULT_SLOT_NAME_ROOT
+    ? getDefaultSlotName(slotId)
+    : normalizedEditableName
+}
+
+const moveCaretToEnd = (input: HTMLInputElement) => {
+  if (input.value.length === 0) {
     return
   }
 
-  const selection = window.getSelection()
+  const caretPosition = input.value.length
 
-  if (!selection) {
-    return
+  try {
+    input.setSelectionRange(caretPosition, caretPosition)
+  } catch {
+    // 일부 모바일 브라우저에서는 selectionRange 설정이 실패할 수 있다.
   }
-
-  const range = document.createRange()
-  range.selectNodeContents(node)
-  range.collapse(false)
-  selection.removeAllRanges()
-  selection.addRange(range)
 }
 
 export function SaveSlotModal({
@@ -58,7 +63,9 @@ export function SaveSlotModal({
   onDelete,
   onRenameSlotName,
 }: SaveSlotModalProps) {
-  const inputRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
+  const composingSlotIdsRef = useRef<Record<number, boolean>>({})
+  const [draftSlotNames, setDraftSlotNames] = useState<Record<number, string>>({})
 
   const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage'
@@ -78,16 +85,18 @@ export function SaveSlotModal({
   }, [slotCount, slotNamesById, slotsById])
 
   const commitSlotName = (slotId: number) => {
-    const input = inputRefs.current[slotId]
-    const rawValue = input?.textContent ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
-    const committedName = normalizeSlotName(slotId, rawValue)
+    const resolvedSlotName = resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    const rawDraftName = draftSlotNames[slotId] ?? toEditableSlotName(slotId, resolvedSlotName)
+    const committedSlotName = toCommittedSlotName(slotId, rawDraftName)
+    const committedEditableName = toEditableSlotName(slotId, committedSlotName)
 
-    if (input && input.textContent !== committedName) {
-      input.textContent = committedName
-    }
+    setDraftSlotNames((currentNames) => ({
+      ...currentNames,
+      [slotId]: committedEditableName,
+    }))
 
-    onRenameSlotName(slotId, committedName)
-    return committedName
+    onRenameSlotName(slotId, committedSlotName)
+    return committedSlotName
   }
 
   return (
@@ -133,8 +142,11 @@ export function SaveSlotModal({
         <div className="slot-list">
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
-            const defaultSlotName = getDefaultSlotName(slotId)
-            const slotName = resolvedSlotNames.get(slotId) ?? defaultSlotName
+            const resolvedSlotName = resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+            const editableSlotName =
+              draftSlotNames[slotId] ?? toEditableSlotName(slotId, resolvedSlotName)
+            const showDefaultSuffix =
+              toCommittedSlotName(slotId, editableSlotName) === getDefaultSlotName(slotId)
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
@@ -142,36 +154,75 @@ export function SaveSlotModal({
                 <div className="slot-card-main">
                   <div className="slot-name-row">
                     <span className="slot-index-badge">슬롯 {slotId}</span>
-                    <div
-                      ref={(node) => {
-                        inputRefs.current[slotId] = node
-                      }}
-                      contentEditable="plaintext-only"
-                      suppressContentEditableWarning
-                      lang="ko"
-                      className="slot-name-input"
-                      role="textbox"
-                      aria-label={`${slotId}번 슬롯 이름`}
-                      data-slot-id={slotId}
-                      onFocus={(event) => {
-                        moveCaretToEnd(event.currentTarget)
-                      }}
-                      onBlur={() => {
-                        commitSlotName(slotId)
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          event.currentTarget.blur()
-                        }
-                      }}
-                      onPaste={(event) => {
-                        event.preventDefault()
-                        const pastedText = event.clipboardData.getData('text/plain').replace(/\s+/g, ' ')
-                        document.execCommand('insertText', false, pastedText)
-                      }}
-                    >
-                      {slotName}
+                    <div className={`slot-name-field ${showDefaultSuffix ? 'has-suffix' : ''}`.trim()}>
+                      <input
+                        ref={(node) => {
+                          inputRefs.current[slotId] = node
+                        }}
+                        type="text"
+                        inputMode="text"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        className="slot-name-input"
+                        value={editableSlotName}
+                        maxLength={24}
+                        onFocus={(event) => {
+                          const input = event.currentTarget
+                          requestAnimationFrame(() => {
+                            if (document.activeElement === input && !composingSlotIdsRef.current[slotId]) {
+                              moveCaretToEnd(input)
+                            }
+                          })
+                        }}
+                        onCompositionStart={() => {
+                          composingSlotIdsRef.current[slotId] = true
+                        }}
+                        onCompositionEnd={(event) => {
+                          composingSlotIdsRef.current[slotId] = false
+                          const nextValue =
+                            event.currentTarget.value === getDefaultSlotName(slotId)
+                              ? DEFAULT_SLOT_NAME_ROOT
+                              : event.currentTarget.value
+
+                          setDraftSlotNames((currentNames) => ({
+                            ...currentNames,
+                            [slotId]: nextValue,
+                          }))
+                        }}
+                        onChange={(event) => {
+                          const rawNextValue = event.currentTarget.value
+                          const nextValue =
+                            rawNextValue === getDefaultSlotName(slotId)
+                              ? DEFAULT_SLOT_NAME_ROOT
+                              : rawNextValue
+
+                          setDraftSlotNames((currentNames) => ({
+                            ...currentNames,
+                            [slotId]: nextValue,
+                          }))
+                        }}
+                        onBlur={() => {
+                          if (composingSlotIdsRef.current[slotId]) {
+                            return
+                          }
+
+                          commitSlotName(slotId)
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            event.currentTarget.blur()
+                          }
+                        }}
+                        aria-label={`${slotId}번 슬롯 이름`}
+                      />
+                      {showDefaultSuffix ? (
+                        <span className="slot-name-suffix" aria-hidden="true">
+                          {slotId}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 

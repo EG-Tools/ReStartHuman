@@ -599,8 +599,8 @@
 ------------------------------------------------------------------- */
 .projection-panel-top {
   margin-top: -6px;
-  margin-bottom: 6px;
-  padding-block: 12px 10px;
+  margin-bottom: 3px;
+  padding-block: 10px 5px;
 }
 
 .result-capture > .projection-panel-top {
@@ -608,18 +608,18 @@
 }
 
 .result-capture > .cashflow-hero {
-  width: calc(100% - 10px);
+  width: calc(100% - 20px);
   margin-inline: auto;
 }
 
 @media (max-width: 900px) {
   .projection-panel-top {
     margin-top: -4px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .result-capture > .cashflow-hero {
-    width: calc(100% - 8px);
+    width: calc(100% - 16px);
   }
 }
 

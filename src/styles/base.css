@@ -778,6 +778,12 @@ p {
   min-width: 0;
 }
 
+.slot-name-field {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .slot-index-badge {
   display: inline-flex;
   align-items: center;
@@ -807,6 +813,26 @@ p {
   white-space: nowrap;
   overflow: hidden;
   cursor: text;
+}
+
+.slot-name-field.has-suffix .slot-name-input {
+  padding-right: 30px;
+}
+
+.slot-name-suffix {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 .slot-name-input:focus {
