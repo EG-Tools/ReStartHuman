@@ -9,6 +9,11 @@
 
 /* Result visual refinements */
 
+/* ------------------------------------------------------------------
+   결과 요약 카드 숫자 전용 규칙
+   - summary-card h2 공통 스타일과 분리해서 여기만 보면 됩니다.
+   - 숫자 / 억 / 만원 / 보조 숫자 정렬은 아래 묶음만 수정합니다.
+------------------------------------------------------------------- */
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -20,10 +25,10 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
-.summary-card h2 {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
+.summary-card .summary-value-heading {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: clamp(1.3rem, 3vw, 2rem);
   text-align: right;
 }
 
@@ -31,66 +36,47 @@
   display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
-  width: 100%;
-  gap: 0.08em;
+  gap: 0.12em;
   flex-wrap: nowrap;
+  width: 100%;
   white-space: nowrap;
   line-height: 1;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-primary-group {
+.summary-card .summary-value-chunk {
   display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
   gap: 0.04em;
+  white-space: nowrap;
   line-height: 1;
-  min-width: 0;
 }
 
-.summary-card .summary-value-primary,
-.summary-card .summary-value-primary-unit,
-.summary-card .summary-value-secondary,
-.summary-card .summary-value-unit {
-  display: inline-block;
-  line-height: 1;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+.summary-card .summary-value-chunk-primary {
+  font-size: 1em;
 }
 
-.summary-card .summary-value-primary {
-  transform: translateY(0);
-}
-
-.summary-card .summary-value-primary-unit {
-  font-size: 0.48em;
-  transform: translateY(0.07em);
-}
-
-.summary-card .summary-value-secondary-group {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.04em;
-  line-height: 1;
-  transform: translateY(0.05em);
-}
-
-.summary-card .summary-value-secondary-group-unit-only {
-  gap: 0;
-}
-
-.summary-card .summary-value-secondary {
+.summary-card .summary-value-chunk-secondary {
   font-size: 0.8em;
 }
 
-.summary-card .summary-value-unit {
-  font-size: 0.48em;
-  transform: translateY(0.01em);
+.summary-card .summary-value-number {
+  display: inline-block;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
 }
 
-.summary-card .summary-value.summary-value-simple .summary-value-primary-group {
-  transform: translateY(0);
+.summary-card .summary-value-chunk-primary .summary-value-number {
+  transform: translateY(0.04em);
+}
+
+.summary-card .summary-value-unit {
+  display: inline-block;
+  font-size: 0.48em;
+  line-height: 0.9;
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -146,7 +132,20 @@
   box-shadow: var(--result-row-sticky-divider-shadow);
 }
 
+/* ------------------------------------------------------------------
+   결과 화면 상단 3칸 전용 규칙
+   - 나이 / 기간 / 물가 는 순서가 아니라 클래스 기준으로 정렬합니다.
+   - 모바일에서도 절대 1열로 꺾지 않습니다.
+   - 입력칸 폭 / 간격 / 정렬은 이 묶음만 수정합니다.
+------------------------------------------------------------------- */
 .projection-inline-row {
+  --projection-inline-columns: repeat(3, minmax(0, 1fr));
+  --projection-inline-column-gap: 30px;
+  --projection-inline-row-gap: 10px;
+  --projection-inline-field-gap: 8px;
+  --projection-inline-shell-width: 52px;
+  --projection-inline-input-gap: 4px;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,10 +155,10 @@
 
 .projection-inline-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: var(--projection-inline-columns);
   align-items: end;
-  column-gap: clamp(16px, 4vw, 42px);
-  row-gap: 10px;
+  column-gap: var(--projection-inline-column-gap);
+  row-gap: var(--projection-inline-row-gap);
   min-width: 0;
   width: 100%;
 }
@@ -167,20 +166,20 @@
 .projection-inline-field {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--projection-inline-field-gap);
   min-width: 0;
   width: 100%;
 }
 
-.projection-inline-field:nth-child(1) {
+.projection-inline-field-start {
   justify-content: flex-start;
 }
 
-.projection-inline-field:nth-child(2) {
+.projection-inline-field-center {
   justify-content: center;
 }
 
-.projection-inline-field:nth-child(3) {
+.projection-inline-field-end {
   justify-content: flex-end;
 }
 
@@ -191,15 +190,15 @@
   white-space: nowrap;
 }
 
-.projection-inline-field:nth-child(1) .projection-inline-field-label {
+.projection-inline-field-start .projection-inline-field-label {
   text-align: left;
 }
 
-.projection-inline-field:nth-child(2) .projection-inline-field-label {
+.projection-inline-field-center .projection-inline-field-label {
   text-align: center;
 }
 
-.projection-inline-field:nth-child(3) .projection-inline-field-label {
+.projection-inline-field-end .projection-inline-field-label {
   text-align: right;
 }
 
@@ -207,26 +206,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--projection-inline-input-gap);
   flex: 0 0 auto;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .projection-inline-input .input-shell {
-  width: 52px;
-  min-width: 52px;
+  width: var(--projection-inline-shell-width);
+  min-width: var(--projection-inline-shell-width);
 }
 
 .projection-inline-input .input-control {
   text-align: right;
   padding-block: 8px;
-  color: #f3f7f8;
-  font-weight: 700;
-}
-
-.projection-panel .input-suffix {
-  color: rgba(224, 237, 231, 0.78);
 }
 
 /* ------------------------------------------------------------------
@@ -526,17 +517,11 @@
 /* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
+    --projection-inline-column-gap: 20px;
+    --projection-inline-row-gap: 8px;
+    --projection-inline-shell-width: 50px;
+
     gap: 6px;
-  }
-
-  .projection-inline-controls {
-    column-gap: clamp(12px, 3vw, 24px);
-    row-gap: 8px;
-  }
-
-  .projection-inline-input .input-shell {
-    width: 50px;
-    min-width: 50px;
   }
 
   .projection-inline-input .input-control {
@@ -545,24 +530,24 @@
 }
 
 @media (max-width: 640px) {
-  .projection-inline-controls {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 8px;
+  .projection-inline-row {
+    --projection-inline-column-gap: 10px;
+    --projection-inline-row-gap: 8px;
+    --projection-inline-field-gap: 5px;
+    --projection-inline-shell-width: 50px;
+    --projection-inline-input-gap: 3px;
   }
 
   .projection-inline-field-label {
     font-size: 0.78rem;
   }
 
-  .projection-inline-input .input-shell {
-    width: 46px;
-    min-width: 46px;
+  .projection-inline-input .input-control {
+    font-size: 0.92rem;
   }
 
-  .projection-inline-input .input-control {
-    padding-inline: 8px;
-    font-size: 0.92rem;
+  .projection-inline-input .input-suffix {
+    font-size: 0.78rem;
   }
 }
 
