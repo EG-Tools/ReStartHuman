@@ -41,35 +41,18 @@
   width: 100%;
   white-space: nowrap;
   line-height: 1;
-  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
 
 .summary-card .summary-value-chunk {
-  display: inline-flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 0.03em;
+  display: inline-block;
   white-space: nowrap;
   line-height: 1;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
-}
-
-.summary-card .summary-value-number,
-.summary-card .summary-value-unit {
-  display: inline-block;
-  line-height: 1;
-}
-
-.summary-card .summary-value-number {
-  transform: translateY(0.035em);
-}
-
-.summary-card .summary-value-unit {
-  font-size: 0.48em;
-  transform: translateY(0.02em);
 }
 
 .summary-card .summary-value-chunk-primary {
@@ -78,7 +61,6 @@
 
 .summary-card .summary-value-chunk-secondary {
   font-size: 0.8em;
-  transform: translateY(0.02em);
 }
 
 .summary-card.tone-surplus .summary-value {

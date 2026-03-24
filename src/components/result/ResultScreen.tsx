@@ -323,8 +323,7 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
 
 type SummaryValueChunk = {
   key: string
-  number: string
-  unit: string
+  text: string
   tone: 'primary' | 'secondary'
 }
 
@@ -336,8 +335,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     const chunks: SummaryValueChunk[] = [
       {
         key: 'primary',
-        number: eokAndManwonMatched[1],
-        unit: '억',
+        text: `${eokAndManwonMatched[1]}억`,
         tone: 'primary',
       },
     ]
@@ -345,8 +343,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     if (eokAndManwonMatched[2]) {
       chunks.push({
         key: 'secondary',
-        number: eokAndManwonMatched[2],
-        unit: '만원',
+        text: `${eokAndManwonMatched[2]}만원`,
         tone: 'secondary',
       })
     }
@@ -360,8 +357,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     return [
       {
         key: 'single',
-        number: simpleMatched[1],
-        unit: simpleMatched[2] ?? '',
+        text: `${simpleMatched[1]}${simpleMatched[2] ?? ''}`,
         tone: 'primary',
       },
     ]
@@ -373,8 +369,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     return [
       {
         key: 'single',
-        number: normalized,
-        unit: '',
+        text: normalized,
         tone: 'primary',
       },
     ]
@@ -383,8 +378,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   return [
     {
       key: 'single',
-      number: fallbackMatched[1],
-      unit: fallbackMatched[2].trim(),
+      text: `${fallbackMatched[1]}${fallbackMatched[2].trim()}`,
       tone: 'primary',
     },
   ]
@@ -435,8 +429,7 @@ const SummaryCards = memo(function SummaryCards({
                     key={chunk.key}
                     className={`summary-value-chunk summary-value-chunk-${chunk.tone}`}
                   >
-                    <span className="summary-value-number">{chunk.number}</span>
-                    {chunk.unit ? <span className="summary-value-unit">{chunk.unit}</span> : null}
+                    {chunk.text}
                   </span>
                 ))}
               </span>
