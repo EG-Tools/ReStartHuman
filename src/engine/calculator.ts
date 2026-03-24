@@ -750,11 +750,19 @@ const estimateHealthInsurance = (
   otherIncomeMonthly: number,
   pensionMonthly: number,
 ) => {
+  const usesEmployeeHealthInsurance =
+    formData.healthInsuranceType === 'employee' ||
+    formData.healthInsuranceType === 'employeeWithDependentSpouse'
+  const earnedIncomeMonthly =
+    formData.otherIncomeType === 'earned' && usesEmployeeHealthInsurance ? otherIncomeMonthly : 0
+  const nonSalaryOtherIncomeMonthly =
+    formData.otherIncomeType === 'earned' && usesEmployeeHealthInsurance ? 0 : otherIncomeMonthly
+  const effectiveSalaryMonthly = Math.max(formData.salaryMonthly, earnedIncomeMonthly)
   const annualNonSalaryIncome =
-    totalDividendAnnualGross + otherIncomeMonthly * 12 + pensionMonthly * 12
+    totalDividendAnnualGross + nonSalaryOtherIncomeMonthly * 12 + pensionMonthly * 12
 
   const employeeMonthlyBasePremium =
-    formData.salaryMonthly *
+    effectiveSalaryMonthly *
     policyConfig.healthInsurance.employeeContributionRate *
     policyConfig.healthInsurance.employeeIncomeShareRate
 

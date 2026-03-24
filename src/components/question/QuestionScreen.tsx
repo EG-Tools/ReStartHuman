@@ -271,6 +271,11 @@ export function QuestionScreen({
   const myIsaType = formData.myIsaType === 'workingClass' ? 'workingClass' : 'general'
   const spouseIsaType =
     formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
+  const usesEmployeeHealthInsurance =
+    formData.healthInsuranceType === 'employee' ||
+    formData.healthInsuranceType === 'employeeWithDependentSpouse'
+  const usesEarnedIncomeAsSalary =
+    usesEmployeeHealthInsurance && formData.otherIncomeType === 'earned'
 
   const renderBooleanChoice = (
     label: string,
@@ -834,40 +839,79 @@ export function QuestionScreen({
       case 'income':
         return (
           <div className="question-stack">
+            {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
+              onPatchFormData({
+                otherIncomeType: value,
+                ...(value === 'earned' && usesEmployeeHealthInsurance
+                  ? { salaryMonthly: formData.otherIncomeMonthly }
+                  : {}),
+              }),
+            )}
             <QuestionNumberFields
               fields={[
                 {
                   key: 'otherIncomeMonthly',
-                  label: '기타 월소득',
+                  label:
+                    formData.otherIncomeType === 'earned'
+                      ? '월 근로소득'
+                      : formData.otherIncomeType === 'business'
+                        ? '월 사업소득'
+                        : formData.otherIncomeType === 'pension'
+                          ? '월 기타연금'
+                          : formData.otherIncomeType === 'other'
+                            ? '월 기타소득'
+                            : '기타 월소득',
                   value: formData.otherIncomeMonthly,
-                  onChange: (value) => update('otherIncomeMonthly', value),
+                  onChange: (value) =>
+                    onPatchFormData({
+                      otherIncomeMonthly: value,
+                      ...(usesEarnedIncomeAsSalary ? { salaryMonthly: value } : {}),
+                    }),
+                  helperText:
+                    usesEarnedIncomeAsSalary
+                      ? '근로소득을 선택한 상태라 건강보험 직장가입 월 급여에 같은 금액을 자동 반영합니다.'
+                      : undefined,
                 },
               ]}
             />
-            {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
-              update('otherIncomeType', value),
-            )}
           </div>
         )
       case 'healthInsurance':
         return (
           <div className="question-stack">
             {renderChoiceRows(formData.healthInsuranceType, healthInsuranceOptionRows, (value) =>
-              update('healthInsuranceType', value),
+              onPatchFormData({
+                healthInsuranceType: value,
+                ...((value === 'employee' || value === 'employeeWithDependentSpouse') &&
+                formData.otherIncomeType === 'earned'
+                  ? { salaryMonthly: formData.otherIncomeMonthly }
+                  : {}),
+              }),
             )}
-            {(formData.healthInsuranceType === 'employee' ||
-              formData.healthInsuranceType === 'employeeWithDependentSpouse') ? (
-              <QuestionNumberFields
-                fields={[
-                  {
-                    key: 'salaryMonthly',
-                    label: '월 급여',
-                    value: formData.salaryMonthly,
-                    onChange: (value) => update('salaryMonthly', value),
-                    helperText: '직장가입자 계산에 사용됩니다.',
-                  },
-                ]}
-              />
+            {usesEmployeeHealthInsurance ? (
+              usesEarnedIncomeAsSalary ? (
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>월 급여</h2>
+                  </div>
+                  <p className="screen-copy question-copy-note">
+                    근로소득을 선택했으므로 월 급여는 기타 소득 단계의 근로소득 금액
+                    ({formatCompactCurrency(formData.otherIncomeMonthly)})을 그대로 사용합니다.
+                  </p>
+                </section>
+              ) : (
+                <QuestionNumberFields
+                  fields={[
+                    {
+                      key: 'salaryMonthly',
+                      label: '월 급여',
+                      value: formData.salaryMonthly,
+                      onChange: (value) => update('salaryMonthly', value),
+                      helperText: '직장가입자 계산에 사용됩니다.',
+                    },
+                  ]}
+                />
+              )
             ) : null}
           </div>
         )

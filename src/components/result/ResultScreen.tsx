@@ -415,22 +415,24 @@ const CashFlowChart = memo(function CashFlowChart({
   inflationEnabled,
   inflationRateAnnual,
   projectionYears,
+  currentAge,
 }: {
   result: RetireCalcResult
   inflationEnabled: boolean
   inflationRateAnnual: number
   projectionYears: number
+  currentAge: number
 }) {
   const points =
     result.cashBalanceTimeline.length > 0
       ? result.cashBalanceTimeline
       : [{ year: 0, balance: result.startingCashReserve }]
   const width = 370
-  const height = 210
+  const height = 226
   const paddingLeft = 50
   const paddingRight = 18
   const paddingTop = 18
-  const paddingBottom = 38
+  const paddingBottom = 52
   const borderGapLeft = 10
   const borderGapRight = 10
   const borderGapTop = 10
@@ -503,6 +505,7 @@ const CashFlowChart = memo(function CashFlowChart({
     { label: `${totalYears}년`, yearOffset: totalYears },
   ].map((tick) => ({
     ...tick,
+    ageLabel: `${currentAge + tick.yearOffset}세`,
     x: paddingLeft + (Math.min(tick.yearOffset, totalYears) / totalYears) * chartWidth,
   }))
 
@@ -588,31 +591,49 @@ const CashFlowChart = memo(function CashFlowChart({
           }}
         />
 
-        {xTicks.map((tick) => (
-          <g key={`x-tick-${tick.label}`}>
-            <line
-              className="cashflow-year-tick"
-              x1={tick.x}
-              y1={chartFloorY}
-              x2={tick.x}
-              y2={chartFloorY + 4}
-              style={{ stroke: tickColor }}
-            />
-            <text
-              x={tick.x}
-              y={borderY + borderHeight + xLabelGap}
-              textAnchor={tick.label === '현재' ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'}
-              dominantBaseline="hanging"
-              style={{
-                fill: labelColor,
-                fontSize: 11,
-                fontWeight: 700,
-              }}
-            >
-              {tick.label}
-            </text>
-          </g>
-        ))}
+        {xTicks.map((tick) => {
+          const textAnchor =
+            tick.label === '현재' ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'
+          const labelY = borderY + borderHeight + xLabelGap
+          return (
+            <g key={`x-tick-${tick.label}`}>
+              <line
+                className="cashflow-year-tick"
+                x1={tick.x}
+                y1={chartFloorY}
+                x2={tick.x}
+                y2={chartFloorY + 4}
+                style={{ stroke: tickColor }}
+              />
+              <text
+                x={tick.x}
+                y={labelY}
+                textAnchor={textAnchor}
+                dominantBaseline="hanging"
+                style={{
+                  fill: labelColor,
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                {tick.label}
+              </text>
+              <text
+                x={tick.x}
+                y={labelY + 14}
+                textAnchor={textAnchor}
+                dominantBaseline="hanging"
+                style={{
+                  fill: 'rgba(214, 225, 229, 0.68)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                }}
+              >
+                {tick.ageLabel}
+              </text>
+            </g>
+          )
+        })}
 
       </svg>
     </section>
@@ -1558,14 +1579,14 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} />
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
 
         <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">
             <div className="title-with-help projection-inline-title">
-              <span className="projection-inline-label">물가상승율</span>
+              <span className="projection-inline-label">다시 계산</span>
               <HelpPopover
                 detail="현재 물가반영은 생활비·고정지출·월세만 매년 상승시키고, 건강보험료와 보유세는 고정으로 둡니다."
                 label="물가반영 설명 보기"
@@ -1573,29 +1594,60 @@ export function ResultScreen({
               />
             </div>
             <div className="projection-inline-controls">
-              <label className="projection-inline-input">
-                <div className="input-shell">
-                  <input
-                    className="input-control"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step={0.5}
-                    value={Math.round(formData.inflationRateAnnual * 100)}
-                    aria-label="물가상승율"
-                    onWheel={(event) => {
-                      if (document.activeElement === event.currentTarget) {
-                        event.currentTarget.blur()
-                      }
-                    }}
-                    onChange={(event) => {
-                      const rawValue = Number(event.target.value) || 0
-                      onPatchFormData({ inflationRateAnnual: rawValue / 100 })
-                    }}
-                  />
-                </div>
-                <span className="input-suffix">%</span>
-              </label>
+              <div className="projection-inline-field">
+                <span className="projection-inline-field-label">나이</span>
+                <InlineNumericField
+                  value={formData.currentAge}
+                  onChange={(value) => onPatchFormData({ currentAge: Math.max(1, value) })}
+                  min={1}
+                  step={1}
+                  max={120}
+                  display="number"
+                  commitMode="change"
+                  inlineClassName="projection-inline-input"
+                  shellClassName="input-shell"
+                  inputClassName="input-control"
+                  suffixClassName="input-suffix"
+                  suffix="세"
+                  inputAriaLabel="현재 나이"
+                />
+              </div>
+              <div className="projection-inline-field">
+                <span className="projection-inline-field-label">반영년도</span>
+                <InlineNumericField
+                  value={formData.simulationYears}
+                  onChange={(value) => onPatchFormData({ simulationYears: Math.min(Math.max(value, 1), 80) })}
+                  min={1}
+                  step={1}
+                  max={80}
+                  display="number"
+                  commitMode="change"
+                  inlineClassName="projection-inline-input"
+                  shellClassName="input-shell"
+                  inputClassName="input-control"
+                  suffixClassName="input-suffix"
+                  suffix="년"
+                  inputAriaLabel="반영 년도"
+                />
+              </div>
+              <div className="projection-inline-field">
+                <span className="projection-inline-field-label">물가상승율</span>
+                <InlineNumericField
+                  value={Math.round(formData.inflationRateAnnual * 100)}
+                  onChange={(value) => onPatchFormData({ inflationRateAnnual: Math.max(0, value) / 100 })}
+                  min={0}
+                  step={0.5}
+                  max={20}
+                  display="number"
+                  commitMode="change"
+                  inlineClassName="projection-inline-input"
+                  shellClassName="input-shell"
+                  inputClassName="input-control"
+                  suffixClassName="input-suffix"
+                  suffix="%"
+                  inputAriaLabel="물가상승율"
+                />
+              </div>
               <InflationSwitch
                 enabled={formData.inflationEnabled}
                 onToggle={(nextValue) => onPatchFormData({ inflationEnabled: nextValue })}

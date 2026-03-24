@@ -1,4 +1,4 @@
-/*
+﻿/*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
   - base.css는 질문 화면 공통 입력만 담당합니다.
@@ -98,13 +98,26 @@
 }
 
 .projection-inline-controls {
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
   justify-content: end;
-  gap: 6px;
+  gap: 8px 10px;
   min-width: max-content;
+}
+
+.projection-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.projection-inline-field-label {
+  color: rgba(214, 225, 229, 0.82);
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .projection-inline-input {

@@ -123,3 +123,25 @@ Default delivery format for project edits:
 - `src/components/question/QuestionScreen.tsx`
 - Use this file for in-step conditional rendering only.
 - Do not move step-visibility rules into CSS.
+
+
+## 10) Earned-income and employee-health-insurance link
+### Main owners
+- `src/components/question/QuestionScreen.tsx`
+- `src/engine/calculator.ts`
+
+### Current rule
+- If `기타 소득` type is `근로소득` and health insurance type is `직장가입자` or `직장+피부양 배우자`,
+  the earned-income amount is treated as the monthly salary basis.
+- In that case, do not ask for a second separate `월 급여` amount.
+- This prevents double counting between earned income and employee salary.
+
+## 11) Result projection quick-recalc area
+### Main owners
+- `src/components/result/ResultScreen.tsx`
+- `src/styles/result-refinements.css`
+
+### Responsibility
+- cashflow chart x-axis labels and age labels
+- current age / projection years / inflation quick-edit inputs
+- projection panel spacing and wrapping
