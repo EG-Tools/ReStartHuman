@@ -1,4 +1,4 @@
-﻿/*
+/*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
   - base.css는 질문 화면 공통 입력만 담당합니다.
@@ -22,37 +22,37 @@
 
 .summary-card .summary-value {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: center;
   gap: 0.08em;
   flex-wrap: nowrap;
-  line-height: 1;
+  white-space: nowrap;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-primary-group {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: baseline;
   gap: 0.04em;
-  line-height: 1;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-primary {
   display: block;
-  line-height: 1;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-primary-unit {
   display: block;
   font-size: 0.48em;
-  line-height: 0.92;
-  align-self: flex-end;
+  line-height: 1;
 }
 
 .summary-card .summary-value-secondary-group {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: baseline;
   gap: 0.04em;
-  line-height: 1;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -62,14 +62,13 @@
 .summary-card .summary-value-secondary {
   display: block;
   font-size: 0.8em;
-  line-height: 1;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-unit {
   display: block;
   font-size: 0.48em;
-  line-height: 0.92;
-  align-self: flex-end;
+  line-height: 1;
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -134,11 +133,11 @@
 }
 
 .projection-inline-controls {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
-  justify-content: center;
-  gap: 10px 22px;
+  column-gap: 30px;
+  row-gap: 10px;
   min-width: 0;
   width: 100%;
 }
@@ -146,10 +145,21 @@
 .projection-inline-field {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  min-width: 92px;
-  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.projection-inline-field:nth-child(1) {
+  justify-content: flex-start;
+}
+
+.projection-inline-field:nth-child(2) {
+  justify-content: center;
+}
+
+.projection-inline-field:nth-child(3) {
+  justify-content: flex-end;
 }
 
 .projection-inline-field-label {
@@ -157,7 +167,18 @@
   font-size: 0.84rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.projection-inline-field:nth-child(1) .projection-inline-field-label {
+  text-align: left;
+}
+
+.projection-inline-field:nth-child(2) .projection-inline-field-label {
   text-align: center;
+}
+
+.projection-inline-field:nth-child(3) .projection-inline-field-label {
+  text-align: right;
 }
 
 .projection-inline-input {
@@ -479,8 +500,8 @@
   }
 
   .projection-inline-controls {
-    justify-content: center;
-    gap: 8px 14px;
+    column-gap: 20px;
+    row-gap: 8px;
   }
 
   .projection-inline-input .input-shell {
@@ -490,6 +511,27 @@
 
   .projection-inline-input .input-control {
     padding-block: 7px;
+  }
+}
+
+@media (max-width: 640px) {
+  .projection-inline-controls {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+  }
+
+  .projection-inline-field,
+  .projection-inline-field:nth-child(1),
+  .projection-inline-field:nth-child(2),
+  .projection-inline-field:nth-child(3) {
+    justify-content: center;
+  }
+
+  .projection-inline-field .projection-inline-field-label,
+  .projection-inline-field:nth-child(1) .projection-inline-field-label,
+  .projection-inline-field:nth-child(2) .projection-inline-field-label,
+  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+    text-align: center;
   }
 }
 
