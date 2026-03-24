@@ -1145,7 +1145,7 @@ p {
 }
 
 .projection-panel {
-  margin-bottom: -12px;
+  margin-bottom: -6px;
 }
 
 .action-feedback {
@@ -1375,9 +1375,9 @@ p {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  width: calc(100% - 20px);
-  max-width: calc(100% - 20px);
-  margin-inline: auto;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
   padding: 22px 24px;
   background: linear-gradient(145deg, rgba(240, 249, 248, 0.98), rgba(255, 250, 243, 0.94));
 }
@@ -1420,7 +1420,7 @@ p {
 
 .cashflow-hero-meta {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  grid-template-columns: max-content 1fr max-content;
   align-items: center;
   column-gap: 10px;
   row-gap: 8px;
@@ -1443,17 +1443,14 @@ p {
 
 .cashflow-hero-meta span:nth-child(1) {
   justify-self: start;
-  padding-inline: 16px;
 }
 
 .cashflow-hero-meta span:nth-child(2) {
-  justify-self: stretch;
-  min-width: 0;
+  justify-self: center;
 }
 
 .cashflow-hero-meta span:nth-child(3) {
   justify-self: end;
-  padding-inline: 16px;
 }
 
 .cashflow-chart {
@@ -1567,7 +1564,7 @@ p {
 
   .cashflow-hero-meta {
     width: 100%;
-    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    grid-template-columns: max-content 1fr max-content;
     column-gap: 8px;
     justify-items: stretch;
   }
@@ -1577,11 +1574,6 @@ p {
     min-width: 0;
     padding-inline: 8px;
     font-size: 0.74rem;
-  }
-
-  .cashflow-hero-meta span:nth-child(1),
-  .cashflow-hero-meta span:nth-child(3) {
-    padding-inline: 12px;
   }
 
     .result-actions {
