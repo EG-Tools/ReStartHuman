@@ -1,0 +1,215 @@
+/* ------------------------------------------------------------------
+   저장 슬롯 모달 전용 구조
+   - 저장/불러오기/삭제 카드 레이아웃은 이 파일에서만 관리합니다.
+   - base.css 는 공용 모달 뼈대만 유지합니다.
+------------------------------------------------------------------- */
+.slot-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.slot-card {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.slot-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.slot-card-header h3 {
+  margin-bottom: 0;
+}
+
+.slot-card-header p {
+  font-size: 0.84rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.slot-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.slot-actions .button {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 10px;
+}
+
+.save-slot-modal-header {
+  align-items: flex-start;
+}
+
+.save-slot-modal-heading {
+  display: grid;
+  gap: 10px;
+}
+
+.slot-mode-switch {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.slot-mode-button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper-strong);
+  color: var(--muted);
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.slot-mode-button:hover {
+  transform: translateY(-1px);
+}
+
+.slot-mode-button.is-active {
+  background: linear-gradient(135deg, var(--brand), #1f8e90);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.slot-mode-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.slot-card-main {
+  display: grid;
+  gap: 10px;
+}
+
+.slot-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.slot-index-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 62px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(31, 142, 144, 0.1);
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.slot-name-field {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.slot-name-paren {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.slot-name-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: text;
+}
+
+.slot-name-input:focus {
+  outline: none;
+  border-color: rgba(31, 142, 144, 0.56);
+  box-shadow: 0 0 0 4px rgba(31, 142, 144, 0.12);
+}
+
+.slot-name-input::placeholder {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.save-slot-name {
+  margin: 0;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.slot-status {
+  margin: 0;
+  width: 100%;
+  text-align: right;
+  justify-self: stretch;
+  font-size: 0.84rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.slot-actions .slot-load-button.button-secondary {
+  background: #d0d5da;
+  border-color: rgba(92, 102, 114, 0.2);
+  color: #2f3742;
+}
+
+@media (max-width: 900px) {
+  .slot-card {
+    gap: 12px;
+  }
+
+  .slot-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slot-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
