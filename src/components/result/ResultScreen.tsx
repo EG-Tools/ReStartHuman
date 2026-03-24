@@ -1,4 +1,4 @@
-﻿import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
+import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { InlineNumericField, PrimaryButton } from '../common/Ui'
 import type {
@@ -321,7 +321,13 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
   return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
 }
 
-const splitSummaryValueChunks = (value: string) => {
+type SummaryValueChunk = {
+  key: string
+  numberText: string
+  unitText?: string
+}
+
+const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   const normalized = value.replace(/\s+/g, ' ').trim()
   const eokMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+))?(만원)?$/)
 
