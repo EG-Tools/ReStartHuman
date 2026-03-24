@@ -321,36 +321,73 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
   return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
 }
 
-const splitSummaryValue = (value: string) => {
+type SummaryValueChunk = {
+  key: string
+  number: string
+  unit: string
+  tone: 'primary' | 'secondary'
+}
+
+const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   const normalized = value.replace(/\s+/g, ' ').trim()
-  const eokMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+))?(만원)?$/)
+  const eokAndManwonMatched = normalized.match(/^([+-]?[\d.,]+)억(?:\s*([\d.,]+)만원)?$/)
 
-  if (eokMatched) {
-    return {
-      amountNumber: eokMatched[1],
-      amountUnit: '억',
-      secondaryNumber: eokMatched[2] ?? '',
-      secondaryUnit: eokMatched[3] ?? '',
+  if (eokAndManwonMatched) {
+    const chunks: SummaryValueChunk[] = [
+      {
+        key: 'primary',
+        number: eokAndManwonMatched[1],
+        unit: '억',
+        tone: 'primary',
+      },
+    ]
+
+    if (eokAndManwonMatched[2]) {
+      chunks.push({
+        key: 'secondary',
+        number: eokAndManwonMatched[2],
+        unit: '만원',
+        tone: 'secondary',
+      })
     }
+
+    return chunks
   }
 
-  const matched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
+  const simpleMatched = normalized.match(/^([+-]?[\d.,]+)(원|만원|억)?$/)
 
-  if (!matched) {
-    return {
-      amountNumber: normalized,
-      amountUnit: '',
-      secondaryNumber: '',
-      secondaryUnit: '',
-    }
+  if (simpleMatched) {
+    return [
+      {
+        key: 'single',
+        number: simpleMatched[1],
+        unit: simpleMatched[2] ?? '',
+        tone: 'primary',
+      },
+    ]
   }
 
-  return {
-    amountNumber: matched[1],
-    amountUnit: '',
-    secondaryNumber: '',
-    secondaryUnit: matched[2].trim(),
+  const fallbackMatched = normalized.match(/^([+-]?[\d.,]+)(.*)$/)
+
+  if (!fallbackMatched) {
+    return [
+      {
+        key: 'single',
+        number: normalized,
+        unit: '',
+        tone: 'primary',
+      },
+    ]
   }
+
+  return [
+    {
+      key: 'single',
+      number: fallbackMatched[1],
+      unit: fallbackMatched[2].trim(),
+      tone: 'primary',
+    },
+  ]
 }
 
 const SummaryCards = memo(function SummaryCards({
@@ -386,25 +423,22 @@ const SummaryCards = memo(function SummaryCards({
   return (
     <div className="summary-grid">
       {cards.map((card) => {
-        const { amountNumber, amountUnit, secondaryNumber, secondaryUnit } = splitSummaryValue(card.value)
+        const chunks = splitSummaryValueChunks(card.value)
 
         return (
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
             <h2 className="summary-value-heading">
               <span className="summary-value">
-                <span className="summary-value-primary-group">
-                  <span className="summary-value-primary">{amountNumber}</span>
-                  {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
-                </span>
-                {secondaryNumber || secondaryUnit ? (
+                {chunks.map((chunk) => (
                   <span
-                    className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
+                    key={chunk.key}
+                    className={`summary-value-chunk summary-value-chunk-${chunk.tone}`}
                   >
-                    {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
-                    {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
+                    <span className="summary-value-number">{chunk.number}</span>
+                    {chunk.unit ? <span className="summary-value-unit">{chunk.unit}</span> : null}
                   </span>
-                ) : null}
+                ))}
               </span>
             </h2>
           </article>
