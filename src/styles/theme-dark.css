@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: dark;
   color: #eef3f5;
   background: #081113;
@@ -432,11 +432,6 @@ body {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.slot-mode-button {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--muted);
-}
 
 .slot-mode-button.is-active {
   background: linear-gradient(135deg, #173f44, #123237);

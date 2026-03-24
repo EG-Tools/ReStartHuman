@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import type {
   RetireCalcFormData,
   RetireCalcResult,
@@ -14,7 +14,7 @@ const getSlotNameStorageKey = (slotId: number) => `${SLOT_NAME_STORAGE_KEY_PREFI
 const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
 
 const normalizeSlotName = (slotId: number, nextName: string) => {
-  const trimmedName = nextName.trim().slice(0, 24)
+  const trimmedName = nextName.replace(/\s+/g, ' ').trim().slice(0, 24)
   return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
 }
 

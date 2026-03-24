@@ -1,4 +1,4 @@
-import {
+﻿import {
   Suspense,
   lazy,
   startTransition,
@@ -321,7 +321,7 @@ export default function App() {
             slotCount={saveSlots.slotCount}
             slotsById={saveSlots.slotsById}
             slotNamesById={saveSlots.slotNamesById}
-            canSave={flow.route === appRoutes.result && Boolean(result)}
+            canSave={flow.route === appRoutes.result && result !== null}
             onClose={() => setSaveSlotMode(null)}
             onModeChange={(nextMode) => setSaveSlotMode(nextMode)}
             onLoad={handleLoadSlot}

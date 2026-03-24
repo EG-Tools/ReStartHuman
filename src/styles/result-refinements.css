@@ -1,3 +1,8 @@
+﻿/* 결과요약과 현금흐름 카드 간격 미세 조정 */
+.result-capture > .cashflow-hero:first-child {
+  margin-top: -10px;
+}
+
 /*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
@@ -9,17 +14,6 @@
 
 /* Result visual refinements */
 
-/* 결과요약과 현금흐름 카드 간격 미세 조정 */
-.result-capture > .cashflow-hero:first-child {
-  margin-top: -10px;
-}
-
-
-/* ------------------------------------------------------------------
-   결과 요약 카드 숫자 전용 규칙
-   - summary-card h2 공통 스타일과 분리해서 여기만 보면 됩니다.
-   - 숫자 / 억 / 만원 / 보조 숫자 정렬은 아래 묶음만 수정합니다.
-------------------------------------------------------------------- */
 .summary-card.tone-neutral,
 .summary-card.tone-surplus,
 .summary-card.tone-deficit {
@@ -31,50 +25,55 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
-.summary-card .summary-value-heading {
-  margin-top: 10px;
-  margin-bottom: 0;
-  font-size: clamp(1.56rem, 3.6vw, 2.4rem);
-  text-align: right;
-}
-
 .summary-card .summary-value {
   display: inline-flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 0.12em;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.08em;
   flex-wrap: nowrap;
-  width: 100%;
   white-space: nowrap;
-  line-height: 1;
-  font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  line-height: 0.92;
 }
 
-.summary-card .summary-value-chunk {
+.summary-card .summary-value-primary-group {
   display: inline-flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 0.12em;
-  white-space: nowrap;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  align-items: baseline;
+  gap: 0.04em;
+  line-height: 0.92;
 }
 
-.summary-card .summary-value-number {
-  display: inline-block;
-  font-size: 1em;
+.summary-card .summary-value-primary {
+  display: block;
+  line-height: 0.92;
+}
+
+.summary-card .summary-value-primary-unit {
+  display: block;
+  font-size: 0.48em;
   line-height: 1;
+}
+
+.summary-card .summary-value-secondary-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.04em;
+  line-height: 0.92;
+}
+
+.summary-card .summary-value-secondary-group-unit-only {
+  gap: 0;
+}
+
+.summary-card .summary-value-secondary {
+  display: block;
+  font-size: 0.8em;
+  line-height: 0.92;
 }
 
 .summary-card .summary-value-unit {
-  display: inline-block;
-  font-size: 0.5em;
+  display: block;
+  font-size: 0.48em;
   line-height: 1;
-  transform: translateY(-0.02em);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -130,20 +129,7 @@
   box-shadow: var(--result-row-sticky-divider-shadow);
 }
 
-/* ------------------------------------------------------------------
-   결과 화면 상단 3칸 전용 규칙
-   - 나이 / 기간 / 물가 는 순서가 아니라 클래스 기준으로 정렬합니다.
-   - 모바일에서도 절대 1열로 꺾지 않습니다.
-   - 입력칸 폭 / 간격 / 정렬은 이 묶음만 수정합니다.
-------------------------------------------------------------------- */
 .projection-inline-row {
-  --projection-inline-columns: repeat(3, minmax(0, 1fr));
-  --projection-inline-column-gap: 30px;
-  --projection-inline-row-gap: 10px;
-  --projection-inline-field-gap: 8px;
-  --projection-inline-shell-width: 52px;
-  --projection-inline-input-gap: 4px;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,10 +139,10 @@
 
 .projection-inline-controls {
   display: grid;
-  grid-template-columns: var(--projection-inline-columns);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
-  column-gap: var(--projection-inline-column-gap);
-  row-gap: var(--projection-inline-row-gap);
+  column-gap: 30px;
+  row-gap: 10px;
   min-width: 0;
   width: 100%;
 }
@@ -164,20 +150,20 @@
 .projection-inline-field {
   display: inline-flex;
   align-items: center;
-  gap: var(--projection-inline-field-gap);
+  gap: 8px;
   min-width: 0;
   width: 100%;
 }
 
-.projection-inline-field-start {
+.projection-inline-field:nth-child(1) {
   justify-content: flex-start;
 }
 
-.projection-inline-field-center {
+.projection-inline-field:nth-child(2) {
   justify-content: center;
 }
 
-.projection-inline-field-end {
+.projection-inline-field:nth-child(3) {
   justify-content: flex-end;
 }
 
@@ -188,15 +174,15 @@
   white-space: nowrap;
 }
 
-.projection-inline-field-start .projection-inline-field-label {
+.projection-inline-field:nth-child(1) .projection-inline-field-label {
   text-align: left;
 }
 
-.projection-inline-field-center .projection-inline-field-label {
+.projection-inline-field:nth-child(2) .projection-inline-field-label {
   text-align: center;
 }
 
-.projection-inline-field-end .projection-inline-field-label {
+.projection-inline-field:nth-child(3) .projection-inline-field-label {
   text-align: right;
 }
 
@@ -204,13 +190,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--projection-inline-input-gap);
+  gap: 4px;
   flex: 0 0 auto;
 }
 
 .projection-inline-input .input-shell {
-  width: var(--projection-inline-shell-width);
-  min-width: var(--projection-inline-shell-width);
+  width: 52px;
+  min-width: 52px;
 }
 
 .projection-inline-input .input-control {
@@ -515,11 +501,17 @@
 /* 결과표에는 세로 전용 별도 규칙을 두지 않음 */
 @media (max-width: 900px) {
   .projection-inline-row {
-    --projection-inline-column-gap: 20px;
-    --projection-inline-row-gap: 8px;
-    --projection-inline-shell-width: 50px;
-
     gap: 6px;
+  }
+
+  .projection-inline-controls {
+    column-gap: 20px;
+    row-gap: 8px;
+  }
+
+  .projection-inline-input .input-shell {
+    width: 50px;
+    min-width: 50px;
   }
 
   .projection-inline-input .input-control {
@@ -528,24 +520,23 @@
 }
 
 @media (max-width: 640px) {
-  .projection-inline-row {
-    --projection-inline-column-gap: 10px;
-    --projection-inline-row-gap: 8px;
-    --projection-inline-field-gap: 5px;
-    --projection-inline-shell-width: 50px;
-    --projection-inline-input-gap: 3px;
+  .projection-inline-controls {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
   }
 
-  .projection-inline-field-label {
-    font-size: 0.78rem;
+  .projection-inline-field,
+  .projection-inline-field:nth-child(1),
+  .projection-inline-field:nth-child(2),
+  .projection-inline-field:nth-child(3) {
+    justify-content: center;
   }
 
-  .projection-inline-input .input-control {
-    font-size: 0.92rem;
-  }
-
-  .projection-inline-input .input-suffix {
-    font-size: 0.78rem;
+  .projection-inline-field .projection-inline-field-label,
+  .projection-inline-field:nth-child(1) .projection-inline-field-label,
+  .projection-inline-field:nth-child(2) .projection-inline-field-label,
+  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+    text-align: center;
   }
 }
 

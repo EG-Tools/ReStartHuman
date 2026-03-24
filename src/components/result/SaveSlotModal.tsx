@@ -1,4 +1,4 @@
-import { PrimaryButton } from '../common/Ui'
+﻿import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
 
@@ -31,21 +31,22 @@ export function SaveSlotModal({
   onDelete,
   onRenameSlotName,
 }: SaveSlotModalProps) {
-  const activeMode = !canSave || mode === 'load' ? 'load' : 'save'
-  const title = activeMode === 'save' ? '저장할 슬롯을 선택하세요' : '불러올 슬롯을 선택하세요'
-  const showModeSwitch = activeMode === 'load' && canSave
+  const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
+  const showModeTabs = mode === 'manage'
+  const title =
+    activeMode === 'save' ? '현재 계산 저장' : '저장된 계산 불러오기'
 
   return (
     <div className="modal-backdrop" role="presentation">
       <div
-        className="modal-panel"
+        className="modal-panel save-slot-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="save-slot-modal-title"
       >
-        <div className="modal-header">
-          <div className="slot-modal-heading">
-            {showModeSwitch ? (
+        <div className="modal-header save-slot-modal-header">
+          <div className="save-slot-modal-heading">
+            {showModeTabs ? (
               <div className="slot-mode-switch" role="tablist" aria-label="저장 슬롯 모드">
                 <button
                   type="button"
@@ -85,17 +86,20 @@ export function SaveSlotModal({
 
             return (
               <article key={slotId} className="slot-card">
-                <div className="slot-card-header">
-                  <span className="slot-index-badge">슬롯 {slotId}</span>
-                  <input
-                    type="text"
-                    className="slot-name-input"
-                    value={slotName}
-                    maxLength={24}
-                    onChange={(event) => onRenameSlotName(slotId, event.target.value)}
-                    aria-label={`${slotId}번 슬롯 이름`}
-                  />
-                  <p className="slot-save-status">{savedAtLabel}</p>
+                <div className="slot-card-main">
+                  <div className="slot-name-row">
+                    <span className="slot-index-badge">슬롯 {slotId}</span>
+                    <input
+                      type="text"
+                      className="slot-name-input"
+                      value={slotName}
+                      maxLength={24}
+                      onChange={(event) => onRenameSlotName(slotId, event.target.value)}
+                      aria-label={`${slotId}번 슬롯 이름`}
+                    />
+                  </div>
+
+                  <p className="slot-status">{savedAtLabel}</p>
                 </div>
 
                 <div className="slot-actions">
