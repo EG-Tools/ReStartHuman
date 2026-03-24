@@ -29,44 +29,51 @@
 
 .summary-card .summary-value {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: flex-end;
   width: 100%;
   gap: 0.08em;
   flex-wrap: nowrap;
   white-space: nowrap;
-  line-height: 0.92;
+  line-height: 1;
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .summary-card .summary-value-primary-group {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: flex-end;
   gap: 0.04em;
-  line-height: 0.92;
+  line-height: 1;
   min-width: 0;
 }
 
+.summary-card .summary-value-primary,
+.summary-card .summary-value-primary-unit,
+.summary-card .summary-value-secondary,
+.summary-card .summary-value-unit {
+  display: inline-block;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
 .summary-card .summary-value-primary {
-  display: block;
-  line-height: 0.92;
+  transform: translateY(0);
 }
 
 .summary-card .summary-value-primary-unit {
-  display: block;
   font-size: 0.48em;
-  line-height: 1;
-  transform: translateY(0.11em);
+  transform: translateY(0.07em);
 }
 
 .summary-card .summary-value-secondary-group {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   gap: 0.04em;
-  line-height: 0.92;
-  transform: translateY(0.11em);
+  line-height: 1;
+  transform: translateY(0.05em);
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -74,20 +81,16 @@
 }
 
 .summary-card .summary-value-secondary {
-  display: block;
   font-size: 0.8em;
-  line-height: 0.92;
 }
 
 .summary-card .summary-value-unit {
-  display: block;
   font-size: 0.48em;
-  line-height: 1;
-  transform: translateY(0.02em);
+  transform: translateY(0.01em);
 }
 
 .summary-card .summary-value.summary-value-simple .summary-value-primary-group {
-  transform: translateY(0.08em);
+  transform: translateY(0);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -218,6 +221,12 @@
 .projection-inline-input .input-control {
   text-align: right;
   padding-block: 8px;
+  color: #f3f7f8;
+  font-weight: 700;
+}
+
+.projection-panel .input-suffix {
+  color: rgba(224, 237, 231, 0.78);
 }
 
 /* ------------------------------------------------------------------
