@@ -47,7 +47,10 @@
 }
 
 .summary-card .summary-value-chunk {
-  display: inline-block;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.02em;
   white-space: nowrap;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -55,12 +58,17 @@
   font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-chunk-primary {
+.summary-card .summary-value-number {
+  display: inline-block;
   font-size: 1em;
+  line-height: 1;
 }
 
-.summary-card .summary-value-chunk-secondary {
-  font-size: 0.9em;
+.summary-card .summary-value-unit {
+  display: inline-block;
+  font-size: 0.5em;
+  line-height: 1;
+  transform: translateY(-0.02em);
 }
 
 .summary-card.tone-surplus .summary-value {

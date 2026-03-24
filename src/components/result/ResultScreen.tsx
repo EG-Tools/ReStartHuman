@@ -323,8 +323,8 @@ const getComprehensiveTaxNote = (result: RetireCalcResult) => {
 
 type SummaryValueChunk = {
   key: string
-  text: string
-  tone: 'primary' | 'secondary'
+  numberText: string
+  unitText?: string
 }
 
 const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
@@ -334,17 +334,17 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   if (eokAndManwonMatched) {
     const chunks: SummaryValueChunk[] = [
       {
-        key: 'primary',
-        text: `${eokAndManwonMatched[1]}억`,
-        tone: 'primary',
+        key: 'eok',
+        numberText: eokAndManwonMatched[1],
+        unitText: '억',
       },
     ]
 
     if (eokAndManwonMatched[2]) {
       chunks.push({
-        key: 'secondary',
-        text: `${eokAndManwonMatched[2]}만원`,
-        tone: 'secondary',
+        key: 'manwon',
+        numberText: eokAndManwonMatched[2],
+        unitText: '만원',
       })
     }
 
@@ -357,8 +357,8 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     return [
       {
         key: 'single',
-        text: `${simpleMatched[1]}${simpleMatched[2] ?? ''}`,
-        tone: 'primary',
+        numberText: simpleMatched[1],
+        unitText: simpleMatched[2] ?? undefined,
       },
     ]
   }
@@ -369,8 +369,7 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
     return [
       {
         key: 'single',
-        text: normalized,
-        tone: 'primary',
+        numberText: normalized,
       },
     ]
   }
@@ -378,8 +377,8 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   return [
     {
       key: 'single',
-      text: `${fallbackMatched[1]}${fallbackMatched[2].trim()}`,
-      tone: 'primary',
+      numberText: fallbackMatched[1],
+      unitText: fallbackMatched[2].trim() || undefined,
     },
   ]
 }
@@ -425,11 +424,11 @@ const SummaryCards = memo(function SummaryCards({
             <h2 className="summary-value-heading">
               <span className="summary-value">
                 {chunks.map((chunk) => (
-                  <span
-                    key={chunk.key}
-                    className={`summary-value-chunk summary-value-chunk-${chunk.tone}`}
-                  >
-                    {chunk.text}
+                  <span key={chunk.key} className="summary-value-chunk">
+                    <span className="summary-value-number">{chunk.numberText}</span>
+                    {chunk.unitText ? (
+                      <span className="summary-value-unit">{chunk.unitText}</span>
+                    ) : null}
                   </span>
                 ))}
               </span>
