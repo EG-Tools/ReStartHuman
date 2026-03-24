@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family: 'Aptos', 'Bahnschrift', 'Segoe UI', sans-serif;
   line-height: 1.45;
   font-weight: 400;
@@ -858,6 +858,11 @@ p {
   outline: none;
   border-color: rgba(31, 142, 144, 0.56);
   box-shadow: 0 0 0 4px rgba(31, 142, 144, 0.12);
+}
+
+.slot-name-input::placeholder {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .save-slot-name {
