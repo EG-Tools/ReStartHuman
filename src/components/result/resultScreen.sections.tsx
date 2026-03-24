@@ -243,9 +243,15 @@ export const CashFlowChart = memo(function CashFlowChart({
           </p>
         </div>
         <div className="cashflow-hero-meta">
-          <span>시작 {formatCompactCurrency(result.startingCashReserve)}</span>
-          <span>{projectionYears}년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}</span>
-          <span>물가반영 {displayedInflationRate}%</span>
+          <span className="cashflow-hero-meta-pill cashflow-hero-meta-start">
+            시작 {formatCompactCurrency(result.startingCashReserve)}
+          </span>
+          <span className="cashflow-hero-meta-pill cashflow-hero-meta-center">
+            {projectionYears}년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}
+          </span>
+          <span className="cashflow-hero-meta-pill cashflow-hero-meta-end">
+            물가반영 {displayedInflationRate}%
+          </span>
         </div>
       </div>
 
