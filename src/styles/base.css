@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   font-family: 'Aptos', 'Bahnschrift', 'Segoe UI', sans-serif;
   line-height: 1.45;
   font-weight: 400;
@@ -894,6 +894,18 @@ p {
 .table-edit-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+.input-control::selection,
+.table-edit-input::selection {
+  background: transparent;
+  color: inherit;
+}
+
+.input-control::-moz-selection,
+.table-edit-input::-moz-selection {
+  background: transparent;
+  color: inherit;
 }
 
 .table-edit-suffix {

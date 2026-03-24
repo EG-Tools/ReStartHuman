@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
+﻿import { memo, useMemo, useRef, useState, type ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import { InlineNumericField, PrimaryButton } from '../common/Ui'
 import type {
@@ -85,6 +85,7 @@ const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
     formData.isaAssets +
     formData.pensionAccountAssets +
     formData.otherAssets +
+    formData.currentCarMarketValue +
     formData.startingCashReserve
   )
 }
@@ -1241,8 +1242,8 @@ export function ResultScreen({
     formData.housingType === 'own'
       ? '시가 / 공시가'
       : formData.housingType === 'jeonse'
-        ? '전세 보증금'
-        : '보증금 / 월세'
+        ? '전세보증금은 재산 반영'
+        : '보증금은 재산, 월세는 지출 반영'
 
   const rows = useMemo<ResultRow[]>(() => [
     {
@@ -1264,9 +1265,21 @@ export function ResultScreen({
         formData.housingType === 'monthlyRent'
           ? formatCompactCurrency(result.housingMonthlyCost)
           : '—',
-      annual: '—',
-      tenYear: '—',
+      annual:
+        formData.housingType === 'monthlyRent'
+          ? formatCompactCurrency(result.housingMonthlyCost * 12)
+          : '—',
+      tenYear:
+        formData.housingType === 'monthlyRent'
+          ? formatCompactCurrency(result.housingMonthlyCost * 12 * formData.simulationYears)
+          : '—',
       note: housingRowNote,
+      noteDetail:
+        formData.housingType === 'jeonse'
+          ? '전세보증금은 자산 해석에 재산으로 포함합니다.'
+          : formData.housingType === 'monthlyRent'
+            ? `월세 ${formatCompactCurrency(formData.monthlyRentAmount)}${formData.maintenanceIncludedInRent ? '' : ` + 관리비 ${formatCompactCurrency(formData.monthlyMaintenanceFee)}`}를 월 지출에 반영하고, 월세보증금 ${formatCompactCurrency(formData.monthlyRentDeposit)}은 자산 해석에 포함합니다.`
+            : undefined,
     },
     {
       category: '주거',
@@ -1291,6 +1304,25 @@ export function ResultScreen({
         formData.otherPropertyOfficialValue > 0
           ? `${getPropertyOwnershipLabel(formData.otherPropertyOwnershipType)} 기준`
           : '0원이면 미보유 처리',
+    },
+    {
+      category: '자산',
+      item: '차량 시세',
+      input: (
+        <InlineAmountInput
+          label="현재 차량 시세"
+          value={formData.currentCarMarketValue}
+          onChange={(value) => onPatchFormData({ currentCarMarketValue: value })}
+        />
+      ),
+      monthly: '—',
+      annual: '—',
+      tenYear: '—',
+      note: formData.hasCar || formData.currentCarMarketValue > 0 ? '재산 반영' : '미보유',
+      noteDetail:
+        formData.hasCar || formData.currentCarMarketValue > 0
+          ? '현재 차량 시세는 자산 해석에 포함하고, 차량 유지비는 별도 지출 항목으로 계산합니다.'
+          : undefined,
     },
     {
       category: '배당',

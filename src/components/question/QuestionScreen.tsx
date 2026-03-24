@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+﻿import { useEffect, useRef, type ReactNode } from 'react'
 import { ChoiceQuestion, InlineNumericField, NumberFields, PrimaryButton, ProgressBar } from '../common/Ui'
 import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
 import { formatCompactCurrency } from '../../utils/format'
@@ -1023,7 +1023,7 @@ export function QuestionScreen({
                     label: '현재 차량 시세',
                     value: formData.currentCarMarketValue,
                     onChange: (value) => update('currentCarMarketValue', value),
-                    helperText: '현재 차량 시세는 추후 재산 항목으로 확장할 수 있도록 보관합니다.',
+                    helperText: '현재 차량 시세는 결과표와 자산 해석에 재산으로 반영됩니다.',
                   },
                   {
                     key: 'carYearlyCost',
