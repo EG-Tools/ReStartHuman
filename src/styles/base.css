@@ -896,6 +896,20 @@ p {
   color: #2f3742;
 }
 
+
+@media (orientation: landscape) and (max-width: 1100px) and (max-height: 700px) {
+  .cashflow-hero-header {
+    flex-direction: column;
+  }
+
+  .cashflow-hero-meta {
+    width: 100%;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    column-gap: 8px;
+    justify-items: stretch;
+  }
+}
+
 @media (max-width: 900px) {
   .app-shell {
     min-height: var(--app-height);
