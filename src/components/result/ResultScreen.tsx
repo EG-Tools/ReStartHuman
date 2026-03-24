@@ -458,17 +458,17 @@ const CashFlowChart = memo(function CashFlowChart({
       ? result.cashBalanceTimeline
       : [{ year: 0, balance: result.startingCashReserve }]
   const width = 370
-  const height = 226
+  const height = 210
   const paddingLeft = 50
   const paddingRight = 18
   const paddingTop = 18
-  const paddingBottom = 52
+  const paddingBottom = 34
   const borderGapLeft = 10
   const borderGapRight = 10
   const borderGapTop = 10
   const borderGapBottom = 10
   const yLabelGap = 8
-  const xLabelGap = 8
+  const xLabelGap = 4
   const balances = points.map((point) => point.balance)
   const minBalance = Math.min(...balances)
   const maxBalance = Math.max(...balances)
