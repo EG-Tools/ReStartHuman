@@ -1570,10 +1570,6 @@ export function ResultScreen({
       </div>
 
       <div ref={captureRef} className="result-capture">
-        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
-
-        <SummaryCards result={result} projectionYears={formData.simulationYears} />
-
         <section className="result-panel projection-panel">
           <div className="projection-inline-row">
             <div className="projection-inline-controls">
@@ -1639,6 +1635,10 @@ export function ResultScreen({
             </div>
           </div>
         </section>
+
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
+
+        <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
         <ResultInterpretation items={interpretationItems} />
 

@@ -91,32 +91,36 @@ export function SaveSlotModal({
               : '아직 저장되지 않음'
 
             return (
-              <article key={slotId} className="slot-card save-slot-card">
-                <div className="save-slot-card-main">
-                  <div className="save-slot-label-row">
-                    <span className="save-slot-index">결과 {slotId}</span>
-                    {typeof onRenameSlotName === 'function' ? (
-                      <input
-                        type="text"
-                        className="slot-name-input"
-                        defaultValue={slotName}
-                        maxLength={24}
-                        onBlur={(event) => onRenameSlotName(slotId, event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            event.currentTarget.blur()
-                          }
-                        }}
-                        aria-label={`${slotId}번 결과 이름`}
-                      />
-                    ) : (
-                      <h3 className="save-slot-name">{slotName}</h3>
-                    )}
+              <article key={slotId} className="slot-card">
+                <div className="slot-card-main">
+                  <div className="slot-name-row">
+                    <span className="slot-index-badge">결과 {slotId}</span>
+                    <span className="slot-name-paren" aria-hidden="true">(</span>
+                    <div className="slot-name-field">
+                      {typeof onRenameSlotName === 'function' ? (
+                        <input
+                          type="text"
+                          className="slot-name-input"
+                          defaultValue={slotName}
+                          maxLength={24}
+                          onBlur={(event) => onRenameSlotName(slotId, event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              event.currentTarget.blur()
+                            }
+                          }}
+                          aria-label={`${slotId}번 결과 이름`}
+                        />
+                      ) : (
+                        <h3 className="save-slot-name">{slotName}</h3>
+                      )}
+                    </div>
+                    <span className="slot-name-paren" aria-hidden="true">)</span>
                   </div>
-                  <p className="save-slot-status">{savedAtLabel}</p>
+                  <p className="slot-status">{savedAtLabel}</p>
                 </div>
 
-                <div className="slot-actions save-slot-actions">
+                <div className="slot-actions">
                   <PrimaryButton onClick={() => onSave(slotId)} disabled={!resolvedCanSave}>
                     저장
                   </PrimaryButton>
