@@ -795,6 +795,7 @@ p {
 .slot-name-input {
   width: 100%;
   min-width: 0;
+  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--paper-strong);
@@ -802,11 +803,10 @@ p {
   padding: 12px 14px;
   font-size: 1rem;
   font-weight: 800;
-}
-
-.slot-name-input::placeholder {
-  color: var(--ink);
-  opacity: 1;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: text;
 }
 
 .slot-name-input:focus {

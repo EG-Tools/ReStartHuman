@@ -25,18 +25,24 @@ const normalizeSlotName = (slotId: number, nextName: string) => {
   return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
 }
 
-const moveCaretToEnd = (input: HTMLInputElement) => {
-  if (input.value.length === 0) {
+const moveCaretToEnd = (node: HTMLElement) => {
+  const textLength = node.textContent?.length ?? 0
+
+  if (textLength === 0) {
     return
   }
 
-  const caretPosition = input.value.length
+  const selection = window.getSelection()
 
-  try {
-    input.setSelectionRange(caretPosition, caretPosition)
-  } catch {
-    // 일부 모바일 브라우저에서는 selectionRange 설정이 실패할 수 있다.
+  if (!selection) {
+    return
   }
+
+  const range = document.createRange()
+  range.selectNodeContents(node)
+  range.collapse(false)
+  selection.removeAllRanges()
+  selection.addRange(range)
 }
 
 export function SaveSlotModal({
@@ -52,7 +58,7 @@ export function SaveSlotModal({
   onDelete,
   onRenameSlotName,
 }: SaveSlotModalProps) {
-  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
+  const inputRefs = useRef<Record<number, HTMLDivElement | null>>({})
 
   const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage'
@@ -73,11 +79,11 @@ export function SaveSlotModal({
 
   const commitSlotName = (slotId: number) => {
     const input = inputRefs.current[slotId]
-    const rawValue = input?.value ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    const rawValue = input?.textContent ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
     const committedName = normalizeSlotName(slotId, rawValue)
 
-    if (input && input.value !== committedName) {
-      input.value = committedName
+    if (input && input.textContent !== committedName) {
+      input.textContent = committedName
     }
 
     onRenameSlotName(slotId, committedName)
@@ -132,24 +138,21 @@ export function SaveSlotModal({
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
-              <article key={`${slotId}-${slotName}`} className="slot-card">
+              <article key={slotId} className="slot-card">
                 <div className="slot-card-main">
                   <div className="slot-name-row">
                     <span className="slot-index-badge">슬롯 {slotId}</span>
-                    <input
-                      key={`${slotId}-${slotName}`}
+                    <div
                       ref={(node) => {
                         inputRefs.current[slotId] = node
                       }}
-                      type="text"
+                      contentEditable="plaintext-only"
+                      suppressContentEditableWarning
                       lang="ko"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck={false}
                       className="slot-name-input"
-                      defaultValue={slotName}
-                      maxLength={24}
+                      role="textbox"
+                      aria-label={`${slotId}번 슬롯 이름`}
+                      data-slot-id={slotId}
                       onFocus={(event) => {
                         moveCaretToEnd(event.currentTarget)
                       }}
@@ -162,8 +165,14 @@ export function SaveSlotModal({
                           event.currentTarget.blur()
                         }
                       }}
-                      aria-label={`${slotId}번 슬롯 이름`}
-                    />
+                      onPaste={(event) => {
+                        event.preventDefault()
+                        const pastedText = event.clipboardData.getData('text/plain').replace(/\s+/g, ' ')
+                        document.execCommand('insertText', false, pastedText)
+                      }}
+                    >
+                      {slotName}
+                    </div>
                   </div>
 
                   <p className="slot-status">{savedAtLabel}</p>
