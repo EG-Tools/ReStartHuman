@@ -1,4 +1,4 @@
-/*
+﻿/*
   결과표 전용 스타일 안내
   - 결과표 열 폭 / 2열 입력 / 비고열 / 집값행 최종 디자인은 이 파일에서만 수정합니다.
   - base.css는 질문 화면 공통 입력만 담당합니다.
@@ -23,18 +23,28 @@
 .summary-card .summary-value {
   display: inline-flex;
   align-items: flex-end;
-  gap: 0.05em;
+  justify-content: center;
+  gap: 0.08em;
   flex-wrap: nowrap;
-  line-height: 0.96;
+  line-height: 1;
+}
+
+.summary-card .summary-value-primary-group {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.04em;
+  line-height: 1;
 }
 
 .summary-card .summary-value-primary {
-  line-height: 0.94;
+  display: block;
+  line-height: 1;
 }
 
 .summary-card .summary-value-primary-unit {
-  font-size: 0.52em;
-  line-height: 1;
+  display: block;
+  font-size: 0.48em;
+  line-height: 0.92;
   align-self: flex-end;
 }
 
@@ -42,16 +52,23 @@
   display: inline-flex;
   align-items: flex-end;
   gap: 0.04em;
+  line-height: 1;
+}
+
+.summary-card .summary-value-secondary-group-unit-only {
+  gap: 0;
 }
 
 .summary-card .summary-value-secondary {
+  display: block;
   font-size: 0.8em;
-  line-height: 0.92;
+  line-height: 1;
 }
 
 .summary-card .summary-value-unit {
-  font-size: 0.52em;
-  line-height: 1;
+  display: block;
+  font-size: 0.48em;
+  line-height: 0.92;
   align-self: flex-end;
 }
 
@@ -111,23 +128,27 @@
 .projection-inline-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
 }
 
 .projection-inline-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  justify-content: flex-start;
-  gap: 6px 6px;
+  justify-content: center;
+  gap: 10px 22px;
   min-width: 0;
+  width: 100%;
 }
 
 .projection-inline-field {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
+  min-width: 92px;
   flex: 0 0 auto;
 }
 
@@ -136,11 +157,13 @@
   font-size: 0.84rem;
   font-weight: 700;
   white-space: nowrap;
+  text-align: center;
 }
 
 .projection-inline-input {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   flex: 0 0 auto;
 }
@@ -456,7 +479,8 @@
   }
 
   .projection-inline-controls {
-    gap: 5px;
+    justify-content: center;
+    gap: 8px 14px;
   }
 
   .projection-inline-input .input-shell {

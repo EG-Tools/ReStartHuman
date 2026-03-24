@@ -392,15 +392,17 @@ const SummaryCards = memo(function SummaryCards({
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
             <h2 className="summary-value">
-              <span className="summary-value-primary">{amountNumber}</span>
-              {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
-              {secondaryNumber ? (
-                <span className="summary-value-secondary-group">
-                  <span className="summary-value-secondary">{secondaryNumber}</span>
+              <span className="summary-value-primary-group">
+                <span className="summary-value-primary">{amountNumber}</span>
+                {amountUnit ? <span className="summary-value-primary-unit">{amountUnit}</span> : null}
+              </span>
+              {secondaryNumber || secondaryUnit ? (
+                <span
+                  className={`summary-value-secondary-group${secondaryNumber ? '' : ' summary-value-secondary-group-unit-only'}`}
+                >
+                  {secondaryNumber ? <span className="summary-value-secondary">{secondaryNumber}</span> : null}
                   {secondaryUnit ? <span className="summary-value-unit">{secondaryUnit}</span> : null}
                 </span>
-              ) : secondaryUnit ? (
-                <span className="summary-value-unit">{secondaryUnit}</span>
               ) : null}
             </h2>
           </article>
