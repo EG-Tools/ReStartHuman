@@ -2,6 +2,8 @@
 @import './styles/save-slot-modal.css';
 @import './styles/cashflow-hero.css';
 @import './styles/theme-dark.css';
+@import './styles/save-slot-modal.dark.css';
+@import './styles/cashflow-hero.dark.css';
 @import './styles/result-refinements.css';
 @import './styles/disabled-inputs.css';
 @import './styles/app-chrome.css';
