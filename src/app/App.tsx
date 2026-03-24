@@ -247,17 +247,12 @@ export default function App() {
     })
   }
 
-  const handleSaveSlot = (slotId: number) => {
-    saveSlots.saveSlot(slotId, formData, result ?? calculateRetireScenario(formData))
-    setSaveSlotMode(null)
+  const handleSaveSlot = (slotId: number, slotName: string) => {
+    saveSlots.saveSlot(slotId, formData, result ?? calculateRetireScenario(formData), slotName)
   }
 
   const handleDeleteSlot = (slotId: number) => {
     saveSlots.deleteSlot(slotId)
-  }
-
-  const handleRenameSlot = (slotId: number, nextName: string) => {
-    saveSlots.renameSlot(slotId, nextName)
   }
 
   const startOver = () => {
@@ -320,14 +315,12 @@ export default function App() {
             mode={saveSlotMode}
             slotCount={saveSlots.slotCount}
             slotsById={saveSlots.slotsById}
-            slotNamesById={saveSlots.slotNamesById}
             canSave={flow.route === appRoutes.result && result !== null}
             onClose={() => setSaveSlotMode(null)}
             onModeChange={(nextMode: 'load' | 'save') => setSaveSlotMode(nextMode)}
             onLoad={handleLoadSlot}
             onSave={handleSaveSlot}
             onDelete={handleDeleteSlot}
-            onRenameSlotName={handleRenameSlot}
           />
         </Suspense>
       ) : null}
