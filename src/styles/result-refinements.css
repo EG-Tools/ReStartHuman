@@ -28,7 +28,7 @@
 .summary-card .summary-value-heading {
   margin-top: 10px;
   margin-bottom: 0;
-  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-size: clamp(1.56rem, 3.6vw, 2.4rem);
   text-align: right;
 }
 
