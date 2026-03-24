@@ -145,8 +145,6 @@ export function SaveSlotModal({
             const resolvedSlotName = resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
             const editableSlotName =
               draftSlotNames[slotId] ?? toEditableSlotName(slotId, resolvedSlotName)
-            const showDefaultSuffix =
-              toCommittedSlotName(slotId, editableSlotName) === getDefaultSlotName(slotId)
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
@@ -154,7 +152,7 @@ export function SaveSlotModal({
                 <div className="slot-card-main">
                   <div className="slot-name-row">
                     <span className="slot-index-badge">슬롯 {slotId}</span>
-                    <div className={`slot-name-field ${showDefaultSuffix ? 'has-suffix' : ''}`.trim()}>
+                    <div className="slot-name-field">
                       <input
                         ref={(node) => {
                           inputRefs.current[slotId] = node
@@ -218,11 +216,6 @@ export function SaveSlotModal({
                         }}
                         aria-label={`${slotId}번 슬롯 이름`}
                       />
-                      {showDefaultSuffix ? (
-                        <span className="slot-name-suffix" aria-hidden="true">
-                          {slotId}
-                        </span>
-                      ) : null}
                     </div>
                   </div>
 
