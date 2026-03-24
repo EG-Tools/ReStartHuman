@@ -1,0 +1,128 @@
+/* Result projection inline controls */
+
+.projection-inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.projection-inline-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  column-gap: 30px;
+  row-gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.projection-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.projection-inline-field:nth-child(1) {
+  justify-content: flex-start;
+}
+
+.projection-inline-field:nth-child(2) {
+  justify-content: center;
+}
+
+.projection-inline-field:nth-child(3) {
+  justify-content: flex-end;
+}
+
+.projection-inline-field-label {
+  color: rgba(214, 225, 229, 0.82);
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.projection-inline-field:nth-child(1) .projection-inline-field-label {
+  text-align: left;
+}
+
+.projection-inline-field:nth-child(2) .projection-inline-field-label {
+  text-align: center;
+}
+
+.projection-inline-field:nth-child(3) .projection-inline-field-label {
+  text-align: right;
+}
+
+.projection-inline-input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.projection-inline-input .input-shell {
+  width: 52px;
+  min-width: 52px;
+}
+
+.projection-inline-input .input-control {
+  text-align: right;
+  padding-block: 8px;
+}
+
+@media (max-width: 900px) {
+  .projection-inline-row {
+    gap: 6px;
+  }
+
+  .projection-inline-controls {
+    column-gap: 20px;
+    row-gap: 8px;
+  }
+
+  .projection-inline-input .input-shell {
+    width: 50px;
+    min-width: 50px;
+  }
+
+  .projection-inline-input .input-control {
+    padding-block: 7px;
+  }
+}
+
+@media (max-width: 640px) {
+  .projection-inline-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 14px;
+    row-gap: 8px;
+  }
+
+  .projection-inline-field:nth-child(1) {
+    justify-content: flex-start;
+  }
+
+  .projection-inline-field:nth-child(2) {
+    justify-content: center;
+  }
+
+  .projection-inline-field:nth-child(3) {
+    justify-content: flex-end;
+  }
+
+  .projection-inline-field:nth-child(1) .projection-inline-field-label {
+    text-align: left;
+  }
+
+  .projection-inline-field:nth-child(2) .projection-inline-field-label {
+    text-align: center;
+  }
+
+  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+    text-align: right;
+  }
+}
