@@ -20,21 +20,33 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
+.summary-card h2 {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  text-align: right;
+}
+
 .summary-card .summary-value {
   display: inline-flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-end;
+  width: 100%;
   gap: 0.08em;
   flex-wrap: nowrap;
   white-space: nowrap;
   line-height: 0.92;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .summary-card .summary-value-primary-group {
   display: inline-flex;
   align-items: baseline;
+  justify-content: flex-end;
   gap: 0.04em;
   line-height: 0.92;
+  min-width: 0;
 }
 
 .summary-card .summary-value-primary {
@@ -46,6 +58,7 @@
   display: block;
   font-size: 0.48em;
   line-height: 1;
+  transform: translateY(0.11em);
 }
 
 .summary-card .summary-value-secondary-group {
@@ -53,6 +66,7 @@
   align-items: baseline;
   gap: 0.04em;
   line-height: 0.92;
+  transform: translateY(0.11em);
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -69,6 +83,11 @@
   display: block;
   font-size: 0.48em;
   line-height: 1;
+  transform: translateY(0.02em);
+}
+
+.summary-card .summary-value.summary-value-simple .summary-value-primary-group {
+  transform: translateY(0.08em);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -136,7 +155,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
-  column-gap: 30px;
+  column-gap: clamp(16px, 4vw, 42px);
   row-gap: 10px;
   min-width: 0;
   width: 100%;
@@ -187,6 +206,8 @@
   justify-content: center;
   gap: 4px;
   flex: 0 0 auto;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .projection-inline-input .input-shell {
@@ -500,7 +521,7 @@
   }
 
   .projection-inline-controls {
-    column-gap: 20px;
+    column-gap: clamp(12px, 3vw, 24px);
     row-gap: 8px;
   }
 
@@ -516,22 +537,23 @@
 
 @media (max-width: 640px) {
   .projection-inline-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 12px;
     row-gap: 8px;
   }
 
-  .projection-inline-field,
-  .projection-inline-field:nth-child(1),
-  .projection-inline-field:nth-child(2),
-  .projection-inline-field:nth-child(3) {
-    justify-content: center;
+  .projection-inline-field-label {
+    font-size: 0.78rem;
   }
 
-  .projection-inline-field .projection-inline-field-label,
-  .projection-inline-field:nth-child(1) .projection-inline-field-label,
-  .projection-inline-field:nth-child(2) .projection-inline-field-label,
-  .projection-inline-field:nth-child(3) .projection-inline-field-label {
-    text-align: center;
+  .projection-inline-input .input-shell {
+    width: 46px;
+    min-width: 46px;
+  }
+
+  .projection-inline-input .input-control {
+    padding-inline: 8px;
+    font-size: 0.92rem;
   }
 }
 
