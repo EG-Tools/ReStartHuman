@@ -50,7 +50,7 @@
   display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 0.02em;
+  gap: 0.12em;
   white-space: nowrap;
   line-height: 1;
   letter-spacing: -0.02em;
