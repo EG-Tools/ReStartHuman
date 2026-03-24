@@ -847,33 +847,35 @@ export function QuestionScreen({
                   : {}),
               }),
             )}
-            <QuestionNumberFields
-              fields={[
-                {
-                  key: 'otherIncomeMonthly',
-                  label:
-                    formData.otherIncomeType === 'earned'
-                      ? '월 근로소득'
-                      : formData.otherIncomeType === 'business'
-                        ? '월 사업소득'
-                        : formData.otherIncomeType === 'pension'
-                          ? '월 기타연금'
-                          : formData.otherIncomeType === 'other'
-                            ? '월 기타소득'
-                            : '기타 월소득',
-                  value: formData.otherIncomeMonthly,
-                  onChange: (value) =>
-                    onPatchFormData({
-                      otherIncomeMonthly: value,
-                      ...(usesEarnedIncomeAsSalary ? { salaryMonthly: value } : {}),
-                    }),
-                  helperText:
-                    usesEarnedIncomeAsSalary
-                      ? '근로소득을 선택한 상태라 건강보험 직장가입 월 급여에 같은 금액을 자동 반영합니다.'
-                      : undefined,
-                },
-              ]}
-            />
+            {formData.otherIncomeType !== 'none' ? (
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'otherIncomeMonthly',
+                    label:
+                      formData.otherIncomeType === 'earned'
+                        ? '월 근로소득'
+                        : formData.otherIncomeType === 'business'
+                          ? '월 사업소득'
+                          : formData.otherIncomeType === 'pension'
+                            ? '월 기타연금'
+                            : formData.otherIncomeType === 'other'
+                              ? '월 기타소득'
+                              : '기타 월소득',
+                    value: formData.otherIncomeMonthly,
+                    onChange: (value) =>
+                      onPatchFormData({
+                        otherIncomeMonthly: value,
+                        ...(usesEarnedIncomeAsSalary ? { salaryMonthly: value } : {}),
+                      }),
+                    helperText:
+                      usesEarnedIncomeAsSalary
+                        ? '근로소득을 선택한 상태라 건강보험 직장가입 월 급여에 같은 금액을 자동 반영합니다.'
+                        : undefined,
+                  },
+                ]}
+              />
+            ) : null}
           </div>
         )
       case 'healthInsurance':

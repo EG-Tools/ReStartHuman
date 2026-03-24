@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
@@ -19,7 +19,7 @@ interface SaveSlotModalProps {
 
 const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
 
-const normalizeDraftSlotName = (slotId: number, nextName: string) => {
+const normalizeSlotName = (slotId: number, nextName: string) => {
   const collapsedName = nextName.replace(/\s+/g, ' ')
   const trimmedName = collapsedName.trim().slice(0, 24)
   return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
@@ -28,6 +28,7 @@ const normalizeDraftSlotName = (slotId: number, nextName: string) => {
 const moveCaretToEnd = (input: HTMLInputElement) => {
   requestAnimationFrame(() => {
     const caretPosition = input.value.length
+
     try {
       input.setSelectionRange(caretPosition, caretPosition)
     } catch {
@@ -49,6 +50,8 @@ export function SaveSlotModal({
   onDelete,
   onRenameSlotName,
 }: SaveSlotModalProps) {
+  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({})
+
   const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage'
   const title = activeMode === 'save' ? '현재 계산 저장' : '저장된 계산 불러오기'
@@ -66,32 +69,14 @@ export function SaveSlotModal({
     return nextMap
   }, [slotCount, slotNamesById, slotsById])
 
-  const [nameDraftsById, setNameDraftsById] = useState<Record<number, string>>({})
-  const [isComposingById, setIsComposingById] = useState<Record<number, boolean>>({})
-
-  useEffect(() => {
-    setNameDraftsById((currentDrafts) => {
-      const nextDrafts: Record<number, string> = {}
-
-      resolvedSlotNames.forEach((slotName, slotId) => {
-        nextDrafts[slotId] = currentDrafts[slotId] ?? slotName
-      })
-
-      return nextDrafts
-    })
-  }, [resolvedSlotNames])
-
   const commitSlotName = (slotId: number) => {
-    if (isComposingById[slotId]) {
-      return nameDraftsById[slotId] ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    const input = inputRefs.current[slotId]
+    const rawValue = input?.value ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    const committedName = normalizeSlotName(slotId, rawValue)
+
+    if (input && input.value !== committedName) {
+      input.value = committedName
     }
-
-    const committedName = normalizeDraftSlotName(slotId, nameDraftsById[slotId] ?? '')
-
-    setNameDraftsById((currentDrafts) => ({
-      ...currentDrafts,
-      [slotId]: committedName,
-    }))
 
     onRenameSlotName(slotId, committedName)
     return committedName
@@ -140,18 +125,21 @@ export function SaveSlotModal({
         <div className="slot-list">
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
-            const slotName = nameDraftsById[slotId] ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+            const slotName = resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
             const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
-              <article key={slotId} className="slot-card">
+              <article key={`${slotId}-${slotName}`} className="slot-card">
                 <div className="slot-card-main">
                   <div className="slot-name-row">
                     <span className="slot-index-badge">슬롯 {slotId}</span>
                     <input
+                      ref={(node) => {
+                        inputRefs.current[slotId] = node
+                      }}
                       type="text"
                       className="slot-name-input"
-                      value={slotName}
+                      defaultValue={slotName}
                       maxLength={24}
                       onFocus={(event) => {
                         moveCaretToEnd(event.currentTarget)
@@ -159,39 +147,9 @@ export function SaveSlotModal({
                       onClick={(event) => {
                         moveCaretToEnd(event.currentTarget)
                       }}
-                      onMouseUp={(event) => {
-                        event.preventDefault()
-                        moveCaretToEnd(event.currentTarget)
+                      onBlur={() => {
+                        commitSlotName(slotId)
                       }}
-                      onCompositionStart={() => {
-                        setIsComposingById((currentMap) => ({
-                          ...currentMap,
-                          [slotId]: true,
-                        }))
-                      }}
-                      onCompositionEnd={(event) => {
-                        const nextValue = event.currentTarget.value
-
-                        setIsComposingById((currentMap) => ({
-                          ...currentMap,
-                          [slotId]: false,
-                        }))
-
-                        setNameDraftsById((currentDrafts) => ({
-                          ...currentDrafts,
-                          [slotId]: nextValue,
-                        }))
-
-                        moveCaretToEnd(event.currentTarget)
-                      }}
-                      onChange={(event) => {
-                        const nextValue = event.target.value
-                        setNameDraftsById((currentDrafts) => ({
-                          ...currentDrafts,
-                          [slotId]: nextValue,
-                        }))
-                      }}
-                      onBlur={() => commitSlotName(slotId)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
                           event.preventDefault()
