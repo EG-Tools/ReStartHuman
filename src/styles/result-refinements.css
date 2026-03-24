@@ -21,48 +21,46 @@
 }
 
 .summary-card .summary-value {
-  display: flex;
+  display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 0.08em;
+  gap: 0.06em;
   flex-wrap: nowrap;
   width: 100%;
   white-space: nowrap;
-  line-height: 1;
   text-align: right;
-  font-family: 'Bahnschrift', 'Aptos', 'Segoe UI', sans-serif;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  line-height: 1;
+  font-family: 'Aptos', 'Bahnschrift', 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-.summary-card .summary-value-primary-group,
-.summary-card .summary-value-secondary-group {
+.summary-card .summary-value-primary-group {
   display: inline-flex;
   align-items: flex-end;
-  gap: 0.04em;
+  gap: 0.03em;
   line-height: 1;
-}
-
-.summary-card .summary-value-primary,
-.summary-card .summary-value-primary-unit,
-.summary-card .summary-value-secondary,
-.summary-card .summary-value-unit {
-  display: inline-block;
-  line-height: 1;
-  vertical-align: bottom;
 }
 
 .summary-card .summary-value-primary {
-  transform: translateY(0);
+  display: inline-block;
+  line-height: 0.88;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-card .summary-value-primary-unit {
+  display: inline-block;
   font-size: 0.48em;
-  transform: translateY(0.04em);
+  line-height: 1;
+  padding-bottom: 0.07em;
 }
 
 .summary-card .summary-value-secondary-group {
-  margin-left: 0.01em;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.03em;
+  line-height: 1;
+  transform: translateY(0.03em);
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -70,13 +68,17 @@
 }
 
 .summary-card .summary-value-secondary {
+  display: inline-block;
   font-size: 0.8em;
-  transform: translateY(0.025em);
+  line-height: 0.88;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-card .summary-value-unit {
+  display: inline-block;
   font-size: 0.48em;
-  transform: translateY(0.05em);
+  line-height: 1;
+  padding-bottom: 0.05em;
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -142,9 +144,9 @@
 
 .projection-inline-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(104px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
-  column-gap: 22px;
+  column-gap: 30px;
   row-gap: 10px;
   min-width: 0;
   width: 100%;
@@ -198,25 +200,13 @@
 }
 
 .projection-inline-input .input-shell {
-  width: 72px;
-  min-width: 72px;
-  padding-inline: 10px;
+  width: 52px;
+  min-width: 52px;
 }
 
 .projection-inline-input .input-control {
-  min-width: 0;
   text-align: right;
   padding-block: 8px;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-.projection-panel .projection-inline-input .input-control {
-  color: #f3f7f8;
-}
-
-.projection-panel .projection-inline-input .input-suffix {
-  color: rgba(243, 247, 248, 0.84);
 }
 
 /* ------------------------------------------------------------------
@@ -520,15 +510,13 @@
   }
 
   .projection-inline-controls {
-    grid-template-columns: repeat(3, minmax(96px, 1fr));
-    column-gap: 14px;
+    column-gap: 20px;
     row-gap: 8px;
   }
 
   .projection-inline-input .input-shell {
-    width: 68px;
-    min-width: 68px;
-    padding-inline: 8px;
+    width: 50px;
+    min-width: 50px;
   }
 
   .projection-inline-input .input-control {
@@ -538,35 +526,22 @@
 
 @media (max-width: 640px) {
   .projection-inline-controls {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 10px;
+    grid-template-columns: 1fr;
     row-gap: 8px;
   }
 
-  .projection-inline-field {
-    gap: 5px;
+  .projection-inline-field,
+  .projection-inline-field:nth-child(1),
+  .projection-inline-field:nth-child(2),
+  .projection-inline-field:nth-child(3) {
+    justify-content: center;
   }
 
-  .projection-inline-field-label {
-    font-size: 0.78rem;
-  }
-
-  .projection-inline-input {
-    gap: 3px;
-  }
-
-  .projection-inline-input .input-shell {
-    width: 62px;
-    min-width: 62px;
-    padding-inline: 6px;
-  }
-
-  .projection-inline-input .input-control {
-    font-size: 0.92rem;
-  }
-
-  .projection-inline-input .input-suffix {
-    font-size: 0.78rem;
+  .projection-inline-field .projection-inline-field-label,
+  .projection-inline-field:nth-child(1) .projection-inline-field-label,
+  .projection-inline-field:nth-child(2) .projection-inline-field-label,
+  .projection-inline-field:nth-child(3) .projection-inline-field-label {
+    text-align: center;
   }
 }
 
