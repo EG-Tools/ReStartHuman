@@ -274,27 +274,6 @@ body {
   background: rgba(2, 6, 8, 0.72);
 }
 
-.table-edit-field {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.table-edit-reset {
-  background: rgba(46, 167, 170, 0.12);
-  color: #9fe7e9;
-}
-
-.result-table thead {
-  background: rgba(46, 167, 170, 0.14);
-}
-
-.result-table th:first-child,
-.result-table td:first-child {
-  background: rgba(14, 21, 25, 0.98);
-}
-
-.result-table thead th:first-child {
-  background: rgba(18, 35, 39, 0.98);
-}
 
 
 .question-screen {
@@ -422,9 +401,6 @@ body {
   background: linear-gradient(180deg, rgba(46, 167, 170, 0.14), rgba(14, 21, 25, 0.96));
 }
 
-.inflation-toggle {
-  background: rgba(255, 255, 255, 0.04);
-}
 
 
 .progress-bar.is-interactive {
@@ -523,18 +499,16 @@ body {
   overflow-wrap: anywhere;
 }
 
-.question-screen .input-shell,
-.projection-panel .input-shell {
+.question-screen .input-shell {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.question-screen .table-edit-field,
-.projection-panel .table-edit-field,
-.result-screen .table-edit-field {
+.question-screen .table-edit-field {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.1);
 }
+
 
 .question-screen .input-control,
 .question-screen .table-edit-input {
@@ -561,14 +535,6 @@ body {
 }
 
 
-.result-table th:nth-child(3),
-.result-table th:nth-child(4),
-.result-table th:nth-child(5),
-.result-table td:nth-child(3),
-.result-table td:nth-child(4),
-.result-table td:nth-child(5) {
-  text-align: right;
-}
 
 @media (max-width: 900px) {
   .question-screen .toggle-group-grid.toggle-group-count-2 {
@@ -586,15 +552,6 @@ body {
   .question-screen .button-ghost,
   .question-screen .button-primary {
     width: 100%;
-  }
-}
-
-@media (max-width: 900px) {
-  .question-screen {
-    min-height: 100dvh;
-    height: 100dvh;
-    padding-bottom: 0;
-    overflow: hidden;
   }
 
   .question-screen .question-body {
