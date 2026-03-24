@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
@@ -9,43 +10,60 @@ interface SaveSlotModalProps {
   mode: SaveSlotMode
   slotCount: number
   slotsById: Map<number, SaveSlotRecord>
-  slotNamesById?: Map<number, string>
   canSave?: boolean
   onClose: () => void
   onModeChange?: (mode: SwitchableSaveSlotMode) => void
   onLoad: (slot: SaveSlotRecord) => void
-  onSave: (slotId: number) => void
+  onSave: (slotId: number, slotName: string) => void
   onDelete: (slotId: number) => void
-  onRenameSlotName?: (slotId: number, nextName: string) => void
 }
 
-const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
+const normalizeDraftName = (rawName?: string) => {
+  const normalizedName = (rawName ?? '').replace(/\s+/g, ' ').trim().slice(0, 24)
 
-const normalizeSlotName = (slotId: number, rawName?: string) => {
-  const fallbackName = getDefaultSlotName(slotId)
-  const resolvedName = (rawName || fallbackName).trim()
+  if (
+    normalizedName.length === 0 ||
+    normalizedName === '빈슬롯' ||
+    /^은퇴계산\d*$/.test(normalizedName)
+  ) {
+    return ''
+  }
 
-  return /^은퇴계산\d+$/.test(resolvedName) ? '은퇴계산' : resolvedName
+  return normalizedName
+}
+
+const createDraftNames = (slotCount: number, slotsById: Map<number, SaveSlotRecord>) => {
+  const nextDraftNames: Record<number, string> = {}
+
+  Array.from({ length: slotCount }, (_, index) => index + 1).forEach((slotId) => {
+    nextDraftNames[slotId] = normalizeDraftName(slotsById.get(slotId)?.name)
+  })
+
+  return nextDraftNames
 }
 
 export function SaveSlotModal({
   mode,
   slotCount,
   slotsById,
-  slotNamesById,
   canSave,
   onClose,
   onModeChange,
   onLoad,
   onSave,
   onDelete,
-  onRenameSlotName,
 }: SaveSlotModalProps) {
   const resolvedCanSave = canSave ?? true
   const activeMode: SwitchableSaveSlotMode =
     !resolvedCanSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage' && typeof onModeChange === 'function'
-  const title = activeMode === 'save' ? '현재 계산 저장' : '저장 불러오기'
+  const [draftNames, setDraftNames] = useState<Record<number, string>>(() =>
+    createDraftNames(slotCount, slotsById),
+  )
+
+  useEffect(() => {
+    setDraftNames(createDraftNames(slotCount, slotsById))
+  }, [slotCount, slotsById, mode])
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -75,7 +93,7 @@ export function SaveSlotModal({
                 </button>
               </div>
             ) : null}
-            <h2>{title}</h2>
+            <h2>저장 불러오기</h2>
           </div>
           <button type="button" className="icon-button" onClick={onClose}>
             닫기
@@ -85,7 +103,7 @@ export function SaveSlotModal({
         <div className="slot-list">
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
-            const slotName = normalizeSlotName(slotId, slotNamesById?.get(slotId) ?? slot?.name)
+            const draftName = draftNames[slotId] ?? ''
             const savedAtLabel = slot
               ? `저장날짜 ${formatDateTime(slot.savedAt)}`
               : '아직 저장되지 않음'
@@ -95,33 +113,39 @@ export function SaveSlotModal({
                 <div className="slot-card-main">
                   <div className="slot-name-row">
                     <span className="slot-index-badge">결과 {slotId}</span>
-                    <span className="slot-name-paren" aria-hidden="true">(</span>
                     <div className="slot-name-field">
-                      {typeof onRenameSlotName === 'function' ? (
-                        <input
-                          type="text"
-                          className="slot-name-input"
-                          defaultValue={slotName}
-                          maxLength={24}
-                          onBlur={(event) => onRenameSlotName(slotId, event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              event.currentTarget.blur()
-                            }
-                          }}
-                          aria-label={`${slotId}번 결과 이름`}
-                        />
-                      ) : (
-                        <h3 className="save-slot-name">{slotName}</h3>
-                      )}
+                      <input
+                        type="text"
+                        className="slot-name-input"
+                        value={draftName}
+                        placeholder="빈슬롯"
+                        maxLength={24}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onChange={(event) => {
+                          const nextName = event.target.value
+                          setDraftNames((currentDraftNames) => ({
+                            ...currentDraftNames,
+                            [slotId]: nextName,
+                          }))
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                          }
+                        }}
+                        aria-label={`${slotId}번 결과 이름`}
+                      />
                     </div>
-                    <span className="slot-name-paren" aria-hidden="true">)</span>
                   </div>
                   <p className="slot-status">{savedAtLabel}</p>
                 </div>
 
                 <div className="slot-actions">
-                  <PrimaryButton onClick={() => onSave(slotId)} disabled={!resolvedCanSave}>
+                  <PrimaryButton
+                    onClick={() => onSave(slotId, normalizeDraftName(draftName))}
+                    disabled={!resolvedCanSave}
+                  >
                     저장
                   </PrimaryButton>
                   <PrimaryButton
@@ -134,7 +158,13 @@ export function SaveSlotModal({
                   </PrimaryButton>
                   <PrimaryButton
                     variant="ghost"
-                    onClick={() => onDelete(slotId)}
+                    onClick={() => {
+                      setDraftNames((currentDraftNames) => ({
+                        ...currentDraftNames,
+                        [slotId]: '',
+                      }))
+                      onDelete(slotId)
+                    }}
                     disabled={!slot}
                   >
                     삭제
