@@ -25,6 +25,17 @@ const normalizeDraftSlotName = (slotId: number, nextName: string) => {
   return trimmedName.length > 0 ? trimmedName : getDefaultSlotName(slotId)
 }
 
+const moveCaretToEnd = (input: HTMLInputElement) => {
+  requestAnimationFrame(() => {
+    const caretPosition = input.value.length
+    try {
+      input.setSelectionRange(caretPosition, caretPosition)
+    } catch {
+      // 일부 모바일 브라우저에서는 selectionRange 설정이 실패할 수 있다.
+    }
+  })
+}
+
 export function SaveSlotModal({
   mode,
   slotCount,
@@ -40,8 +51,7 @@ export function SaveSlotModal({
 }: SaveSlotModalProps) {
   const activeMode = !canSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage'
-  const title =
-    activeMode === 'save' ? '현재 계산 저장' : '저장된 계산 불러오기'
+  const title = activeMode === 'save' ? '현재 계산 저장' : '저장된 계산 불러오기'
 
   const resolvedSlotNames = useMemo(() => {
     const nextMap = new Map<number, string>()
@@ -57,6 +67,7 @@ export function SaveSlotModal({
   }, [slotCount, slotNamesById, slotsById])
 
   const [nameDraftsById, setNameDraftsById] = useState<Record<number, string>>({})
+  const [isComposingById, setIsComposingById] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     setNameDraftsById((currentDrafts) => {
@@ -71,6 +82,10 @@ export function SaveSlotModal({
   }, [resolvedSlotNames])
 
   const commitSlotName = (slotId: number) => {
+    if (isComposingById[slotId]) {
+      return nameDraftsById[slotId] ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
+    }
+
     const committedName = normalizeDraftSlotName(slotId, nameDraftsById[slotId] ?? '')
 
     setNameDraftsById((currentDrafts) => ({
@@ -126,9 +141,7 @@ export function SaveSlotModal({
           {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
             const slot = slotsById.get(slotId)
             const slotName = nameDraftsById[slotId] ?? resolvedSlotNames.get(slotId) ?? getDefaultSlotName(slotId)
-            const savedAtLabel = slot
-              ? `저장날짜 ${formatDateTime(slot.savedAt)}`
-              : '아직 저장되지 않음'
+            const savedAtLabel = slot ? `저장날짜 ${formatDateTime(slot.savedAt)}` : '아직 저장되지 않음'
 
             return (
               <article key={slotId} className="slot-card">
@@ -140,12 +153,44 @@ export function SaveSlotModal({
                       className="slot-name-input"
                       value={slotName}
                       maxLength={24}
-                      onChange={(event) =>
+                      onFocus={(event) => {
+                        moveCaretToEnd(event.currentTarget)
+                      }}
+                      onClick={(event) => {
+                        moveCaretToEnd(event.currentTarget)
+                      }}
+                      onMouseUp={(event) => {
+                        event.preventDefault()
+                        moveCaretToEnd(event.currentTarget)
+                      }}
+                      onCompositionStart={() => {
+                        setIsComposingById((currentMap) => ({
+                          ...currentMap,
+                          [slotId]: true,
+                        }))
+                      }}
+                      onCompositionEnd={(event) => {
+                        const nextValue = event.currentTarget.value
+
+                        setIsComposingById((currentMap) => ({
+                          ...currentMap,
+                          [slotId]: false,
+                        }))
+
                         setNameDraftsById((currentDrafts) => ({
                           ...currentDrafts,
-                          [slotId]: event.target.value,
+                          [slotId]: nextValue,
                         }))
-                      }
+
+                        moveCaretToEnd(event.currentTarget)
+                      }}
+                      onChange={(event) => {
+                        const nextValue = event.target.value
+                        setNameDraftsById((currentDrafts) => ({
+                          ...currentDrafts,
+                          [slotId]: nextValue,
+                        }))
+                      }}
                       onBlur={() => commitSlotName(slotId)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
