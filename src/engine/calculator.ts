@@ -925,7 +925,11 @@ export const calculateRetireScenario = (
   const expenses = calculateExpenses(formData)
   const pensionMonthlyApplied = formData.pensionMonthlyAmount
   const otherIncomeMonthlyApplied =
-    formData.otherIncomeType === 'none' ? 0 : formData.otherIncomeMonthly
+    formData.otherIncomeType === 'none'
+      ? 0
+      : formData.otherIncomeType === 'earned' && formData.otherIncomeMonthly <= 0
+        ? formData.salaryMonthly
+        : formData.otherIncomeMonthly
   const estimatedHealthInsurance = estimateHealthInsurance(
     formData,
     totalDividend.annualGross,

@@ -1129,7 +1129,7 @@ export function ResultScreen({
         ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
         : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
       result.otherIncomeMonthlyApplied > 0
-        ? `기타 월소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+        ? `${formData.otherIncomeType === 'earned' ? '근로소득' : formData.otherIncomeType === 'business' ? '사업소득' : formData.otherIncomeType === 'pension' ? '기타연금' : '기타 월소득'} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
         : '기타 월소득은 별도 입력이 없어 반영하지 않았습니다.',
       assetInterpretation,
     ],
@@ -1404,7 +1404,7 @@ export function ResultScreen({
     {
       category: '결과',
       item: '총 유입',
-      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
+      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} ${formData.otherIncomeType === 'earned' ? '근로소득' : formData.otherIncomeType === 'business' ? '사업소득' : formData.otherIncomeType === 'pension' ? '기타연금' : '기타소득'} + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * formData.simulationYears),
