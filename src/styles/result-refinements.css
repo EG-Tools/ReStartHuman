@@ -56,8 +56,16 @@
 /* 억 + 만원 조합은 글자 기준선보다 각 span 박스의 바닥이 더 중요합니다.
    padding-bottom 으로 박스 바닥을 늘리면 앞 숫자가 위로 뜨므로,
    숫자/단위는 공통 line-height 로 두고 단위만 transform 으로 미세 보정합니다. */
+.summary-card .summary-value:has(.summary-value-secondary-group) .summary-value-primary-group {
+  transform: translateY(0.015em);
+}
+
 .summary-card .summary-value:has(.summary-value-secondary-group) .summary-value-primary {
-  transform: translateY(0.03em);
+  transform: translateY(0.045em);
+}
+
+.summary-card .summary-value:has(.summary-value-secondary-group) .summary-value-primary-unit {
+  transform: translateY(-0.045em);
 }
 
 .summary-card .summary-value-primary {
@@ -70,7 +78,6 @@
   display: inline-block;
   font-size: 0.48em;
   line-height: 1;
-  transform: translateY(-0.02em);
 }
 
 .summary-card .summary-value-secondary-group {
@@ -78,7 +85,7 @@
   align-items: flex-end;
   gap: 0.03em;
   line-height: 1;
-  transform: translateY(0.02em);
+  transform: translateY(0.01em);
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
