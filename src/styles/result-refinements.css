@@ -20,33 +20,27 @@
   color: rgba(224, 237, 231, 0.76);
 }
 
-.summary-card h2 {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  text-align: right;
-}
-
 .summary-card .summary-value {
-  display: inline-flex;
+  display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  width: 100%;
   gap: 0.08em;
   flex-wrap: nowrap;
+  width: 100%;
   white-space: nowrap;
   line-height: 1;
+  text-align: right;
+  font-family: 'Bahnschrift', 'Aptos', 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
-.summary-card .summary-value-primary-group {
+.summary-card .summary-value-primary-group,
+.summary-card .summary-value-secondary-group {
   display: inline-flex;
   align-items: flex-end;
-  justify-content: flex-end;
   gap: 0.04em;
   line-height: 1;
-  min-width: 0;
 }
 
 .summary-card .summary-value-primary,
@@ -55,8 +49,7 @@
 .summary-card .summary-value-unit {
   display: inline-block;
   line-height: 1;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  vertical-align: bottom;
 }
 
 .summary-card .summary-value-primary {
@@ -65,15 +58,11 @@
 
 .summary-card .summary-value-primary-unit {
   font-size: 0.48em;
-  transform: translateY(0.07em);
+  transform: translateY(0.04em);
 }
 
 .summary-card .summary-value-secondary-group {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.04em;
-  line-height: 1;
-  transform: translateY(0.05em);
+  margin-left: 0.01em;
 }
 
 .summary-card .summary-value-secondary-group-unit-only {
@@ -82,15 +71,12 @@
 
 .summary-card .summary-value-secondary {
   font-size: 0.8em;
+  transform: translateY(0.025em);
 }
 
 .summary-card .summary-value-unit {
   font-size: 0.48em;
-  transform: translateY(0.01em);
-}
-
-.summary-card .summary-value.summary-value-simple .summary-value-primary-group {
-  transform: translateY(0);
+  transform: translateY(0.05em);
 }
 
 .summary-card.tone-surplus .summary-value {
@@ -156,9 +142,9 @@
 
 .projection-inline-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(104px, 1fr));
   align-items: end;
-  column-gap: clamp(16px, 4vw, 42px);
+  column-gap: 22px;
   row-gap: 10px;
   min-width: 0;
   width: 100%;
@@ -209,24 +195,28 @@
   justify-content: center;
   gap: 4px;
   flex: 0 0 auto;
+}
+
+.projection-inline-input .input-shell {
+  width: 72px;
+  min-width: 72px;
+  padding-inline: 10px;
+}
+
+.projection-inline-input .input-control {
+  min-width: 0;
+  text-align: right;
+  padding-block: 8px;
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
-.projection-inline-input .input-shell {
-  width: 52px;
-  min-width: 52px;
-}
-
-.projection-inline-input .input-control {
-  text-align: right;
-  padding-block: 8px;
+.projection-panel .projection-inline-input .input-control {
   color: #f3f7f8;
-  font-weight: 700;
 }
 
-.projection-panel .input-suffix {
-  color: rgba(224, 237, 231, 0.78);
+.projection-panel .projection-inline-input .input-suffix {
+  color: rgba(243, 247, 248, 0.84);
 }
 
 /* ------------------------------------------------------------------
@@ -530,13 +520,15 @@
   }
 
   .projection-inline-controls {
-    column-gap: clamp(12px, 3vw, 24px);
+    grid-template-columns: repeat(3, minmax(96px, 1fr));
+    column-gap: 14px;
     row-gap: 8px;
   }
 
   .projection-inline-input .input-shell {
-    width: 50px;
-    min-width: 50px;
+    width: 68px;
+    min-width: 68px;
+    padding-inline: 8px;
   }
 
   .projection-inline-input .input-control {
@@ -547,22 +539,34 @@
 @media (max-width: 640px) {
   .projection-inline-controls {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 12px;
+    column-gap: 10px;
     row-gap: 8px;
+  }
+
+  .projection-inline-field {
+    gap: 5px;
   }
 
   .projection-inline-field-label {
     font-size: 0.78rem;
   }
 
+  .projection-inline-input {
+    gap: 3px;
+  }
+
   .projection-inline-input .input-shell {
-    width: 46px;
-    min-width: 46px;
+    width: 62px;
+    min-width: 62px;
+    padding-inline: 6px;
   }
 
   .projection-inline-input .input-control {
-    padding-inline: 8px;
     font-size: 0.92rem;
+  }
+
+  .projection-inline-input .input-suffix {
+    font-size: 0.78rem;
   }
 }
 
