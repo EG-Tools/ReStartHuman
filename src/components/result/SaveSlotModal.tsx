@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { formatDateTime } from '../../utils/format'
 import type { SaveSlotRecord } from '../../types/retireCalc'
@@ -57,13 +57,31 @@ export function SaveSlotModal({
   const activeMode: SwitchableSaveSlotMode =
     !resolvedCanSave || mode === 'load' ? 'load' : mode === 'manage' ? 'save' : 'save'
   const showModeTabs = mode === 'manage' && typeof onModeChange === 'function'
+  const slotIds = useMemo(
+    () => Array.from({ length: slotCount }, (_, index) => index + 1),
+    [slotCount],
+  )
   const [draftNames, setDraftNames] = useState<Record<number, string>>(() =>
     createDraftNames(slotCount, slotsById),
   )
 
-  useEffect(() => {
-    setDraftNames(createDraftNames(slotCount, slotsById))
-  }, [slotCount, slotsById, mode])
+  const updateDraftName = (slotId: number, nextName: string) => {
+    setDraftNames((currentDraftNames) => ({
+      ...currentDraftNames,
+      [slotId]: nextName,
+    }))
+  }
+
+  const handleSave = (slotId: number) => {
+    const normalizedName = normalizeDraftName(draftNames[slotId])
+    updateDraftName(slotId, normalizedName)
+    onSave(slotId, normalizedName)
+  }
+
+  const handleDelete = (slotId: number) => {
+    updateDraftName(slotId, '')
+    onDelete(slotId)
+  }
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -77,7 +95,7 @@ export function SaveSlotModal({
                   className={`slot-mode-button ${activeMode === 'save' ? 'is-active' : ''}`.trim()}
                   role="tab"
                   aria-selected={activeMode === 'save'}
-                  onClick={() => resolvedCanSave && onModeChange('save')}
+                  onClick={() => resolvedCanSave && onModeChange?.('save')}
                   disabled={!resolvedCanSave}
                 >
                   저장
@@ -87,7 +105,7 @@ export function SaveSlotModal({
                   className={`slot-mode-button ${activeMode === 'load' ? 'is-active' : ''}`.trim()}
                   role="tab"
                   aria-selected={activeMode === 'load'}
-                  onClick={() => onModeChange('load')}
+                  onClick={() => onModeChange?.('load')}
                 >
                   불러오기
                 </button>
@@ -101,7 +119,7 @@ export function SaveSlotModal({
         </div>
 
         <div className="slot-list">
-          {Array.from({ length: slotCount }, (_, index) => index + 1).map((slotId) => {
+          {slotIds.map((slotId) => {
             const slot = slotsById.get(slotId)
             const draftName = draftNames[slotId] ?? ''
             const savedAtLabel = slot
@@ -123,11 +141,7 @@ export function SaveSlotModal({
                         autoComplete="off"
                         spellCheck={false}
                         onChange={(event) => {
-                          const nextName = event.target.value
-                          setDraftNames((currentDraftNames) => ({
-                            ...currentDraftNames,
-                            [slotId]: nextName,
-                          }))
+                          updateDraftName(slotId, event.target.value)
                         }}
                         onKeyDown={(event) => {
                           if (event.key === 'Enter') {
@@ -142,10 +156,7 @@ export function SaveSlotModal({
                 </div>
 
                 <div className="slot-actions">
-                  <PrimaryButton
-                    onClick={() => onSave(slotId, normalizeDraftName(draftName))}
-                    disabled={!resolvedCanSave}
-                  >
+                  <PrimaryButton onClick={() => handleSave(slotId)} disabled={!resolvedCanSave}>
                     저장
                   </PrimaryButton>
                   <PrimaryButton
@@ -158,13 +169,7 @@ export function SaveSlotModal({
                   </PrimaryButton>
                   <PrimaryButton
                     variant="ghost"
-                    onClick={() => {
-                      setDraftNames((currentDraftNames) => ({
-                        ...currentDraftNames,
-                        [slotId]: '',
-                      }))
-                      onDelete(slotId)
-                    }}
+                    onClick={() => handleDelete(slotId)}
                     disabled={!slot}
                   >
                     삭제

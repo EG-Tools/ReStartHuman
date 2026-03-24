@@ -122,7 +122,7 @@ export default function App() {
     return () => {
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [restoreFromHistory])
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
