@@ -2,12 +2,14 @@ import { policyConfig } from '../../config/policyConfig'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { InlineNumericField } from '../common/Ui'
 
+import { memo } from 'react'
+
 interface ProjectionInlineControlsProps {
   formData: RetireCalcFormData
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }
 
-export function ProjectionInlineControls({
+export const ProjectionInlineControls = memo(function ProjectionInlineControls({
   formData,
   onPatchFormData,
 }: ProjectionInlineControlsProps) {
@@ -80,14 +82,14 @@ export function ProjectionInlineControls({
       </div>
     </section>
   )
-}
+})
 
 interface ResultHelpDrawerProps {
   loanNotice: RetireCalcResult['loanNotice']
   policyStatus: RetireCalcResult['policyStatus']
 }
 
-export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerProps) {
+export const ResultHelpDrawer = memo(function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerProps) {
   return (
     <details className="help-drawer result-panel">
       <summary className="help-drawer-toggle">
@@ -137,4 +139,4 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
       </div>
     </details>
   )
-}
+})
