@@ -1,4 +1,4 @@
-import { useMemo, useRef, type ReactNode } from 'react'
+﻿import { useMemo, useRef, type ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
@@ -118,7 +118,7 @@ export function ResultScreen({
       ? '시가 / 공시가'
       : formData.housingType === 'jeonse'
         ? '전세보증금은 재산 반영'
-        : '보증금은 재산, 월세는 주거비 반영'
+        : '보증금은 재산, 월세는 지출 반영'
 
   const rows = useMemo<ResultRow[]>(
     () =>

@@ -1,4 +1,4 @@
-export const policyConfig = {
+﻿export const policyConfig = {
   policyBaseDate: '2026-03-20',
   policyStatus:
     '정책 기준일은 2026년 3월 20일입니다. 일반계좌 배당 원천징수, ISA 특례, 금융소득 종합과세는 정부 공개 기준 구조를 반영했습니다. 보유세는 지방세법상 재산세 구조를 참고해 주택·토지·상가 및 기타부동산까지 단순화 추정했고, 건강보험료는 NHIS 공개 구조를 참고한 단순화 추정치이므로 실제 고지액과 다를 수 있습니다.',
@@ -152,9 +152,12 @@ export const policyConfig = {
       },
     ],
   },
-  privacyStorageNotice:
-    '입력한 모든 정보와 계산 결과는 사용자의 휴대폰(기기) 내에만 저장되며, 당사를 포함한 외부 서버로 전송되거나 별도로 저장되지 않습니다.',
   inflation: {
     defaultAnnualRate: 0.02,
+  },
+  dataPrivacy: {
+    title: '데이터 보관 안내',
+    note:
+      '이 앱은 입력한 모든 정보와 계산 결과를 사용자의 휴대폰(기기) 내에만 저장하며, 별도의 서버로 전송하거나 저장하지 않습니다.',
   },
 } as const

@@ -1,4 +1,4 @@
-import { policyConfig } from '../config/policyConfig'
+﻿import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, RetireCalcFormData } from '../types/retireCalc'
 import {
   type CashProjection,
@@ -32,7 +32,8 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
         (formData.academyMonthly ?? 0) +
         formData.otherLivingMonthly
 
-  const housingMonthlyCost = formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
+  const housingMonthlyCost =
+    formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
 
   return {
     carMonthlyConverted,
