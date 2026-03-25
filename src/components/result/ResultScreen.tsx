@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, type ReactNode } from 'react'
+import { useMemo, useRef, type ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
@@ -37,7 +37,8 @@ export function ResultScreen({
       ? '배당 입력 기준: 세전'
       : '배당 입력 기준: 세후'
 
-  const fixedMaintenanceMonthlyBase = formData.maintenanceMonthly
+  const fixedMaintenanceMonthlyBase =
+    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
   const fixedExpenseMonthlyBase =
     formData.insuranceMonthly +
     fixedMaintenanceMonthlyBase +

@@ -1,4 +1,4 @@
-﻿import { policyConfig } from '../../config/policyConfig'
+import { policyConfig } from '../../config/policyConfig'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { InlineNumericField } from '../common/Ui'
 
