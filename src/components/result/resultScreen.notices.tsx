@@ -105,6 +105,10 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
             <p>입력하지 않은 선택 항목은 결과표에서 숨기고, 필요한 구분 설명은 비고란과 ? 버튼에 모아 가독성을 우선합니다.</p>
           </div>
           <div className="notice-card">
+            <h2>{policyConfig.dataPrivacy.title}</h2>
+            <p>{policyConfig.dataPrivacy.note}</p>
+          </div>
+          <div className="notice-card">
             <h2>정책 기준 안내</h2>
             <p>{policyStatus}</p>
           </div>
