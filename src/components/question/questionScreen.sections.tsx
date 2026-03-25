@@ -697,6 +697,7 @@ export function renderQuestionContent({
                   label: '관리비',
                   value: formData.maintenanceMonthly,
                   onChange: (value) => update('maintenanceMonthly', value),
+                  helperText: '주거 형태와 관계없이 별도 관리비를 입력합니다.',
                 },
                 {
                   key: 'telecomMonthly',

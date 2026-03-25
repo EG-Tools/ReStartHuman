@@ -194,7 +194,7 @@ export function ResultScreen({
 
       {exportMessage ? <p className="action-feedback">{exportMessage}</p> : null}
 
-      <ResultHelpDrawer policyStatus={result.policyStatus} />
+      <ResultHelpDrawer loanNotice={result.loanNotice} policyStatus={result.policyStatus} />
     </section>
   )
 }
