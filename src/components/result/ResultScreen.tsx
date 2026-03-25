@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import { useMemo, useRef, type ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
@@ -13,53 +13,6 @@ import {
   type ResultRow,
 } from './resultScreen.helpers'
 
-
-interface ResultCaptureContentProps {
-  captureRef: RefObject<HTMLDivElement | null>
-  formData: RetireCalcFormData
-  result: RetireCalcResult
-  interpretationItems: string[]
-  rows: ResultRow[]
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
-}
-
-const ResultCaptureContent = memo(function ResultCaptureContent({
-  captureRef,
-  formData,
-  result,
-  interpretationItems,
-  rows,
-  onPatchFormData,
-}: ResultCaptureContentProps) {
-  return (
-    <div ref={captureRef} className="result-capture">
-      <ProjectionInlineControls formData={formData} onPatchFormData={onPatchFormData} />
-
-      <CashFlowChart
-        result={result}
-        inflationEnabled={formData.inflationEnabled}
-        inflationRateAnnual={formData.inflationRateAnnual}
-        projectionYears={formData.simulationYears}
-        currentAge={formData.currentAge}
-      />
-
-      <SummaryCards result={result} projectionYears={formData.simulationYears} />
-
-      <ResultInterpretation items={interpretationItems} />
-
-      <section className="result-panel">
-        <div className="panel-header">
-          <div>
-            <h2>결과표</h2>
-          </div>
-        </div>
-        <p className="table-scroll-hint">결과표는 좌우로 밀어서 확인할 수 있어요.</p>
-        <ResultTable rows={rows} projectionYears={formData.simulationYears} />
-      </section>
-    </div>
-  )
-})
-
 interface ResultScreenProps {
   formData: RetireCalcFormData
   result: RetireCalcResult
@@ -70,7 +23,7 @@ interface ResultScreenProps {
   headerAction?: ReactNode
 }
 
-export const ResultScreen = memo(function ResultScreen({
+export function ResultScreen({
   formData,
   result,
   onEditAnswers,
@@ -84,8 +37,7 @@ export const ResultScreen = memo(function ResultScreen({
       ? '배당 입력 기준: 세전'
       : '배당 입력 기준: 세후'
 
-  const fixedMaintenanceMonthlyBase =
-    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
+  const fixedMaintenanceMonthlyBase = formData.maintenanceMonthly
   const fixedExpenseMonthlyBase =
     formData.insuranceMonthly +
     fixedMaintenanceMonthlyBase +
@@ -207,14 +159,25 @@ export const ResultScreen = memo(function ResultScreen({
         ) : null}
       </div>
 
-      <ResultCaptureContent
-        captureRef={captureRef}
-        formData={formData}
-        result={result}
-        interpretationItems={interpretationItems}
-        rows={rows}
-        onPatchFormData={onPatchFormData}
-      />
+      <div ref={captureRef} className="result-capture">
+        <ProjectionInlineControls formData={formData} onPatchFormData={onPatchFormData} />
+
+        <CashFlowChart result={result} inflationEnabled={formData.inflationEnabled} inflationRateAnnual={formData.inflationRateAnnual} projectionYears={formData.simulationYears} currentAge={formData.currentAge} />
+
+        <SummaryCards result={result} projectionYears={formData.simulationYears} />
+
+        <ResultInterpretation items={interpretationItems} />
+
+        <section className="result-panel">
+          <div className="panel-header">
+            <div>
+              <h2>결과표</h2>
+            </div>
+          </div>
+          <p className="table-scroll-hint">결과표는 좌우로 밀어서 확인할 수 있어요.</p>
+          <ResultTable rows={rows} projectionYears={formData.simulationYears} />
+        </section>
+      </div>
 
       <div className="footer-actions footer-actions-wrap result-actions">
         <PrimaryButton variant="secondary" onClick={onEditAnswers}>
@@ -231,7 +194,7 @@ export const ResultScreen = memo(function ResultScreen({
 
       {exportMessage ? <p className="action-feedback">{exportMessage}</p> : null}
 
-      <ResultHelpDrawer policyStatus={result.policyStatus} />
+      <ResultHelpDrawer loanNotice={result.loanNotice} policyStatus={result.policyStatus} />
     </section>
   )
-})
+}

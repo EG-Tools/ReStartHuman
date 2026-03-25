@@ -13,8 +13,7 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
   const loanInterestMonthly = formData.loanInterestMonthly
 
-  const fixedMaintenanceMonthly =
-    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
+  const fixedMaintenanceMonthly = formData.maintenanceMonthly
 
   const fixedExpenseMonthly =
     formData.insuranceMonthly +
@@ -34,7 +33,10 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
         formData.otherLivingMonthly
 
   const housingMonthlyCost =
-    formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
+    formData.housingType === 'monthlyRent'
+      ? formData.monthlyRentAmount +
+        (formData.maintenanceIncludedInRent ? 0 : formData.monthlyMaintenanceFee)
+      : 0
 
   return {
     carMonthlyConverted,

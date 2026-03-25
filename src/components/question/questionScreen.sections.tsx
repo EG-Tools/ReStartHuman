@@ -174,8 +174,6 @@ export function renderQuestionContent({
                   onPatchFormData({
                     housingType: value,
                     isSingleHomeOwner: value === 'own',
-                    maintenanceIncludedInRent: value === 'monthlyRent' ? true : formData.maintenanceIncludedInRent,
-                    monthlyMaintenanceFee: value === 'monthlyRent' ? 0 : formData.monthlyMaintenanceFee,
                   })
                 }
               />
@@ -233,6 +231,23 @@ export function renderQuestionContent({
                     },
                   ]}
                 />
+                {renderBooleanChoice(
+                  '관리비가 월세에 포함되어 있나요?',
+                  formData.maintenanceIncludedInRent,
+                  (value) => update('maintenanceIncludedInRent', value),
+                )}
+                {!formData.maintenanceIncludedInRent ? (
+                  <QuestionNumberFields
+                    fields={[
+                      {
+                        key: 'monthlyMaintenanceFee',
+                        label: '월 관리비',
+                        value: formData.monthlyMaintenanceFee,
+                        onChange: (value) => update('monthlyMaintenanceFee', value),
+                      },
+                    ]}
+                  />
+                ) : null}
               </>
             ) : null}
           </div>
@@ -680,13 +695,8 @@ export function renderQuestionContent({
                 {
                   key: 'maintenanceMonthly',
                   label: '관리비',
-                  value: formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly,
+                  value: formData.maintenanceMonthly,
                   onChange: (value) => update('maintenanceMonthly', value),
-                  disabled: formData.housingType === 'monthlyRent',
-                  helperText:
-                    formData.housingType === 'monthlyRent'
-                      ? '월세 주거비에서 계산되어 여기서는 제외됩니다.'
-                      : undefined,
                 },
                 {
                   key: 'telecomMonthly',
