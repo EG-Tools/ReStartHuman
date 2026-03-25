@@ -152,12 +152,9 @@ export const policyConfig = {
       },
     ],
   },
+  privacyStorageNotice:
+    '입력한 모든 정보와 계산 결과는 사용자의 휴대폰(기기) 내에만 저장되며, 당사를 포함한 외부 서버로 전송되거나 별도로 저장되지 않습니다.',
   inflation: {
     defaultAnnualRate: 0.02,
-  },
-  dataPrivacy: {
-    title: '데이터 보관 안내',
-    note:
-      '이 앱은 입력한 모든 정보와 계산 결과를 사용자의 휴대폰(기기) 내에만 저장하며, 별도의 서버로 전송하거나 저장하지 않습니다.',
   },
 } as const

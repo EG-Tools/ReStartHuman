@@ -130,8 +130,8 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
             </p>
           </div>
           <div className="notice-card">
-            <h2>{policyConfig.dataPrivacy.title}</h2>
-            <p>{policyConfig.dataPrivacy.note}</p>
+            <h2>개인정보 및 재산정보 저장 안내</h2>
+            <p>{policyConfig.privacyStorageNotice}</p>
           </div>
         </div>
       </div>

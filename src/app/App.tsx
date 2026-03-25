@@ -1,6 +1,5 @@
 import { Suspense, lazy, startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
-import { QuestionScreen } from '../components/question/QuestionScreen'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateRetireScenario } from '../engine/calculator'
@@ -11,6 +10,10 @@ import { useSaveSlots } from '../hooks/useSaveSlots'
 import { appRoutes } from './routes'
 import type { RetireCalcFormData, SaveSlotRecord } from '../types/retireCalc'
 
+const QuestionScreen = lazy(async () => {
+  const module = await import('../components/question/QuestionScreen')
+  return { default: module.QuestionScreen }
+})
 
 const ResultScreen = lazy(async () => {
   const module = await import('../components/result/ResultScreen')
@@ -48,7 +51,6 @@ export default function App() {
       setSaveSlotMode(state.saveSlotMode)
     },
   })
-
 
   const patchFormData = (patch: Partial<RetireCalcFormData>) => {
     startTransition(() => {
@@ -107,17 +109,19 @@ export default function App() {
           ) : null}
 
           {flow.route === appRoutes.question && flow.currentQuestion ? (
-            <QuestionScreen
-              question={flow.currentQuestion}
-              questionIndex={flow.questionIndex}
-              totalQuestions={flow.visibleQuestions.length}
-              formData={formData}
-              onBack={flow.previousQuestion}
-              onNext={flow.nextQuestion}
-              onSeekQuestion={flow.goToQuestion}
-              onPatchFormData={patchFormData}
-              headerAction={renderOptionsButton()}
-            />
+            <Suspense fallback={<section className="screen question-screen" />}>
+              <QuestionScreen
+                question={flow.currentQuestion}
+                questionIndex={flow.questionIndex}
+                totalQuestions={flow.visibleQuestions.length}
+                formData={formData}
+                onBack={flow.previousQuestion}
+                onNext={flow.nextQuestion}
+                onSeekQuestion={flow.goToQuestion}
+                onPatchFormData={patchFormData}
+                headerAction={renderOptionsButton()}
+              />
+            </Suspense>
           ) : null}
 
           {flow.route === appRoutes.result && result ? (
