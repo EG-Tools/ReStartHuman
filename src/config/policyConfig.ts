@@ -1,4 +1,4 @@
-﻿export const policyConfig = {
+export const policyConfig = {
   policyBaseDate: '2026-03-20',
   policyStatus:
     '정책 기준일은 2026년 3월 20일입니다. 일반계좌 배당 원천징수, ISA 특례, 금융소득 종합과세는 정부 공개 기준 구조를 반영했습니다. 보유세는 지방세법상 재산세 구조를 참고해 주택·토지·상가 및 기타부동산까지 단순화 추정했고, 건강보험료는 NHIS 공개 구조를 참고한 단순화 추정치이므로 실제 고지액과 다를 수 있습니다.',

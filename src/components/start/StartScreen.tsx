@@ -53,10 +53,6 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
                 <p>금액 입력은 모두 만원 단위이며, 연금은 세후 실수령 기준으로 입력합니다. 입력하지 않은 선택 항목은 결과표에서 숨겨 가독성을 우선합니다.</p>
               </div>
               <div className="notice-card">
-                <h2>{policyConfig.dataPrivacy.title}</h2>
-                <p>{policyConfig.dataPrivacy.note}</p>
-              </div>
-              <div className="notice-card">
                 <h2>추정치 안내</h2>
                 <p>건강보험료와 보유세는 공개 기준을 반영한 단순화 추정치이므로 실제와 다를 수 있습니다.</p>
               </div>
@@ -67,6 +63,10 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
               <div className="notice-card">
                 <h2>저장 기능</h2>
                 <p>결과 화면의 저장 불러오기에서 슬롯에 저장·불러오기·삭제를 할 수 있습니다.</p>
+              </div>
+              <div className="notice-card">
+                <h2>{policyConfig.dataPrivacy.title}</h2>
+                <p>{policyConfig.dataPrivacy.note}</p>
               </div>
             </div>
           </div>
