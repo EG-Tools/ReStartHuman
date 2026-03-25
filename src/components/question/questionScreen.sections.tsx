@@ -174,6 +174,8 @@ export function renderQuestionContent({
                   onPatchFormData({
                     housingType: value,
                     isSingleHomeOwner: value === 'own',
+                    maintenanceIncludedInRent: value === 'monthlyRent' ? true : formData.maintenanceIncludedInRent,
+                    monthlyMaintenanceFee: value === 'monthlyRent' ? 0 : formData.monthlyMaintenanceFee,
                   })
                 }
               />
@@ -231,23 +233,6 @@ export function renderQuestionContent({
                     },
                   ]}
                 />
-                {renderBooleanChoice(
-                  '관리비가 월세에 포함되어 있나요?',
-                  formData.maintenanceIncludedInRent,
-                  (value) => update('maintenanceIncludedInRent', value),
-                )}
-                {!formData.maintenanceIncludedInRent ? (
-                  <QuestionNumberFields
-                    fields={[
-                      {
-                        key: 'monthlyMaintenanceFee',
-                        label: '월 관리비',
-                        value: formData.monthlyMaintenanceFee,
-                        onChange: (value) => update('monthlyMaintenanceFee', value),
-                      },
-                    ]}
-                  />
-                ) : null}
               </>
             ) : null}
           </div>

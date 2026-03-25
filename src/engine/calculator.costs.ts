@@ -34,10 +34,7 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
         formData.otherLivingMonthly
 
   const housingMonthlyCost =
-    formData.housingType === 'monthlyRent'
-      ? formData.monthlyRentAmount +
-        (formData.maintenanceIncludedInRent ? 0 : formData.monthlyMaintenanceFee)
-      : 0
+    formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
 
   return {
     carMonthlyConverted,

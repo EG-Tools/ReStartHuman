@@ -85,11 +85,10 @@ export const ProjectionInlineControls = memo(function ProjectionInlineControls({
 })
 
 interface ResultHelpDrawerProps {
-  loanNotice: RetireCalcResult['loanNotice']
   policyStatus: RetireCalcResult['policyStatus']
 }
 
-export const ResultHelpDrawer = memo(function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerProps) {
+export const ResultHelpDrawer = memo(function ResultHelpDrawer({ policyStatus }: ResultHelpDrawerProps) {
   return (
     <details className="help-drawer result-panel">
       <summary className="help-drawer-toggle">
@@ -121,14 +120,6 @@ export const ResultHelpDrawer = memo(function ResultHelpDrawer({ loanNotice, pol
             <h2>보유세·건강보험 기준</h2>
             <p>
               {policyConfig.holdingTax.note} 건강보험은 {policyConfig.healthInsurance.approximationNotice}
-            </p>
-          </div>
-          <div className="notice-card">
-            <h2>대출 주의문구</h2>
-            <p>
-              {loanNotice
-                ? '대출이 있다고 표시했습니다. 이 프로토타입은 대출 상환액을 계산에 포함하지 않으므로 실제 월 현금흐름은 달라질 수 있습니다.'
-                : '대출금이 있는 경우 실제 월 현금흐름 결과는 달라질 수 있습니다.'}
             </p>
           </div>
           <div className="notice-card">
