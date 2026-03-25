@@ -1,7 +1,6 @@
 import { useMemo, useRef, type ReactNode } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
-import { formatCompactCurrency } from '../../utils/format'
 import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
 import { useResultShare } from './useResultShare'
 import { buildResultRows } from './resultScreen.editors'
