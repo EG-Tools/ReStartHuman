@@ -37,8 +37,7 @@ export function ResultScreen({
       ? '배당 입력 기준: 세전'
       : '배당 입력 기준: 세후'
 
-  const fixedMaintenanceMonthlyBase =
-    formData.housingType === 'monthlyRent' ? 0 : formData.maintenanceMonthly
+  const fixedMaintenanceMonthlyBase = formData.maintenanceMonthly
   const fixedExpenseMonthlyBase =
     formData.insuranceMonthly +
     fixedMaintenanceMonthlyBase +

@@ -1,4 +1,4 @@
-﻿import { policyConfig } from '../config/policyConfig'
+import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, RetireCalcFormData } from '../types/retireCalc'
 import {
   type CashProjection,
