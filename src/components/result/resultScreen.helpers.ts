@@ -135,6 +135,37 @@ export const getHealthInsuranceTypeSummary = (
   }
 }
 
+
+export const buildInterpretationItems = ({
+  assetInterpretation,
+  effectiveComprehensiveRate,
+  formData,
+  result,
+}: {
+  assetInterpretation: string
+  effectiveComprehensiveRate: number
+  formData: RetireCalcFormData
+  result: RetireCalcResult
+}) => [
+  result.holdingTaxAnnual >= 10_000_000
+    ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
+    : result.holdingTaxAnnual > 0
+      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 추정했습니다.`
+      : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
+  result.comprehensiveTaxIncluded
+    ? result.comprehensiveTaxImpactAnnual > 0
+      ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
+      : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
+    : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
+  result.healthInsuranceMonthly >= 1_000_000
+    ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
+    : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
+  result.otherIncomeMonthlyApplied > 0
+    ? `기타 월소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+    : '기타 월소득은 별도 입력이 없어 반영하지 않았습니다.',
+  assetInterpretation,
+]
+
 export const getPropertyOwnershipLabel = (ownershipType: string) => {
   switch (ownershipType) {
     case 'mineOnly':
