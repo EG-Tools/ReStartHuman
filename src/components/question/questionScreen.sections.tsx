@@ -231,6 +231,23 @@ export function renderQuestionContent({
                     },
                   ]}
                 />
+                {renderBooleanChoice(
+                  '관리비가 월세에 포함되어 있나요?',
+                  formData.maintenanceIncludedInRent,
+                  (value) => update('maintenanceIncludedInRent', value),
+                )}
+                {!formData.maintenanceIncludedInRent ? (
+                  <QuestionNumberFields
+                    fields={[
+                      {
+                        key: 'monthlyMaintenanceFee',
+                        label: '월 관리비',
+                        value: formData.monthlyMaintenanceFee,
+                        onChange: (value) => update('monthlyMaintenanceFee', value),
+                      },
+                    ]}
+                  />
+                ) : null}
               </>
             ) : null}
           </div>
