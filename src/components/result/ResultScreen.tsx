@@ -118,7 +118,7 @@ export function ResultScreen({
       ? '시가 / 공시가'
       : formData.housingType === 'jeonse'
         ? '전세보증금은 재산 반영'
-        : '보증금은 재산, 월세는 지출 반영'
+        : '보증금은 재산, 월세는 주거비 반영'
 
   const rows = useMemo<ResultRow[]>(
     () =>

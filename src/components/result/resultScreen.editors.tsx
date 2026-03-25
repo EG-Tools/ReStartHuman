@@ -341,7 +341,7 @@ export function buildResultRows({
         formData.housingType === 'jeonse'
           ? '전세보증금은 자산 해석에 재산으로 포함합니다.'
           : formData.housingType === 'monthlyRent'
-            ? `월세 ${formatCompactCurrency(formData.monthlyRentAmount)}를 주거비에 반영하고, 질문 8의 관리비 ${formatCompactCurrency(formData.maintenanceMonthly)}는 고정지출에 포함합니다. 월세보증금 ${formatCompactCurrency(formData.monthlyRentDeposit)}은 자산 해석에 포함합니다.`
+            ? `월세 ${formatCompactCurrency(formData.monthlyRentAmount)}를 주거비로 반영하고, 관리비 ${formatCompactCurrency(formData.maintenanceMonthly)}는 고정지출에 반영합니다. 월세보증금 ${formatCompactCurrency(formData.monthlyRentDeposit)}은 자산 해석에 포함합니다.`
             : undefined,
     },
     ...(shouldShowLandRow
