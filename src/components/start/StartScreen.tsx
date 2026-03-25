@@ -45,11 +45,11 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
             <div className="notice-stack help-drawer-stack">
               <div className="notice-card">
                 <h2>무엇을 계산하나요?</h2>
-                <p>배당, ISA, 건강보험료, 보유세, 생활비를 바탕으로 30년 현금흐름을 추정합니다.</p>
+                <p>배당, ISA, 건강보험료, 보유세, 생활비를 바탕으로 입력한 기간의 현금흐름을 추정합니다. 결과 화면에서 나이·기간·물가를 바로 바꿔 다시 볼 수 있습니다.</p>
               </div>
               <div className="notice-card">
                 <h2>입력 기준</h2>
-                <p>금액 입력은 모두 만원 단위이며, 연금은 세후 실수령 기준으로 입력합니다.</p>
+                <p>금액 입력은 모두 만원 단위이며, 연금은 세후 실수령 기준으로 입력합니다. 입력하지 않은 선택 항목은 결과표에서 숨겨 가독성을 우선합니다.</p>
               </div>
               <div className="notice-card">
                 <h2>추정치 안내</h2>
@@ -61,7 +61,7 @@ export function StartScreen({ onStart, onOpenLoadSlots, headerAction }: StartScr
               </div>
               <div className="notice-card">
                 <h2>저장 기능</h2>
-                <p>계산 결과는 저장 슬롯에 저장하고 다시 불러올 수 있습니다.</p>
+                <p>결과 화면의 저장 불러오기에서 슬롯에 저장·불러오기·삭제를 할 수 있습니다.</p>
               </div>
             </div>
           </div>

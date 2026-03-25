@@ -45,6 +45,21 @@ export const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
   }
 }
 
+export const getOtherIncomeTypeLabel = (incomeType: RetireCalcFormData['otherIncomeType']) => {
+  switch (incomeType) {
+    case 'earned':
+      return '근로소득'
+    case 'business':
+      return '사업소득'
+    case 'pension':
+      return '기타연금'
+    case 'other':
+      return '기타소득'
+    default:
+      return '추가소득'
+  }
+}
+
 export const getIsaTypeLabel = (
   isaType: RetireCalcResult['isaTaxBreakdown'][number]['isaType'],
 ) => (isaType === 'workingClass' ? '서민형' : '일반형')
@@ -161,8 +176,8 @@ export const buildInterpretationItems = ({
     ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
     : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
   result.otherIncomeMonthlyApplied > 0
-    ? `기타 월소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
-    : '기타 월소득은 별도 입력이 없어 반영하지 않았습니다.',
+    ? `${getOtherIncomeTypeLabel(formData.otherIncomeType)} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+    : '추가 월소득은 별도 입력이 없어 반영하지 않았습니다.',
   assetInterpretation,
 ]
 

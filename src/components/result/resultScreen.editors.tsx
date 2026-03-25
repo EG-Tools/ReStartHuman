@@ -11,6 +11,7 @@ import {
   getHoldingTaxInputSummary,
   getIsaDividendNote,
   getLivingCostSnapshot,
+  getOtherIncomeTypeLabel,
   getPropertyOwnershipLabel,
   getRiskLabel,
   getTaxableDividendNote,
@@ -285,6 +286,31 @@ export function buildResultRows({
   onPatchFormData,
   result,
 }: BuildResultRowsOptions): ResultRow[] {
+  const shouldShowLandRow = formData.landValue > 0
+  const shouldShowOtherPropertyRow = formData.otherPropertyOfficialValue > 0
+  const shouldShowCarAssetRow = formData.hasCar || formData.currentCarMarketValue > 0
+  const shouldShowTaxableDividendRow =
+    formData.taxableAccountDividendAnnual > 0 || result.taxableDividendAnnualNet > 0
+  const shouldShowIsaDividendRow = formData.isaDividendAnnual > 0 || result.isaDividendAnnualNet > 0
+  const shouldShowPensionRow = formData.pensionMonthlyAmount > 0 || result.pensionMonthlyApplied > 0
+  const shouldShowOtherIncomeRow =
+    formData.otherIncomeType !== 'none' &&
+    (formData.otherIncomeMonthly > 0 || result.otherIncomeMonthlyApplied > 0)
+  const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
+  const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
+  const otherIncomeTypeLabel = getOtherIncomeTypeLabel(formData.otherIncomeType)
+  const totalIncomePieces = [
+    result.totalDividendAnnualNet > 0
+      ? `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당`
+      : null,
+    shouldShowOtherIncomeRow
+      ? `${formatCompactCurrency(result.otherIncomeMonthlyApplied)} ${otherIncomeTypeLabel}`
+      : null,
+    shouldShowPensionRow
+      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
+      : null,
+  ].filter((value): value is string => Boolean(value))
+
   return [
     {
       category: '기본',
@@ -319,118 +345,129 @@ export function buildResultRows({
             ? `월세 ${formatCompactCurrency(formData.monthlyRentAmount)}${formData.maintenanceIncludedInRent ? '' : ` + 관리비 ${formatCompactCurrency(formData.monthlyMaintenanceFee)}`}를 월 지출에 반영하고, 월세보증금 ${formatCompactCurrency(formData.monthlyRentDeposit)}은 자산 해석에 포함합니다.`
             : undefined,
     },
-    {
-      category: '주거',
-      item: '토지',
-      input: formatCompactCurrency(formData.landValue),
-      monthly: '—',
-      annual: '—',
-      tenYear: '—',
-      note:
-        formData.landValue > 0
-          ? `${getPropertyOwnershipLabel(formData.landOwnershipType)} 기준`
-          : '0원이면 미보유 처리',
-    },
-    {
-      category: '주거',
-      item: '기타 부동산',
-      input: formatCompactCurrency(formData.otherPropertyOfficialValue),
-      monthly: '—',
-      annual: '—',
-      tenYear: '—',
-      note:
-        formData.otherPropertyOfficialValue > 0
-          ? `${getPropertyOwnershipLabel(formData.otherPropertyOwnershipType)} 기준`
-          : '0원이면 미보유 처리',
-    },
-    {
-      category: '자산',
-      item: '차량 시세',
-      input: (
-        <InlineAmountInput
-          label="현재 차량 시세"
-          value={formData.currentCarMarketValue}
-          onChange={(value) => onPatchFormData({ currentCarMarketValue: value })}
-        />
-      ),
-      monthly: '—',
-      annual: '—',
-      tenYear: '—',
-      note: formData.hasCar || formData.currentCarMarketValue > 0 ? '재산 반영' : '미보유',
-      noteDetail:
-        formData.hasCar || formData.currentCarMarketValue > 0
-          ? '현재 차량 시세는 자산 해석에 포함하고, 차량 유지비는 별도 지출 항목으로 계산합니다.'
-          : undefined,
-    },
-    {
-      category: '배당',
-      item: '배당금',
-      input: (
-        <InlineAmountInput
-          label="일반계좌 연간 배당금"
-          value={formData.taxableAccountDividendAnnual}
-          onChange={(value) => onPatchFormData({ taxableAccountDividendAnnual: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(result.taxableDividendMonthlyNet),
-      annual: formatCompactCurrency(result.taxableDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.taxableDividendAnnualNet * formData.simulationYears),
-      note: '원천징수 15.4%',
-      noteDetail: getTaxableDividendNote(result),
-    },
-    {
-      category: '배당',
-      item: 'ISA 배당금',
-      input: (
-        <InlineAmountInput
-          label="ISA 연간 배당금"
-          value={formData.isaDividendAnnual}
-          onChange={(value) => onPatchFormData({ isaDividendAnnual: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
-      annual: formatCompactCurrency(result.isaDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.isaDividendAnnualNet * formData.simulationYears),
-      note: 'ISA 특례',
-      noteDetail: getIsaDividendNote(result),
-    },
-    {
-      category: '유입',
-      item: '국민연금',
-      input: (
-        <InlineAmountInput
-          label="국민연금 예상 금액"
-          value={formData.pensionMonthlyAmount}
-          onChange={(value) => onPatchFormData({ pensionMonthlyAmount: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(result.pensionMonthlyApplied),
-      annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
-      tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * formData.simulationYears),
-      note: '월 기준 유입',
-    },
-    {
-      category: '유입',
-      item: '기타 소득',
-      input: formData.otherIncomeType === 'none' ? '없음' : `월 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}`,
-      monthly: formatCompactCurrency(result.otherIncomeMonthlyApplied),
-      annual: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12),
-      tenYear: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12 * formData.simulationYears),
-      note:
-        formData.otherIncomeType === 'none'
-          ? '미입력'
-          : `${formData.otherIncomeType === 'earned'
-              ? '근로소득'
-              : formData.otherIncomeType === 'business'
-                ? '사업소득'
-                : formData.otherIncomeType === 'pension'
-                  ? '기타연금'
-                  : '기타'} 월 유입`,
-    },
+    ...(shouldShowLandRow
+      ? [
+          {
+            category: '주거',
+            item: '토지',
+            input: formatCompactCurrency(formData.landValue),
+            monthly: '—',
+            annual: '—',
+            tenYear: '—',
+            note: `${getPropertyOwnershipLabel(formData.landOwnershipType)} 기준`,
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowOtherPropertyRow
+      ? [
+          {
+            category: '주거',
+            item: '기타 부동산',
+            input: formatCompactCurrency(formData.otherPropertyOfficialValue),
+            monthly: '—',
+            annual: '—',
+            tenYear: '—',
+            note: `${getPropertyOwnershipLabel(formData.otherPropertyOwnershipType)} 기준`,
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowCarAssetRow
+      ? [
+          {
+            category: '자산',
+            item: '차량 시세',
+            input: (
+              <InlineAmountInput
+                label="현재 차량 시세"
+                value={formData.currentCarMarketValue}
+                onChange={(value) => onPatchFormData({ currentCarMarketValue: value })}
+              />
+            ),
+            monthly: '—',
+            annual: '—',
+            tenYear: '—',
+            note: '재산 반영',
+            noteDetail:
+              '현재 차량 시세는 자산 해석에 포함하고, 차량 유지비는 별도 지출 항목으로 계산합니다.',
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowTaxableDividendRow
+      ? [
+          {
+            category: '배당',
+            item: '배당금',
+            input: (
+              <InlineAmountInput
+                label="일반계좌 연간 배당금"
+                value={formData.taxableAccountDividendAnnual}
+                onChange={(value) => onPatchFormData({ taxableAccountDividendAnnual: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(result.taxableDividendMonthlyNet),
+            annual: formatCompactCurrency(result.taxableDividendAnnualNet),
+            tenYear: formatCompactCurrency(result.taxableDividendAnnualNet * formData.simulationYears),
+            note: '원천징수 15.4%',
+            noteDetail: getTaxableDividendNote(result),
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowIsaDividendRow
+      ? [
+          {
+            category: '배당',
+            item: 'ISA 배당금',
+            input: (
+              <InlineAmountInput
+                label="ISA 연간 배당금"
+                value={formData.isaDividendAnnual}
+                onChange={(value) => onPatchFormData({ isaDividendAnnual: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
+            annual: formatCompactCurrency(result.isaDividendAnnualNet),
+            tenYear: formatCompactCurrency(result.isaDividendAnnualNet * formData.simulationYears),
+            note: 'ISA 특례',
+            noteDetail: getIsaDividendNote(result),
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowPensionRow
+      ? [
+          {
+            category: '유입',
+            item: '국민연금',
+            input: (
+              <InlineAmountInput
+                label="국민연금 예상 금액"
+                value={formData.pensionMonthlyAmount}
+                onChange={(value) => onPatchFormData({ pensionMonthlyAmount: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(result.pensionMonthlyApplied),
+            annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
+            tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * formData.simulationYears),
+            note: '월 기준 유입',
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowOtherIncomeRow
+      ? [
+          {
+            category: '유입',
+            item: '기타 소득',
+            input: `월 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}`,
+            monthly: formatCompactCurrency(result.otherIncomeMonthlyApplied),
+            annual: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12),
+            tenYear: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12 * formData.simulationYears),
+            note: `${otherIncomeTypeLabel} 월 유입`,
+          } satisfies ResultRow,
+        ]
+      : []),
     {
       category: '결과',
       item: '총 유입',
-      input: `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당 + ${formatCompactCurrency(result.otherIncomeMonthlyApplied)} 기타소득 + ${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`,
+      input: totalIncomePieces.length > 0 ? totalIncomePieces.join(' + ') : '입력된 유입 없음',
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * formData.simulationYears),
@@ -517,42 +554,50 @@ export function buildResultRows({
           ? '세부 항목 합산'
           : '총액 입력 사용',
     },
-    {
-      category: '지출',
-      item: '차량유지비',
-      input: (
-        <InlineAmountInput
-          label="자동차 연간 유지비"
-          value={formData.carYearlyCost}
-          onChange={(value) => onPatchFormData({ carYearlyCost: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(result.carMonthlyConverted),
-      annual: formatCompactCurrency(formData.carYearlyCost),
-      tenYear: formatCompactCurrency(formData.carYearlyCost * formData.simulationYears),
-      note: '연간 ÷ 12',
-      noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
-    },
-    {
-      category: '지출',
-      item: '대출 이자',
-      input: (
-        <InlineAmountInput
-          label="월 대출 이자"
-          value={formData.loanInterestMonthly}
-          onChange={(value) => onPatchFormData({ loanInterestMonthly: value })}
-        />
-      ),
-      monthly: formatCompactCurrency(formData.loanInterestMonthly),
-      annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
-      tenYear: formatCompactCurrency(
-        formData.loanInterestMonthly * 12 * Math.min(formData.loanInterestYears, formData.simulationYears),
-      ),
-      note:
-        formData.loanInterestMonthly > 0 && formData.loanInterestYears > 0
-          ? `${Math.min(formData.loanInterestYears, formData.simulationYears)}년치 반영`
-          : '미반영',
-    },
+    ...(shouldShowCarCostRow
+      ? [
+          {
+            category: '지출',
+            item: '차량유지비',
+            input: (
+              <InlineAmountInput
+                label="자동차 연간 유지비"
+                value={formData.carYearlyCost}
+                onChange={(value) => onPatchFormData({ carYearlyCost: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(result.carMonthlyConverted),
+            annual: formatCompactCurrency(formData.carYearlyCost),
+            tenYear: formatCompactCurrency(formData.carYearlyCost * formData.simulationYears),
+            note: '연간 ÷ 12',
+            noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
+          } satisfies ResultRow,
+        ]
+      : []),
+    ...(shouldShowLoanInterestRow
+      ? [
+          {
+            category: '지출',
+            item: '대출 이자',
+            input: (
+              <InlineAmountInput
+                label="월 대출 이자"
+                value={formData.loanInterestMonthly}
+                onChange={(value) => onPatchFormData({ loanInterestMonthly: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(formData.loanInterestMonthly),
+            annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
+            tenYear: formatCompactCurrency(
+              formData.loanInterestMonthly * 12 * Math.min(formData.loanInterestYears, formData.simulationYears),
+            ),
+            note:
+              formData.loanInterestMonthly > 0 && formData.loanInterestYears > 0
+                ? `${Math.min(formData.loanInterestYears, formData.simulationYears)}년치 반영`
+                : '미반영',
+          } satisfies ResultRow,
+        ]
+      : []),
     {
       category: '결과',
       item: '흑자/적자',

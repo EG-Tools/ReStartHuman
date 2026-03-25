@@ -97,6 +97,14 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
       <div className="help-drawer-body">
         <div className="notice-stack help-drawer-stack">
           <div className="notice-card">
+            <h2>결과 화면 사용법</h2>
+            <p>상단의 나이·기간·물가를 바로 바꾸면 질문 화면으로 돌아가지 않아도 결과와 그래프를 즉시 다시 계산합니다.</p>
+          </div>
+          <div className="notice-card">
+            <h2>결과표 표시 기준</h2>
+            <p>입력하지 않은 선택 항목은 결과표에서 숨기고, 필요한 구분 설명은 비고란과 ? 버튼에 모아 가독성을 우선합니다.</p>
+          </div>
+          <div className="notice-card">
             <h2>정책 기준 안내</h2>
             <p>{policyStatus}</p>
           </div>

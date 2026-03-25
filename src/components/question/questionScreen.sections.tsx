@@ -101,7 +101,7 @@ export function renderQuestionContent({
                   suffix: '세',
                   min: 1,
                   step: 1,
-                  helperText: '결과 해석의 자산 수준 비교 기준에 사용합니다.',
+                  helperText: '결과 해석의 자산 비교와 현금흐름 그래프 연령 표시에 함께 사용합니다.',
                 },
               ]}
             />
@@ -138,7 +138,7 @@ export function renderQuestionContent({
                 }
               />
               <p className="screen-copy question-copy-note">
-                현재는 참고용이며, 추후 계산 구조에 반영할 예정입니다.
+                자녀가 있으면 생활비 상세 입력에서 학원비 항목이 열리고, 결과 해석에도 함께 반영합니다.
               </p>
             </section>
             {(formData.hasChildren ?? false) ? (
@@ -831,7 +831,7 @@ export function renderQuestionContent({
                     label: '현재 차량 시세',
                     value: formData.currentCarMarketValue,
                     onChange: (value) => update('currentCarMarketValue', value),
-                    helperText: '현재 차량 시세는 결과표와 자산 해석에 재산으로 반영됩니다.',
+                    helperText: '입력한 경우에만 결과표에 표시되며 자산 해석에 재산으로 반영됩니다.',
                   },
                   {
                     key: 'carYearlyCost',
@@ -855,7 +855,7 @@ export function renderQuestionContent({
                   label: '현재 보유한 현금',
                   value: formData.startingCashReserve,
                   onChange: (value) => update('startingCashReserve', value),
-                  helperText: '현금 흐름 그래프의 시작 금액 입니다.',
+                  helperText: '현금흐름 그래프의 시작 금액이며 결과 해석의 유동자산에도 함께 반영합니다.',
                 },
               ]}
             />
