@@ -1,4 +1,4 @@
-import { Suspense, lazy, startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { Suspense, lazy, startTransition, useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
@@ -25,6 +25,81 @@ const SaveSlotModal = lazy(async () => {
   return { default: module.SaveSlotModal }
 })
 
+const createCalculatorInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
+  ...defaultFormData,
+  householdType: formData.householdType,
+  simulationYears: formData.simulationYears,
+  housingType: formData.housingType,
+  homeMarketValue: formData.homeMarketValue,
+  homeOfficialValue: formData.homeOfficialValue,
+  isJointOwnership: formData.isJointOwnership,
+  isSingleHomeOwner: formData.isSingleHomeOwner,
+  jeonseDeposit: formData.jeonseDeposit,
+  monthlyRentDeposit: formData.monthlyRentDeposit,
+  monthlyRentAmount: formData.monthlyRentAmount,
+  maintenanceIncludedInRent: formData.maintenanceIncludedInRent,
+  monthlyMaintenanceFee: formData.monthlyMaintenanceFee,
+  landValue: formData.landValue,
+  landOwnershipType: formData.landOwnershipType,
+  myLandShare: formData.myLandShare,
+  spouseLandShare: formData.spouseLandShare,
+  otherPropertyOfficialValue: formData.otherPropertyOfficialValue,
+  otherPropertyOwnershipType: formData.otherPropertyOwnershipType,
+  myOtherPropertyShare: formData.myOtherPropertyShare,
+  spouseOtherPropertyShare: formData.spouseOtherPropertyShare,
+  taxableAccountAssets: formData.taxableAccountAssets,
+  isaAssets: formData.isaAssets,
+  pensionAccountAssets: formData.pensionAccountAssets,
+  otherAssets: formData.otherAssets,
+  taxableAccountDividendAnnual: formData.taxableAccountDividendAnnual,
+  isaDividendAnnual: formData.isaDividendAnnual,
+  pensionDividendAnnual: formData.pensionDividendAnnual,
+  dividendInputMode: formData.dividendInputMode,
+  isaType: formData.isaType,
+  isaYearsSinceOpen: formData.isaYearsSinceOpen,
+  myIsaType: formData.myIsaType,
+  spouseIsaType: formData.spouseIsaType,
+  dividendOwnershipType: formData.dividendOwnershipType,
+  myAnnualDividendAttributed: formData.myAnnualDividendAttributed,
+  spouseAnnualDividendAttributed: formData.spouseAnnualDividendAttributed,
+  isaOwnershipType: formData.isaOwnershipType,
+  myAnnualIsaDividendAttributed: formData.myAnnualIsaDividendAttributed,
+  spouseAnnualIsaDividendAttributed: formData.spouseAnnualIsaDividendAttributed,
+  otherIncomeType: formData.otherIncomeType,
+  otherIncomeMonthly: formData.otherIncomeMonthly,
+  pensionStartAge: formData.pensionStartAge,
+  pensionMonthlyAmount: formData.pensionMonthlyAmount,
+  healthInsuranceType: formData.healthInsuranceType,
+  salaryMonthly: formData.salaryMonthly,
+  healthInsuranceOverrideMonthly: formData.healthInsuranceOverrideMonthly,
+  insuranceMonthly: formData.insuranceMonthly,
+  maintenanceMonthly: formData.maintenanceMonthly,
+  telecomMonthly: formData.telecomMonthly,
+  nationalPensionMonthly: formData.nationalPensionMonthly,
+  currentCarMarketValue: formData.currentCarMarketValue,
+  carYearlyCost: formData.carYearlyCost,
+  loanInterestMonthly: formData.loanInterestMonthly,
+  loanInterestYears: formData.loanInterestYears,
+  otherFixedMonthly: formData.otherFixedMonthly,
+  livingCostInputMode: formData.livingCostInputMode,
+  livingCostMonthlyTotal: formData.livingCostMonthlyTotal,
+  foodMonthly: formData.foodMonthly,
+  necessitiesMonthly: formData.necessitiesMonthly,
+  diningOutMonthly: formData.diningOutMonthly,
+  hobbyMonthly: formData.hobbyMonthly,
+  academyMonthly: formData.academyMonthly,
+  otherLivingMonthly: formData.otherLivingMonthly,
+  inflationEnabled: formData.inflationEnabled,
+  inflationRateAnnual: formData.inflationRateAnnual,
+  startingCashReserve: formData.startingCashReserve,
+  currentAge: formData.currentAge,
+})
+
+const hasPatchChanges = (
+  currentValue: RetireCalcFormData,
+  patch: Partial<RetireCalcFormData>,
+) => Object.entries(patch).some(([key, value]) => currentValue[key as keyof RetireCalcFormData] !== value)
+
 export default function App() {
   const [formData, setFormData] = useState<RetireCalcFormData>(defaultFormData)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
@@ -32,12 +107,87 @@ export default function App() {
 
   const flow = useRetireCalcFlow(formData)
   const saveSlots = useSaveSlots()
-  const deferredFormData = useDeferredValue(formData)
+  const calculationInput = useMemo(
+    () => createCalculatorInput(formData),
+    [
+      formData.householdType,
+      formData.simulationYears,
+      formData.housingType,
+      formData.homeMarketValue,
+      formData.homeOfficialValue,
+      formData.isJointOwnership,
+      formData.isSingleHomeOwner,
+      formData.jeonseDeposit,
+      formData.monthlyRentDeposit,
+      formData.monthlyRentAmount,
+      formData.maintenanceIncludedInRent,
+      formData.monthlyMaintenanceFee,
+      formData.landValue,
+      formData.landOwnershipType,
+      formData.myLandShare,
+      formData.spouseLandShare,
+      formData.otherPropertyOfficialValue,
+      formData.otherPropertyOwnershipType,
+      formData.myOtherPropertyShare,
+      formData.spouseOtherPropertyShare,
+      formData.taxableAccountAssets,
+      formData.isaAssets,
+      formData.pensionAccountAssets,
+      formData.otherAssets,
+      formData.taxableAccountDividendAnnual,
+      formData.isaDividendAnnual,
+      formData.pensionDividendAnnual,
+      formData.dividendInputMode,
+      formData.isaType,
+      formData.isaYearsSinceOpen,
+      formData.myIsaType,
+      formData.spouseIsaType,
+      formData.dividendOwnershipType,
+      formData.myAnnualDividendAttributed,
+      formData.spouseAnnualDividendAttributed,
+      formData.isaOwnershipType,
+      formData.myAnnualIsaDividendAttributed,
+      formData.spouseAnnualIsaDividendAttributed,
+      formData.otherIncomeType,
+      formData.otherIncomeMonthly,
+      formData.pensionStartAge,
+      formData.pensionMonthlyAmount,
+      formData.healthInsuranceType,
+      formData.salaryMonthly,
+      formData.healthInsuranceOverrideMonthly,
+      formData.insuranceMonthly,
+      formData.maintenanceMonthly,
+      formData.telecomMonthly,
+      formData.nationalPensionMonthly,
+      formData.currentCarMarketValue,
+      formData.carYearlyCost,
+      formData.loanInterestMonthly,
+      formData.loanInterestYears,
+      formData.otherFixedMonthly,
+      formData.livingCostInputMode,
+      formData.livingCostMonthlyTotal,
+      formData.foodMonthly,
+      formData.necessitiesMonthly,
+      formData.diningOutMonthly,
+      formData.hobbyMonthly,
+      formData.academyMonthly,
+      formData.otherLivingMonthly,
+      formData.inflationEnabled,
+      formData.inflationRateAnnual,
+      formData.startingCashReserve,
+      formData.currentAge,
+    ],
+  )
+  const deferredCalculationInput = useDeferredValue(calculationInput)
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
   const result = useMemo(
-    () => (shouldRenderResult ? calculateRetireScenario(deferredFormData) : null),
-    [deferredFormData, shouldRenderResult],
+    () => (shouldRenderResult ? calculateRetireScenario(deferredCalculationInput) : null),
+    [deferredCalculationInput, shouldRenderResult],
+  )
+  const optionsButton = useMemo(
+    () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
+    [],
   )
 
   useViewportCssVars()
@@ -52,47 +202,65 @@ export default function App() {
     },
   })
 
-  const patchFormData = (patch: Partial<RetireCalcFormData>) => {
+  const patchFormData = useCallback((patch: Partial<RetireCalcFormData>) => {
     startTransition(() => {
-      setFormData((currentValue) => ({
-        ...currentValue,
-        ...patch,
-      }))
-    })
-  }
+      setFormData((currentValue) => {
+        if (!hasPatchChanges(currentValue, patch)) {
+          return currentValue
+        }
 
-  const startFresh = () => {
+        return {
+          ...currentValue,
+          ...patch,
+        }
+      })
+    })
+  }, [])
+
+  const startFresh = useCallback(() => {
     startTransition(() => {
       setFormData(defaultFormData)
       flow.goToQuestion(0)
     })
-  }
+  }, [flow])
 
-  const handleLoadSlot = (slot: SaveSlotRecord) => {
-    startTransition(() => {
-      setFormData({ ...defaultFormData, ...slot.formData })
-      setSaveSlotMode(null)
-      flow.openResult()
-    })
-  }
+  const handleLoadSlot = useCallback(
+    (slot: SaveSlotRecord) => {
+      startTransition(() => {
+        setFormData({ ...defaultFormData, ...slot.formData })
+        setSaveSlotMode(null)
+        flow.openResult()
+      })
+    },
+    [flow],
+  )
 
-  const handleSaveSlot = (slotId: number, slotName: string) => {
-    saveSlots.saveSlot(slotId, formData, result ?? calculateRetireScenario(formData), slotName)
-  }
+  const handleSaveSlot = useCallback(
+    (slotId: number, slotName: string) => {
+      saveSlots.saveSlot(
+        slotId,
+        formData,
+        result ?? calculateRetireScenario(calculationInput),
+        slotName,
+      )
+    },
+    [calculationInput, formData, result, saveSlots],
+  )
 
-  const handleDeleteSlot = (slotId: number) => {
-    saveSlots.deleteSlot(slotId)
-  }
+  const handleDeleteSlot = useCallback(
+    (slotId: number) => {
+      saveSlots.deleteSlot(slotId)
+    },
+    [saveSlots],
+  )
 
-  const startOver = () => {
+  const startOver = useCallback(() => {
     startTransition(() => {
       setFormData(defaultFormData)
       setSaveSlotMode(null)
       flow.reset()
     })
-  }
-
-  const renderOptionsButton = () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />
+  }, [flow])
 
   return (
     <div className="app-shell">
@@ -104,7 +272,7 @@ export default function App() {
             <StartScreen
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
-              headerAction={renderOptionsButton()}
+              headerAction={optionsButton}
             />
           ) : null}
 
@@ -119,7 +287,7 @@ export default function App() {
                 onNext={flow.nextQuestion}
                 onSeekQuestion={flow.goToQuestion}
                 onPatchFormData={patchFormData}
-                headerAction={renderOptionsButton()}
+                headerAction={optionsButton}
               />
             </Suspense>
           ) : null}
@@ -133,7 +301,7 @@ export default function App() {
                 onStartOver={startOver}
                 onOpenSaveSlots={() => setSaveSlotMode('save')}
                 onPatchFormData={patchFormData}
-                headerAction={renderOptionsButton()}
+                headerAction={optionsButton}
               />
             </Suspense>
           ) : null}
