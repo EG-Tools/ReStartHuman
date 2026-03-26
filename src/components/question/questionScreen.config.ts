@@ -58,7 +58,6 @@ export const simulationYearOptions = [
   { value: '10', label: '10년' },
   { value: '30', label: '30년' },
   { value: '50', label: '50년' },
-  { value: '80', label: '80년' },
 ] as const
 
 export const dividendOwnershipOptions = [
