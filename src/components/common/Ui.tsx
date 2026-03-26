@@ -46,6 +46,13 @@ function useNumericDraftController({
 
   const draftValue = editBuffer ?? formatDraftValue(displayValue, idleZeroDisplay)
 
+  const moveCaretToInputEnd = (input: HTMLInputElement) => {
+    requestAnimationFrame(() => {
+      const caretPosition = input.value.length
+      input.setSelectionRange(caretPosition, caretPosition)
+    })
+  }
+
   const commitRawValue = (rawValue: string) => {
     const nextValue = parseDraftValue(rawValue, min)
     onChange(toCommitValue(nextValue, display))
@@ -66,11 +73,10 @@ function useNumericDraftController({
           currentValue ?? formatDraftValue(displayValue, idleZeroDisplay),
         )
 
-        requestAnimationFrame(() => {
-          const input = event.currentTarget
-          const caretPosition = input.value.length
-          input.setSelectionRange(caretPosition, caretPosition)
-        })
+        moveCaretToInputEnd(event.currentTarget)
+      },
+      onMouseUp: (event: React.MouseEvent<HTMLInputElement>) => {
+        moveCaretToInputEnd(event.currentTarget)
       },
       onBlur: () => {
         if (commitMode === 'blur') {
