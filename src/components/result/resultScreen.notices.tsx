@@ -2,12 +2,14 @@ import { policyConfig } from '../../config/policyConfig'
 import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
 import { InlineNumericField } from '../common/Ui'
 
+import { memo } from 'react'
+
 interface ProjectionInlineControlsProps {
   formData: RetireCalcFormData
   onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
 }
 
-export function ProjectionInlineControls({
+export const ProjectionInlineControls = memo(function ProjectionInlineControls({
   formData,
   onPatchFormData,
 }: ProjectionInlineControlsProps) {
@@ -80,14 +82,13 @@ export function ProjectionInlineControls({
       </div>
     </section>
   )
-}
+})
 
 interface ResultHelpDrawerProps {
-  loanNotice: RetireCalcResult['loanNotice']
   policyStatus: RetireCalcResult['policyStatus']
 }
 
-export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerProps) {
+export const ResultHelpDrawer = memo(function ResultHelpDrawer({ policyStatus }: ResultHelpDrawerProps) {
   return (
     <details className="help-drawer result-panel">
       <summary className="help-drawer-toggle">
@@ -103,10 +104,6 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
           <div className="notice-card">
             <h2>결과표 표시 기준</h2>
             <p>입력하지 않은 선택 항목은 결과표에서 숨기고, 필요한 구분 설명은 비고란과 ? 버튼에 모아 가독성을 우선합니다.</p>
-          </div>
-          <div className="notice-card">
-            <h2>{policyConfig.dataPrivacy.title}</h2>
-            <p>{policyConfig.dataPrivacy.note}</p>
           </div>
           <div className="notice-card">
             <h2>정책 기준 안내</h2>
@@ -126,15 +123,11 @@ export function ResultHelpDrawer({ loanNotice, policyStatus }: ResultHelpDrawerP
             </p>
           </div>
           <div className="notice-card">
-            <h2>대출 주의문구</h2>
-            <p>
-              {loanNotice
-                ? '대출이 있다고 표시했습니다. 이 프로토타입은 대출 상환액을 계산에 포함하지 않으므로 실제 월 현금흐름은 달라질 수 있습니다.'
-                : '대출금이 있는 경우 실제 월 현금흐름 결과는 달라질 수 있습니다.'}
-            </p>
+            <h2>개인정보 및 재산정보 저장 안내</h2>
+            <p>{policyConfig.privacyStorageNotice}</p>
           </div>
         </div>
       </div>
     </details>
   )
-}
+})
