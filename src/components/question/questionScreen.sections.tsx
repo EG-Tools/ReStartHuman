@@ -174,6 +174,8 @@ export function renderQuestionContent({
                   onPatchFormData({
                     housingType: value,
                     isSingleHomeOwner: value === 'own',
+                    maintenanceIncludedInRent: value === 'monthlyRent' ? true : formData.maintenanceIncludedInRent,
+                    monthlyMaintenanceFee: value === 'monthlyRent' ? 0 : formData.monthlyMaintenanceFee,
                   })
                 }
               />
@@ -213,23 +215,25 @@ export function renderQuestionContent({
             ) : null}
 
             {formData.housingType === 'monthlyRent' ? (
-              <QuestionNumberFields
-                columns={2}
-                fields={[
-                  {
-                    key: 'monthlyRentDeposit',
-                    label: '월세 보증금',
-                    value: formData.monthlyRentDeposit,
-                    onChange: (value) => update('monthlyRentDeposit', value),
-                  },
-                  {
-                    key: 'monthlyRentAmount',
-                    label: '월세',
-                    value: formData.monthlyRentAmount,
-                    onChange: (value) => update('monthlyRentAmount', value),
-                  },
-                ]}
-              />
+              <>
+                <QuestionNumberFields
+                  columns={2}
+                  fields={[
+                    {
+                      key: 'monthlyRentDeposit',
+                      label: '월세 보증금',
+                      value: formData.monthlyRentDeposit,
+                      onChange: (value) => update('monthlyRentDeposit', value),
+                    },
+                    {
+                      key: 'monthlyRentAmount',
+                      label: '월세',
+                      value: formData.monthlyRentAmount,
+                      onChange: (value) => update('monthlyRentAmount', value),
+                    },
+                  ]}
+                />
+              </>
             ) : null}
           </div>
         )
