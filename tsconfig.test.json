@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "node"],
+    "allowImportingTsExtensions": false,
+    "outDir": ".test-dist",
+    "rootDir": ".",
+    "noEmit": false
+  },
+  "include": ["src", "tests"]
+}

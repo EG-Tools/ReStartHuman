@@ -4,19 +4,22 @@ import { questionFlow } from '../data/questionFlow'
 import type { AppRoute } from '../app/routes'
 import type { RetireCalcFormData } from '../types/retireCalc'
 
-const visibleQuestions = questionFlow
-
-export const useRetireCalcFlow = (_formData: RetireCalcFormData) => {
+export const useRetireCalcFlow = (formData: RetireCalcFormData) => {
   const [route, setRoute] = useState<AppRoute>(appRoutes.start)
   const [questionIndex, setQuestionIndex] = useState(0)
 
+  const visibleQuestions = useMemo(
+    () => questionFlow.filter((question) => question.visibility(formData)),
+    [formData],
+  )
+
   const clampQuestionIndex = useCallback(
     (index: number) => Math.max(0, Math.min(index, Math.max(visibleQuestions.length - 1, 0))),
-    [],
+    [visibleQuestions.length],
   )
 
   const boundedQuestionIndex = clampQuestionIndex(questionIndex)
-  const currentQuestion = visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0]
+  const currentQuestion = visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0] ?? questionFlow[0]
 
   const openQuestions = useCallback(() => setRoute(appRoutes.question), [])
   const openResult = useCallback(() => setRoute(appRoutes.result), [])
@@ -34,7 +37,7 @@ export const useRetireCalcFlow = (_formData: RetireCalcFormData) => {
     }
 
     setQuestionIndex(boundedQuestionIndex + 1)
-  }, [boundedQuestionIndex])
+  }, [boundedQuestionIndex, visibleQuestions.length])
 
   const previousQuestion = useCallback(() => {
     setQuestionIndex(Math.max(boundedQuestionIndex - 1, 0))
@@ -83,6 +86,7 @@ export const useRetireCalcFlow = (_formData: RetireCalcFormData) => {
       returnToQuestions,
       route,
       syncFromHistory,
+      visibleQuestions,
     ],
   )
 }

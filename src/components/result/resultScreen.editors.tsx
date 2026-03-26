@@ -243,11 +243,14 @@ function LivingExpenseEditor({
     )
   }
 
+  const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
+
   const lockedBase =
     formData.foodMonthly +
     formData.necessitiesMonthly +
     formData.diningOutMonthly +
-    formData.hobbyMonthly
+    formData.hobbyMonthly +
+    academyMonthly
 
   return (
     <InlineAmountInput
@@ -297,6 +300,9 @@ export function buildResultRows({
     (formData.otherIncomeMonthly > 0 || result.otherIncomeMonthlyApplied > 0)
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
+  const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
+  const shouldShowAcademyRow =
+    formData.livingCostInputMode === 'detailed' && academyMonthly > 0
   const otherIncomeTypeLabel = getOtherIncomeTypeLabel(formData.otherIncomeType)
   const totalIncomePieces = [
     result.totalDividendAnnualNet > 0
@@ -553,6 +559,26 @@ export function buildResultRows({
           ? '세부 항목 합산'
           : '총액 입력 사용',
     },
+    ...(shouldShowAcademyRow
+      ? [
+          {
+            category: '지출',
+            item: '학원비',
+            input: (
+              <InlineAmountInput
+                label="월 학원비"
+                value={academyMonthly}
+                onChange={(value) => onPatchFormData({ academyMonthly: value })}
+              />
+            ),
+            monthly: formatCompactCurrency(academyMonthly),
+            annual: formatCompactCurrency(academyMonthly * 12),
+            tenYear: formatCompactCurrency(academyMonthly * 12 * formData.simulationYears),
+            note: '생활비 상세 포함',
+            noteDetail: '자녀가 있을 때 입력한 학원비를 별도 행으로 함께 보여줍니다.',
+          } satisfies ResultRow,
+        ]
+      : []),
     ...(shouldShowCarCostRow
       ? [
           {

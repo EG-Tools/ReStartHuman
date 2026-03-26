@@ -22,6 +22,8 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
     formData.otherFixedMonthly +
     carMonthlyConverted
 
+  const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
+
   const livingExpenseMonthly =
     formData.livingCostInputMode === 'total'
       ? formData.livingCostMonthlyTotal
@@ -29,7 +31,7 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
         formData.necessitiesMonthly +
         formData.diningOutMonthly +
         formData.hobbyMonthly +
-        (formData.academyMonthly ?? 0) +
+        academyMonthly +
         formData.otherLivingMonthly
 
   const housingMonthlyCost =

@@ -134,6 +134,7 @@ export function renderQuestionContent({
                       value === 'yes'
                         ? Math.max(formData.childCount ?? 1, 1)
                         : 0,
+                    academyMonthly: value === 'yes' ? formData.academyMonthly ?? 0 : 0,
                   })
                 }
               />
@@ -854,9 +855,25 @@ export function renderQuestionContent({
                 }
               />
               <p className="screen-copy question-copy-note">
-                최소 10년, 최대 50년 결과를 시뮬레이션 합니다.
+                자주 쓰는 기간은 버튼으로 고르고, 1년부터 80년까지는 아래에서 직접 입력할 수 있습니다.
               </p>
             </section>
+            <QuestionNumberFields
+              fields={[
+                {
+                  key: 'simulationYears',
+                  label: '예상 현금흐름 반영 기간',
+                  value: formData.simulationYears,
+                  onChange: (value) => update('simulationYears', Math.min(Math.max(value, 1), 80)),
+                  display: 'number',
+                  suffix: '년',
+                  min: 1,
+                  step: 1,
+                  max: 80,
+                  helperText: '결과 화면에서도 같은 기준으로 바로 수정됩니다.',
+                },
+              ]}
+            />
           </div>
         )
       default:

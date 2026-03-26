@@ -25,14 +25,18 @@ const ageAssetBenchmarks = [
   { min: 60, max: Number.POSITIVE_INFINITY, label: '60세 이상', averageAsset: 600_950_000 },
 ] as const
 
-export const getLivingCostSnapshot = (formData: RetireCalcFormData) =>
-  formData.livingCostInputMode === 'total'
+export const getLivingCostSnapshot = (formData: RetireCalcFormData) => {
+  const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
+
+  return formData.livingCostInputMode === 'total'
     ? formData.livingCostMonthlyTotal
     : formData.foodMonthly +
-      formData.necessitiesMonthly +
-      formData.diningOutMonthly +
-      formData.hobbyMonthly +
-      formData.otherLivingMonthly
+        formData.necessitiesMonthly +
+        formData.diningOutMonthly +
+        formData.hobbyMonthly +
+        academyMonthly +
+        formData.otherLivingMonthly
+}
 
 export const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
   switch (riskLevel) {
