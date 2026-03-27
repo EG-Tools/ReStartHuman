@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kr-retire-calc-v9'
+const CACHE_NAME = 'restarthuman-alpha-v10'
 const toScopedUrl = (path) => new URL(path, self.registration.scope).toString()
 const APP_SHELL = [
   toScopedUrl('./'),

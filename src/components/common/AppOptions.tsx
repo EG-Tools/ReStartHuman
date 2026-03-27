@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { PrimaryButton } from './Ui'
+import { APP_VERSION_LABEL } from '../../config/appMeta'
 
 interface AppOptionsButtonProps {
   onClick: () => void
@@ -74,7 +75,7 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
         <section className="note-panel support-panel">
           <div className="support-panel-header">
             <div>
-              <p className="support-version-label">Version 0.10</p>
+              <p className="support-version-label">{APP_VERSION_LABEL}</p>
               <h2>개발자 후원</h2>
             </div>
             <span className="support-status-pill">준비중</span>

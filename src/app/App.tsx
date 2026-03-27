@@ -1,46 +1,19 @@
-import {
-  Suspense,
-  lazy,
-  startTransition,
-  useDeferredValue,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { Suspense, lazy, startTransition, useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
-import { QuestionScreen } from '../components/question/QuestionScreen'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
-import { calculateRetireScenario } from '../engine/calculator'
-import { useRetireCalcFlow } from '../hooks/useRetireCalcFlow'
+import { calculateAlphaScenario } from '../engine/calculator'
+import { useAlphaFlow } from '../hooks/useAlphaFlow'
+import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
+import { useViewportCssVars } from '../hooks/useViewportCssVars'
 import { useSaveSlots } from '../hooks/useSaveSlots'
 import { appRoutes } from './routes'
-import type { AppRoute } from './routes'
-import type { RetireCalcFormData, SaveSlotRecord } from '../types/retireCalc'
+import type { AlphaFormData, SaveSlotRecord } from '../types/alpha'
 
-type SaveSlotMode = 'load' | 'save' | 'manage'
-
-interface AppHistoryState {
-  __retireCalcNav: true
-  route: AppRoute
-  questionIndex: number
-  saveSlotMode: SaveSlotMode | null
-}
-
-const buildHistoryState = (
-  route: AppRoute,
-  questionIndex: number,
-  saveSlotMode: SaveSlotMode | null,
-): AppHistoryState => ({
-  __retireCalcNav: true,
-  route,
-  questionIndex,
-  saveSlotMode,
+const QuestionScreen = lazy(async () => {
+  const module = await import('../components/question/QuestionScreen')
+  return { default: module.QuestionScreen }
 })
-
-const defaultHistoryState = buildHistoryState(appRoutes.start, 0, null)
 
 const ResultScreen = lazy(async () => {
   const module = await import('../components/result/ResultScreen')
@@ -52,219 +25,107 @@ const SaveSlotModal = lazy(async () => {
   return { default: module.SaveSlotModal }
 })
 
-const isAppHistoryState = (value: unknown): value is AppHistoryState => {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
+const createCalculatorInput = (formData: AlphaFormData): AlphaFormData => ({
+  ...defaultFormData,
+  ...formData,
+})
 
-  const candidate = value as Partial<AppHistoryState>
-
-  return (
-    candidate.__retireCalcNav === true &&
-    typeof candidate.questionIndex === 'number' &&
-    (candidate.route === appRoutes.start ||
-      candidate.route === appRoutes.question ||
-      candidate.route === appRoutes.result) &&
-    (candidate.saveSlotMode === null ||
-      candidate.saveSlotMode === 'load' ||
-      candidate.saveSlotMode === 'save' ||
-      candidate.saveSlotMode === 'manage')
-  )
-}
+const hasPatchChanges = (
+  currentValue: AlphaFormData,
+  patch: Partial<AlphaFormData>,
+) => Object.entries(patch).some(([key, value]) => currentValue[key as keyof AlphaFormData] !== value)
 
 export default function App() {
-  const [formData, setFormData] = useState<RetireCalcFormData>(defaultFormData)
+  const [formData, setFormData] = useState<AlphaFormData>(defaultFormData)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
-  const flow = useRetireCalcFlow()
+  const flow = useAlphaFlow(formData)
   const saveSlots = useSaveSlots()
-  const historyReadyRef = useRef(false)
-  const isRestoringHistoryRef = useRef(false)
-  const deferredFormData = useDeferredValue(formData)
+  const calculationInput = useMemo(() => createCalculatorInput(formData), [formData])
+  const deferredCalculationInput = useDeferredValue(calculationInput)
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
   const result = useMemo(
-    () => (shouldRenderResult ? calculateRetireScenario(deferredFormData) : null),
-    [deferredFormData, shouldRenderResult],
+    () => (shouldRenderResult ? calculateAlphaScenario(deferredCalculationInput) : null),
+    [deferredCalculationInput, shouldRenderResult],
+  )
+  const optionsButton = useMemo(
+    () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
+    [],
   )
 
-  const navigationState = useMemo(
-    () => buildHistoryState(flow.route, flow.questionIndex, saveSlotMode),
-    [flow.questionIndex, flow.route, saveSlotMode],
-  )
+  useViewportCssVars()
 
-  const restoreFromHistory = useEffectEvent((state: AppHistoryState) => {
-    isRestoringHistoryRef.current = true
-    flow.syncFromHistory(state.route, state.questionIndex)
-    setSaveSlotMode(state.saveSlotMode)
+  useAppHistoryNavigation({
+    route: flow.route,
+    questionIndex: flow.questionIndex,
+    saveSlotMode,
+    onRestoreHistoryState: (state) => {
+      flow.syncFromHistory(state.route, state.questionIndex)
+      setSaveSlotMode(state.saveSlotMode)
+    },
   })
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
+  const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
+    startTransition(() => {
+      setFormData((currentValue) => {
+        if (!hasPatchChanges(currentValue, patch)) {
+          return currentValue
+        }
 
-    window.history.replaceState(defaultHistoryState, '', window.location.href)
-    historyReadyRef.current = true
-
-    const handlePopState = (event: PopStateEvent) => {
-      if (isAppHistoryState(event.state)) {
-        restoreFromHistory(event.state)
-        return
-      }
-
-      restoreFromHistory(defaultHistoryState)
-    }
-
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [restoreFromHistory])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const root = document.documentElement
-    const timerIds = new Set<number>()
-    let frameId: number | null = null
-    let lastViewportSize = ''
-
-    const syncViewportSize = () => {
-      const visualViewport = window.visualViewport
-      const viewportWidth = Math.round(
-        Math.max(window.innerWidth, document.documentElement.clientWidth || 0),
-      )
-      const viewportHeight = Math.round(
-        visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
-      )
-      const nextViewportSize = `${viewportWidth}x${viewportHeight}`
-
-      if (nextViewportSize === lastViewportSize) {
-        return
-      }
-
-      lastViewportSize = nextViewportSize
-      root.style.setProperty('--app-height', `${viewportHeight}px`)
-      root.style.setProperty('--app-width', `${viewportWidth}px`)
-    }
-
-    const clearScheduledViewportSync = () => {
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId)
-        frameId = null
-      }
-
-      timerIds.forEach((timerId) => {
-        window.clearTimeout(timerId)
+        return {
+          ...currentValue,
+          ...patch,
+        }
       })
-      timerIds.clear()
-    }
-
-    const queueViewportSync = () => {
-      clearScheduledViewportSync()
-      syncViewportSize()
-      frameId = window.requestAnimationFrame(() => {
-        frameId = null
-        syncViewportSize()
-      })
-
-      ;[120, 280, 520, 900].forEach((delay) => {
-        const timerId = window.setTimeout(() => {
-          syncViewportSize()
-          timerIds.delete(timerId)
-        }, delay)
-
-        timerIds.add(timerId)
-      })
-    }
-
-    queueViewportSync()
-
-    window.addEventListener('resize', queueViewportSync)
-    window.addEventListener('orientationchange', queueViewportSync)
-    window.addEventListener('pageshow', queueViewportSync)
-    window.visualViewport?.addEventListener('resize', queueViewportSync)
-    window.visualViewport?.addEventListener('scroll', queueViewportSync)
-
-    return () => {
-      clearScheduledViewportSync()
-      window.removeEventListener('resize', queueViewportSync)
-      window.removeEventListener('orientationchange', queueViewportSync)
-      window.removeEventListener('pageshow', queueViewportSync)
-      window.visualViewport?.removeEventListener('resize', queueViewportSync)
-      window.visualViewport?.removeEventListener('scroll', queueViewportSync)
-    }
+    })
   }, [])
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !historyReadyRef.current) {
-      return
-    }
-
-    if (isRestoringHistoryRef.current) {
-      isRestoringHistoryRef.current = false
-      return
-    }
-
-    if (
-      isAppHistoryState(window.history.state) &&
-      window.history.state.route === navigationState.route &&
-      window.history.state.questionIndex === navigationState.questionIndex &&
-      window.history.state.saveSlotMode === navigationState.saveSlotMode
-    ) {
-      return
-    }
-
-    window.history.pushState(navigationState, '', window.location.href)
-  }, [navigationState])
-
-  const patchFormData = (patch: Partial<RetireCalcFormData>) => {
-    startTransition(() => {
-      setFormData((currentValue) => ({
-        ...currentValue,
-        ...patch,
-      }))
-    })
-  }
-
-  const startFresh = () => {
+  const startFresh = useCallback(() => {
     startTransition(() => {
       setFormData(defaultFormData)
       flow.goToQuestion(0)
     })
-  }
+  }, [flow])
 
-  const handleLoadSlot = (slot: SaveSlotRecord) => {
-    startTransition(() => {
-      setFormData({ ...defaultFormData, ...slot.formData })
-      setSaveSlotMode(null)
-      flow.openResult()
-    })
-  }
+  const handleLoadSlot = useCallback(
+    (slot: SaveSlotRecord) => {
+      startTransition(() => {
+        setFormData({ ...defaultFormData, ...slot.formData })
+        setSaveSlotMode(null)
+        flow.openResult()
+      })
+    },
+    [flow],
+  )
 
-  const handleSaveSlot = (slotId: number) => {
-    saveSlots.saveSlot(slotId, formData, result ?? calculateRetireScenario(formData))
-    setSaveSlotMode(null)
-  }
+  const handleSaveSlot = useCallback(
+    (slotId: number, slotName: string) => {
+      saveSlots.saveSlot(
+        slotId,
+        formData,
+        result ?? calculateAlphaScenario(calculationInput),
+        slotName,
+      )
+    },
+    [calculationInput, formData, result, saveSlots],
+  )
 
-  const handleDeleteSlot = (slotId: number) => {
-    saveSlots.deleteSlot(slotId)
-  }
+  const handleDeleteSlot = useCallback(
+    (slotId: number) => {
+      saveSlots.deleteSlot(slotId)
+    },
+    [saveSlots],
+  )
 
-  const startOver = () => {
+  const startOver = useCallback(() => {
     startTransition(() => {
       setFormData(defaultFormData)
       setSaveSlotMode(null)
       flow.reset()
     })
-  }
-
-  const renderOptionsButton = () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />
+  }, [flow])
 
   return (
     <div className="app-shell">
@@ -276,22 +137,24 @@ export default function App() {
             <StartScreen
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
-              headerAction={renderOptionsButton()}
+              headerAction={optionsButton}
             />
           ) : null}
 
           {flow.route === appRoutes.question && flow.currentQuestion ? (
-            <QuestionScreen
-              question={flow.currentQuestion}
-              questionIndex={flow.questionIndex}
-              totalQuestions={flow.visibleQuestions.length}
-              formData={formData}
-              onBack={flow.previousQuestion}
-              onNext={flow.nextQuestion}
-              onSeekQuestion={flow.goToQuestion}
-              onPatchFormData={patchFormData}
-              headerAction={renderOptionsButton()}
-            />
+            <Suspense fallback={<section className="screen question-screen" />}>
+              <QuestionScreen
+                question={flow.currentQuestion}
+                questionIndex={flow.questionIndex}
+                totalQuestions={flow.visibleQuestions.length}
+                formData={formData}
+                onBack={flow.previousQuestion}
+                onNext={flow.nextQuestion}
+                onSeekQuestion={flow.goToQuestion}
+                onPatchFormData={patchFormData}
+                headerAction={optionsButton}
+              />
+            </Suspense>
           ) : null}
 
           {flow.route === appRoutes.result && result ? (
@@ -301,9 +164,9 @@ export default function App() {
                 result={result}
                 onEditAnswers={() => flow.goToQuestion(0)}
                 onStartOver={startOver}
-                onOpenSaveSlots={() => setSaveSlotMode('manage')}
+                onOpenSaveSlots={() => setSaveSlotMode('save')}
                 onPatchFormData={patchFormData}
-                headerAction={renderOptionsButton()}
+                headerAction={optionsButton}
               />
             </Suspense>
           ) : null}
@@ -316,7 +179,9 @@ export default function App() {
             mode={saveSlotMode}
             slotCount={saveSlots.slotCount}
             slotsById={saveSlots.slotsById}
+            canSave={flow.route === appRoutes.result && result !== null}
             onClose={() => setSaveSlotMode(null)}
+            onModeChange={(nextMode: 'load' | 'save') => setSaveSlotMode(nextMode)}
             onLoad={handleLoadSlot}
             onSave={handleSaveSlot}
             onDelete={handleDeleteSlot}

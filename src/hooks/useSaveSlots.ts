@@ -1,38 +1,17 @@
-﻿import { useMemo, useState } from 'react'
-import type {
-  RetireCalcFormData,
-  RetireCalcResult,
-  SaveSlotRecord,
-} from '../types/retireCalc'
+import { useCallback, useMemo, useState } from 'react'
+import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
+import {
+  SAVE_SLOT_COUNT,
+  createSaveSlotRecord,
+  readSaveSlotRecords,
+  removeSaveSlotRecord,
+  sortSaveSlotRecords,
+  writeSaveSlotRecord,
+} from '../utils/saveSlots'
 
-const SLOT_COUNT = 5
-const STORAGE_KEY_PREFIX = 'kr-retire-calc-slot-'
+const getBrowserStorage = () => (typeof window === 'undefined' ? undefined : window.localStorage)
 
-const getStorageKey = (slotId: number) => `${STORAGE_KEY_PREFIX}${slotId}`
-
-const getDefaultSlotName = (slotId: number) => `은퇴계산${slotId}`
-
-const readSlots = (): SaveSlotRecord[] => {
-  if (typeof window === 'undefined') {
-    return []
-  }
-
-  return Array.from({ length: SLOT_COUNT }, (_, index) => index + 1)
-    .map((slotId) => {
-      const rawValue = window.localStorage.getItem(getStorageKey(slotId))
-
-      if (!rawValue) {
-        return null
-      }
-
-      try {
-        return JSON.parse(rawValue) as SaveSlotRecord
-      } catch {
-        return null
-      }
-    })
-    .filter((slot): slot is SaveSlotRecord => slot !== null)
-}
+const readSlots = (): SaveSlotRecord[] => readSaveSlotRecords(getBrowserStorage())
 
 export const useSaveSlots = () => {
   const [slots, setSlots] = useState<SaveSlotRecord[]>(() => readSlots())
@@ -47,46 +26,43 @@ export const useSaveSlots = () => {
     return slotMap
   }, [slots])
 
-  const replaceSlot = (nextRecord: SaveSlotRecord) => {
-    setSlots((currentSlots) =>
-      [...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId), nextRecord].sort(
-        (left, right) => left.slotId - right.slotId,
-      ),
-    )
-  }
+  const replaceSlot = useCallback((nextRecord: SaveSlotRecord) => {
+    setSlots((currentSlots) => sortSaveSlotRecords([
+      ...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId),
+      nextRecord,
+    ]))
+  }, [])
 
-  const saveSlot = (
+  const saveSlot = useCallback((
     slotId: number,
-    formData: RetireCalcFormData,
-    result: RetireCalcResult,
+    formData: AlphaFormData,
+    result: AlphaResult,
+    slotName?: string,
   ) => {
-    if (typeof window === 'undefined') {
+    const storage = getBrowserStorage()
+
+    if (!storage) {
       return
     }
 
-    const record: SaveSlotRecord = {
-      slotId,
-      name: getDefaultSlotName(slotId),
-      savedAt: new Date().toISOString(),
-      formData,
-      result,
-    }
-
-    window.localStorage.setItem(getStorageKey(slotId), JSON.stringify(record))
+    const record = createSaveSlotRecord(slotId, formData, result, slotName)
+    writeSaveSlotRecord(storage, record)
     replaceSlot(record)
-  }
+  }, [replaceSlot])
 
-  const deleteSlot = (slotId: number) => {
-    if (typeof window === 'undefined') {
+  const deleteSlot = useCallback((slotId: number) => {
+    const storage = getBrowserStorage()
+
+    if (!storage) {
       return
     }
 
-    window.localStorage.removeItem(getStorageKey(slotId))
+    removeSaveSlotRecord(storage, slotId)
     setSlots((currentSlots) => currentSlots.filter((slot) => slot.slotId !== slotId))
-  }
+  }, [])
 
   return {
-    slotCount: SLOT_COUNT,
+    slotCount: SAVE_SLOT_COUNT,
     slots,
     slotsById,
     saveSlot,

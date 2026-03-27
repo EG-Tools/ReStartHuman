@@ -1,0 +1,75 @@
+/* Result summary card value typography */
+
+/* ------------------------------------------------------------------
+   결과 요약 카드 숫자 전용 규칙
+   - summary-card h2 공통 스타일과 분리해서 여기만 보면 됩니다.
+   - 숫자 / 억 / 만원 / 보조 숫자 정렬은 아래 묶음만 수정합니다.
+------------------------------------------------------------------- */
+.summary-card.tone-neutral,
+.summary-card.tone-surplus,
+.summary-card.tone-deficit {
+  background: #112f29;
+  border-color: rgba(104, 164, 143, 0.22);
+}
+
+.summary-card p {
+  color: rgba(224, 237, 231, 0.76);
+}
+
+.summary-card .summary-value-heading {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: clamp(1.56rem, 3.6vw, 2.4rem);
+  text-align: right;
+}
+
+.summary-card .summary-value {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.12em;
+  flex-wrap: nowrap;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 1;
+  font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.summary-card .summary-value-chunk {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.12em;
+  white-space: nowrap;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.summary-card .summary-value-number {
+  display: inline-block;
+  font-size: 1em;
+  line-height: 1;
+}
+
+.summary-card .summary-value-unit {
+  display: inline-block;
+  font-size: 0.5em;
+  line-height: 1;
+  transform: translateY(-0.02em);
+}
+
+.summary-card.tone-surplus .summary-value {
+  color: #d8f4df;
+}
+
+.summary-card.tone-neutral .summary-value {
+  color: #e4e8cb;
+}
+
+.summary-card.tone-deficit .summary-value {
+  color: #ffd2c6;
+}

@@ -1,8 +1,11 @@
-import type { RetireCalcFormData } from '../types/retireCalc'
+import type { AlphaFormData } from '../types/alpha'
 
-export const defaultFormData: RetireCalcFormData = {
+export const defaultFormData: AlphaFormData = {
   householdType: 'single',
-  simulationYears: 10,
+  simulationYears: 30,
+
+  hasChildren: false,
+  childCount: 0,
 
   housingType: 'own',
   homeMarketValue: 0,
@@ -17,6 +20,16 @@ export const defaultFormData: RetireCalcFormData = {
   monthlyRentAmount: 0,
   maintenanceIncludedInRent: true,
   monthlyMaintenanceFee: 0,
+
+  landValue: 0,
+  landOwnershipType: 'mineOnly',
+  myLandShare: 100,
+  spouseLandShare: 0,
+
+  otherPropertyOfficialValue: 0,
+  otherPropertyOwnershipType: 'mineOnly',
+  myOtherPropertyShare: 100,
+  spouseOtherPropertyShare: 0,
 
   taxableAccountAssets: 0,
   isaAssets: 0,
@@ -58,7 +71,11 @@ export const defaultFormData: RetireCalcFormData = {
   maintenanceMonthly: 0,
   telecomMonthly: 0,
   nationalPensionMonthly: 0,
+  hasCar: false,
+  currentCarMarketValue: 0,
   carYearlyCost: 0,
+  loanInterestMonthly: 0,
+  loanInterestYears: 0,
   otherFixedMonthly: 0,
 
   livingCostInputMode: 'total',
@@ -67,6 +84,7 @@ export const defaultFormData: RetireCalcFormData = {
   necessitiesMonthly: 0,
   diningOutMonthly: 0,
   hobbyMonthly: 0,
+  academyMonthly: 0,
   otherLivingMonthly: 0,
 
   inflationEnabled: true,
@@ -74,5 +92,3 @@ export const defaultFormData: RetireCalcFormData = {
   startingCashReserve: 100_000_000,
   currentAge: 50,
 }
-
-

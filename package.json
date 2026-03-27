@@ -1,12 +1,13 @@
 {
-  "name": "kr-retire-calc-prototype",
+  "name": "restarthuman-alpha",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.25.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "tsc -p tsconfig.test.json && node scripts/prepare-node-tests.mjs && node scripts/run-node-tests.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

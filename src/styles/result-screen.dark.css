@@ -1,0 +1,58 @@
+/* 결과 화면 전용 다크 테마 */
+
+.result-table thead {
+  background: rgba(46, 167, 170, 0.14);
+}
+
+.result-table th:first-child,
+.result-table td:first-child {
+  background: rgba(14, 21, 25, 0.98);
+}
+
+.result-table thead th:first-child {
+  background: rgba(18, 35, 39, 0.98);
+}
+
+.projection-panel .input-shell {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.projection-panel .table-edit-field,
+.result-screen .table-edit-field {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.table-edit-field {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.table-edit-reset {
+  background: rgba(46, 167, 170, 0.12);
+  color: #9fe7e9;
+}
+
+.inflation-toggle {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.result-table th:nth-child(3),
+.result-table th:nth-child(4),
+.result-table th:nth-child(5),
+.result-table td:nth-child(3),
+.result-table td:nth-child(4),
+.result-table td:nth-child(5) {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .result-table th:first-child,
+  .result-table td:first-child {
+    background: rgba(14, 21, 25, 0.98);
+  }
+
+  .result-table thead th:first-child {
+    background: rgba(18, 35, 39, 0.98);
+  }
+}

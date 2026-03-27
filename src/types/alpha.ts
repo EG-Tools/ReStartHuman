@@ -18,6 +18,7 @@ export type QuestionStepId =
   | 'household'
   | 'housingType'
   | 'housingDetails'
+  | 'propertyAssets'
   | 'assets'
   | 'dividends'
   | 'isa'
@@ -28,9 +29,12 @@ export type QuestionStepId =
   | 'livingCosts'
   | 'cashReserve'
 
-export interface RetireCalcFormData {
+export interface AlphaFormData {
   householdType: HouseholdType
   simulationYears: number
+
+  hasChildren?: boolean
+  childCount?: number
 
   housingType: HousingType
   homeMarketValue: number
@@ -45,6 +49,16 @@ export interface RetireCalcFormData {
   monthlyRentAmount: number
   maintenanceIncludedInRent: boolean
   monthlyMaintenanceFee: number
+
+  landValue: number
+  landOwnershipType: OwnershipType
+  myLandShare: number
+  spouseLandShare: number
+
+  otherPropertyOfficialValue: number
+  otherPropertyOwnershipType: OwnershipType
+  myOtherPropertyShare: number
+  spouseOtherPropertyShare: number
 
   taxableAccountAssets: number
   isaAssets: number
@@ -86,7 +100,11 @@ export interface RetireCalcFormData {
   maintenanceMonthly: number
   telecomMonthly: number
   nationalPensionMonthly: number
+  hasCar: boolean
+  currentCarMarketValue: number
   carYearlyCost: number
+  loanInterestMonthly: number
+  loanInterestYears: number
   otherFixedMonthly: number
 
   livingCostInputMode: 'total' | 'detailed'
@@ -95,6 +113,7 @@ export interface RetireCalcFormData {
   necessitiesMonthly: number
   diningOutMonthly: number
   hobbyMonthly: number
+  academyMonthly?: number
   otherLivingMonthly: number
 
   inflationEnabled: boolean
@@ -137,7 +156,15 @@ export interface CashBalancePoint {
   balance: number
 }
 
-export interface RetireCalcResult {
+export interface HoldingTaxBreakdownItem {
+  key: 'home' | 'land' | 'otherProperty'
+  label: string
+  annual: number
+  monthly: number
+  baseValue: number
+}
+
+export interface AlphaResult {
   policyBaseDate: string
   policyStatus: string
 
@@ -181,6 +208,7 @@ export interface RetireCalcResult {
   healthInsuranceSource: 'estimated' | 'manual'
   holdingTaxAnnual: number
   holdingTaxMonthly: number
+  holdingTaxBreakdown: HoldingTaxBreakdownItem[]
 
   pensionMonthlyApplied: number
   otherIncomeMonthlyApplied: number
@@ -210,15 +238,13 @@ export interface SaveSlotRecord {
   slotId: number
   name: string
   savedAt: string
-  formData: RetireCalcFormData
-  result: RetireCalcResult
+  formData: AlphaFormData
+  result: AlphaResult
 }
 
 export interface QuestionStep {
   id: QuestionStepId
   title: string
   description: string
-  visibility: (formData: RetireCalcFormData) => boolean
+  visibility: (formData: AlphaFormData) => boolean
 }
-
-
