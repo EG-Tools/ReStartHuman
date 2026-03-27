@@ -1,6 +1,7 @@
-﻿export const appRoutes = {
+export const appRoutes = {
   start: 'start',
   question: 'question',
+  ad: 'ad',
   result: 'result',
 } as const
 

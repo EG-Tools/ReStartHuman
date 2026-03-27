@@ -15,6 +15,11 @@ const QuestionScreen = lazy(async () => {
   return { default: module.QuestionScreen }
 })
 
+const ResultAdScreen = lazy(async () => {
+  const module = await import('../components/ad/ResultAdScreen')
+  return { default: module.ResultAdScreen }
+})
+
 const ResultScreen = lazy(async () => {
   const module = await import('../components/result/ResultScreen')
   return { default: module.ResultScreen }
@@ -94,7 +99,7 @@ export default function App() {
       startTransition(() => {
         setFormData({ ...defaultFormData, ...slot.formData })
         setSaveSlotMode(null)
-        flow.openResult()
+        flow.openAd()
       })
     },
     [flow],
@@ -152,6 +157,16 @@ export default function App() {
                 onNext={flow.nextQuestion}
                 onSeekQuestion={flow.goToQuestion}
                 onPatchFormData={patchFormData}
+                headerAction={optionsButton}
+              />
+            </Suspense>
+          ) : null}
+
+          {flow.route === appRoutes.ad ? (
+            <Suspense fallback={<section className="screen ad-screen" />}>
+              <ResultAdScreen
+                onContinue={flow.openResult}
+                onEditAnswers={() => flow.goToQuestion(0)}
                 headerAction={optionsButton}
               />
             </Suspense>

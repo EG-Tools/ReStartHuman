@@ -22,6 +22,7 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
   const currentQuestion = visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0] ?? questionFlow[0]
 
   const openQuestions = useCallback(() => setRoute(appRoutes.question), [])
+  const openAd = useCallback(() => setRoute(appRoutes.ad), [])
   const openResult = useCallback(() => setRoute(appRoutes.result), [])
   const returnToQuestions = useCallback(() => setRoute(appRoutes.question), [])
 
@@ -32,7 +33,7 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
 
   const nextQuestion = useCallback(() => {
     if (boundedQuestionIndex >= visibleQuestions.length - 1) {
-      setRoute(appRoutes.result)
+      setRoute(appRoutes.ad)
       return
     }
 
@@ -66,6 +67,7 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
       questionIndex: boundedQuestionIndex,
       currentQuestion,
       openQuestions,
+      openAd,
       openResult,
       returnToQuestions,
       reset,
@@ -79,6 +81,7 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
       currentQuestion,
       goToQuestion,
       nextQuestion,
+      openAd,
       openQuestions,
       openResult,
       previousQuestion,

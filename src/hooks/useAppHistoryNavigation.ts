@@ -47,6 +47,7 @@ const isAppHistoryState = (value: unknown): value is AppHistoryState => {
     typeof candidate.questionIndex === 'number' &&
     (candidate.route === appRoutes.start ||
       candidate.route === appRoutes.question ||
+      candidate.route === appRoutes.ad ||
       candidate.route === appRoutes.result) &&
     (candidate.saveSlotMode === null ||
       candidate.saveSlotMode === 'load' ||
