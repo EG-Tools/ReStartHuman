@@ -4,7 +4,7 @@ import { questionFlow } from '../data/questionFlow'
 import type { AppRoute } from '../app/routes'
 import type { AlphaFormData } from '../types/alpha'
 
-export const useAlphaFlow = (formData: AlphaFormData) => {
+export const useAlphaFlow = (formData: AlphaFormData, shouldBypassAd = false) => {
   const [route, setRoute] = useState<AppRoute>(appRoutes.start)
   const [questionIndex, setQuestionIndex] = useState(0)
 
@@ -19,10 +19,14 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
   )
 
   const boundedQuestionIndex = clampQuestionIndex(questionIndex)
-  const currentQuestion = visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0] ?? questionFlow[0]
+  const currentQuestion =
+    visibleQuestions[boundedQuestionIndex] ?? visibleQuestions[0] ?? questionFlow[0]
 
   const openQuestions = useCallback(() => setRoute(appRoutes.question), [])
-  const openAd = useCallback(() => setRoute(appRoutes.ad), [])
+  const openAd = useCallback(
+    () => setRoute(shouldBypassAd ? appRoutes.result : appRoutes.ad),
+    [shouldBypassAd],
+  )
   const openResult = useCallback(() => setRoute(appRoutes.result), [])
   const returnToQuestions = useCallback(() => setRoute(appRoutes.question), [])
 
@@ -33,12 +37,12 @@ export const useAlphaFlow = (formData: AlphaFormData) => {
 
   const nextQuestion = useCallback(() => {
     if (boundedQuestionIndex >= visibleQuestions.length - 1) {
-      setRoute(appRoutes.ad)
+      setRoute(shouldBypassAd ? appRoutes.result : appRoutes.ad)
       return
     }
 
     setQuestionIndex(boundedQuestionIndex + 1)
-  }, [boundedQuestionIndex, visibleQuestions.length])
+  }, [boundedQuestionIndex, shouldBypassAd, visibleQuestions.length])
 
   const previousQuestion = useCallback(() => {
     setQuestionIndex(Math.max(boundedQuestionIndex - 1, 0))

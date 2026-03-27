@@ -1619,3 +1619,90 @@ p {
     width: 100%;
   }
 }
+
+.settings-modal {
+  position: relative;
+}
+
+.support-status-pill.is-active {
+  border-color: rgba(62, 207, 142, 0.28);
+  background: rgba(62, 207, 142, 0.14);
+  color: var(--good);
+}
+
+.support-note {
+  color: var(--muted);
+}
+
+.support-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 17, 19, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.support-confirm-dialog {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.support-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.support-confirm-actions .button {
+  flex: 1 1 0;
+  min-width: 140px;
+}
+
+.ad-screen {
+  flex: 1 1 auto;
+}
+
+.ad-screen-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ad-interstitial-card {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .ad-screen {
+    min-height: 100dvh;
+    height: 100dvh;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .ad-screen-layout {
+    justify-content: space-between;
+  }
+
+  .ad-interstitial-card {
+    justify-content: space-between;
+  }
+
+  .support-confirm-backdrop {
+    padding: 18px;
+  }
+
+  .support-confirm-actions .button {
+    width: 100%;
+  }
+}

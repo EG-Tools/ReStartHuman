@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { PrimaryButton } from './Ui'
 import { APP_VERSION_LABEL } from '../../config/appMeta'
 
@@ -8,6 +8,8 @@ interface AppOptionsButtonProps {
 
 interface AppOptionsModalProps {
   onClose: () => void
+  isAdFreeEnabled: boolean
+  onEnableAdFree: () => void
 }
 
 function SettingsIcon() {
@@ -38,10 +40,21 @@ export function AppOptionsButton({ onClick }: AppOptionsButtonProps) {
   )
 }
 
-export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
+export function AppOptionsModal({
+  onClose,
+  isAdFreeEnabled,
+  onEnableAdFree,
+}: AppOptionsModalProps) {
+  const [isSupportPromptOpen, setIsSupportPromptOpen] = useState(false)
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (isSupportPromptOpen) {
+          setIsSupportPromptOpen(false)
+          return
+        }
+
         onClose()
       }
     }
@@ -51,14 +64,16 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [onClose])
+  }, [isSupportPromptOpen, onClose])
+
+  const handleConfirmSupport = () => {
+    onEnableAdFree()
+    setIsSupportPromptOpen(false)
+    onClose()
+  }
 
   return (
-    <div
-      className="modal-backdrop settings-modal-backdrop"
-      role="presentation"
-      onClick={onClose}
-    >
+    <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
       <div
         className="modal-panel settings-modal"
         role="dialog"
@@ -78,22 +93,29 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
               <p className="support-version-label">{APP_VERSION_LABEL}</p>
               <h2>개발자 후원</h2>
             </div>
-            <span className="support-status-pill">준비중</span>
+            <span className={`support-status-pill${isAdFreeEnabled ? ' is-active' : ''}`}>
+              {isAdFreeEnabled ? '광고 생략 활성' : '임시 후원'}
+            </span>
           </div>
 
           <p className="support-copy">
-            후원 기능이 연결되면 한 번이라도 후원한 사용자에게 결과 전 광고를 생략하는 흐름을 붙일 계획입니다.
+            {isAdFreeEnabled
+              ? '이 기기에서는 결과 전 광고를 건너뜁니다. 임시 구현이라 브라우저 저장소를 지우면 다시 광고가 보일 수 있습니다.'
+              : '후원 기능을 임시로 연결했습니다. 한 번 활성화하면 이 기기에서는 결과 전 광고를 건너뜁니다.'}
           </p>
 
           <div className="support-actions">
-            <PrimaryButton variant="secondary" disabled>
-              후원 3,000원
+            <PrimaryButton
+              variant={isAdFreeEnabled ? 'primary' : 'secondary'}
+              onClick={() => setIsSupportPromptOpen(true)}
+            >
+              {isAdFreeEnabled ? '광고 없이 사용 중' : '후원 1년에 3,000원'}
             </PrimaryButton>
           </div>
 
           <div className="support-option-list">
             <div className="support-option-row">
-              <span>회사명</span>
+              <span>제작자명</span>
               <strong>EGSY</strong>
             </div>
             <div className="support-option-row">
@@ -106,6 +128,34 @@ export function AppOptionsModal({ onClose }: AppOptionsModalProps) {
             닫기
           </PrimaryButton>
         </section>
+
+        {isSupportPromptOpen ? (
+          <div
+            className="support-confirm-backdrop"
+            role="presentation"
+            onClick={() => setIsSupportPromptOpen(false)}
+          >
+            <div
+              className="support-confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label="후원 확인"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="eyebrow">후원 확인</p>
+              <h2>후원하겠습니까?</h2>
+              <p className="support-note">
+                예를 누르면 이 기기에서는 결과 전 광고를 임시로 숨깁니다.
+              </p>
+              <div className="support-confirm-actions">
+                <PrimaryButton onClick={handleConfirmSupport}>예</PrimaryButton>
+                <PrimaryButton variant="secondary" onClick={() => setIsSupportPromptOpen(false)}>
+                  아니오
+                </PrimaryButton>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

@@ -1,8 +1,18 @@
-import { Suspense, lazy, startTransition, useCallback, useDeferredValue, useMemo, useState } from 'react'
+import {
+  Suspense,
+  lazy,
+  startTransition,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateAlphaScenario } from '../engine/calculator'
+import { useAdSupport } from '../hooks/useAdSupport'
 import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
 import { useViewportCssVars } from '../hooks/useViewportCssVars'
@@ -45,7 +55,8 @@ export default function App() {
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
-  const flow = useAlphaFlow(formData)
+  const adSupport = useAdSupport()
+  const flow = useAlphaFlow(formData, adSupport.isAdFreeEnabled)
   const saveSlots = useSaveSlots()
   const calculationInput = useMemo(() => createCalculatorInput(formData), [formData])
   const deferredCalculationInput = useDeferredValue(calculationInput)
@@ -60,10 +71,13 @@ export default function App() {
     [],
   )
 
+  const flowRoute = flow.route
+  const openResult = flow.openResult
+
   useViewportCssVars()
 
   useAppHistoryNavigation({
-    route: flow.route,
+    route: flowRoute,
     questionIndex: flow.questionIndex,
     saveSlotMode,
     onRestoreHistoryState: (state) => {
@@ -71,6 +85,16 @@ export default function App() {
       setSaveSlotMode(state.saveSlotMode)
     },
   })
+
+  useEffect(() => {
+    if (!adSupport.isAdFreeEnabled || flowRoute !== appRoutes.ad) {
+      return
+    }
+
+    startTransition(() => {
+      openResult()
+    })
+  }, [adSupport.isAdFreeEnabled, flowRoute, openResult])
 
   const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
     startTransition(() => {
@@ -162,7 +186,7 @@ export default function App() {
             </Suspense>
           ) : null}
 
-          {flow.route === appRoutes.ad ? (
+          {flow.route === appRoutes.ad && !adSupport.isAdFreeEnabled ? (
             <Suspense fallback={<section className="screen ad-screen" />}>
               <ResultAdScreen
                 onContinue={flow.openResult}
@@ -204,7 +228,13 @@ export default function App() {
         </Suspense>
       ) : null}
 
-      {isOptionsOpen ? <AppOptionsModal onClose={() => setIsOptionsOpen(false)} /> : null}
+      {isOptionsOpen ? (
+        <AppOptionsModal
+          onClose={() => setIsOptionsOpen(false)}
+          isAdFreeEnabled={adSupport.isAdFreeEnabled}
+          onEnableAdFree={adSupport.enableAdFree}
+        />
+      ) : null}
     </div>
   )
 }
