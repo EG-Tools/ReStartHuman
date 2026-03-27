@@ -5,6 +5,7 @@ import {
   calculateExpenses,
   estimateHealthInsurance,
   estimateHoldingTax,
+  getDependentHealthInsuranceAssessment,
   getAgeQualifiedOtherIncomeMonthly,
   getAgeQualifiedPensionMonthly,
 } from './calculator.costs'
@@ -17,6 +18,7 @@ import {
   calculateComprehensiveTax,
   calculateEstimatedComprehensiveIncomeTax,
   calculateIsaTax,
+  evaluateEstimatedComprehensiveTaxReview,
   calculateRentalIncomeTax,
   calculateTaxableStream,
   getEstimatedComprehensiveTaxBaseAnnual,
@@ -98,6 +100,17 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   pensionMonthlyAmount: sanitizeMoney(formData.pensionMonthlyAmount),
   salaryMonthly: sanitizeMoney(formData.salaryMonthly),
   healthInsuranceOverrideMonthly: sanitizeOptionalMoney(formData.healthInsuranceOverrideMonthly),
+  dependentBusinessRegistrationStatus:
+    formData.dependentBusinessRegistrationStatus === 'yes' ||
+    formData.dependentBusinessRegistrationStatus === 'no'
+      ? formData.dependentBusinessRegistrationStatus
+      : 'unknown',
+  dependentRentalIncomeType:
+    formData.dependentRentalIncomeType === 'housing' ||
+    formData.dependentRentalIncomeType === 'commercial'
+      ? formData.dependentRentalIncomeType
+      : 'unknown',
+  dependentFreelanceAnnualProfit: sanitizeMoney(formData.dependentFreelanceAnnualProfit),
   insuranceMonthly: sanitizeMoney(formData.insuranceMonthly),
   insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears) || 10),
   maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
@@ -171,6 +184,12 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     formData.currentAge,
     pensionMonthlyApplied,
   )
+  const dependentHealthInsuranceAssessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross: totalDividend.annualGross,
+    age: formData.currentAge,
+    pensionMonthly: pensionMonthlyApplied,
+  })
   const healthInsuranceMonthly =
     formData.healthInsuranceOverrideMonthly ?? estimatedHealthInsurance
   const holdingTax = estimateHoldingTax(formData)
@@ -179,6 +198,12 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     rentalIncomeMonthlyApplied > 0
       ? calculateRentalIncomeTax(rentalIncomeMonthlyApplied * 12)
       : calculateRentalIncomeTax(0)
+  const estimatedComprehensiveTaxReview = evaluateEstimatedComprehensiveTaxReview({
+    formData,
+    age: formData.currentAge,
+    nationalPensionMonthly: pensionMonthlyApplied,
+    totalFinancialIncomeAnnual: totalDividend.annualGross,
+  })
   const totalIncomeMonthly =
     totalDividend.monthlyNet + otherIncomeMonthlyApplied + pensionMonthlyApplied
   const monthlyUsableCash = roundCurrency(
@@ -245,6 +270,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     rentalIncomeTaxMonthly: rentalIncomeTax.monthlyTax,
     healthInsuranceMonthly,
     healthInsuranceSource: formData.healthInsuranceOverrideMonthly === null ? 'estimated' : 'manual',
+    healthInsuranceReviewLevel: dependentHealthInsuranceAssessment.level,
+    healthInsuranceReviewReasons: dependentHealthInsuranceAssessment.reasons,
     holdingTaxAnnual: holdingTax.annual,
     holdingTaxMonthly: holdingTax.monthly,
     holdingTaxBreakdown: holdingTax.breakdown,
@@ -257,6 +284,9 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     projectionEstimatedComprehensiveIncomeTaxTotal:
       cashProjection.cumulativeEstimatedComprehensiveIncomeTax,
     projectionEstimatedLocalIncomeTaxTotal: cashProjection.cumulativeEstimatedLocalIncomeTax,
+    estimatedComprehensiveTaxReviewLevel: estimatedComprehensiveTaxReview.level,
+    estimatedComprehensiveTaxReviewReasons: estimatedComprehensiveTaxReview.reasons,
+    rentalSeparateTaxationOption: estimatedComprehensiveTaxReview.rentalSeparateTaxationOption,
     carMonthlyConverted: expenses.carMonthlyConverted,
     housingMonthlyCost: expenses.housingMonthlyCost,
     fixedExpenseMonthly: expenses.fixedExpenseMonthly,

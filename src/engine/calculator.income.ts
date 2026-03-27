@@ -5,8 +5,10 @@ import type {
   IsaType,
   AlphaFormData,
   IncomeCategory,
+  ReviewLevel,
 } from '../types/alpha'
 import { getAgeQualifiedIncomeCategoryMonthly } from '../utils/incomeStreams'
+import { formatCompactCurrency } from '../utils/format'
 import {
   createDividendStream,
   type ComprehensiveTaxCalculation,
@@ -258,5 +260,77 @@ export const calculateComprehensiveTax = (
     ),
     thresholdAnnual,
     breakdown,
+  }
+}
+type EstimatedComprehensiveTaxReview = {
+  level: ReviewLevel
+  reasons: string[]
+  rentalSeparateTaxationOption: boolean
+}
+
+export const evaluateEstimatedComprehensiveTaxReview = ({
+  formData,
+  age,
+  nationalPensionMonthly,
+  totalFinancialIncomeAnnual,
+}: {
+  formData: AlphaFormData
+  age: number
+  nationalPensionMonthly: number
+  totalFinancialIncomeAnnual: number
+}): EstimatedComprehensiveTaxReview => {
+  const businessMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
+  const freelanceMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'freelance', age)
+  const miscMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'misc', age)
+  const otherPensionMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'otherPension', age)
+  const rentalAnnual = getAgeQualifiedIncomeCategoryMonthly(formData, 'rental', age) * 12
+  const financialThresholdAnnual = policyConfig.comprehensiveIncomeTax.financialIncomeThresholdAnnual
+  const rentalSeparateTaxationOption =
+    rentalAnnual > 0 &&
+    formData.dependentRentalIncomeType === 'housing' &&
+    rentalAnnual <= policyConfig.rentalIncomeTax.separateTaxationThresholdAnnual
+  const reasons: string[] = []
+
+  if (
+    businessMonthly > 0 ||
+    freelanceMonthly > 0 ||
+    miscMonthly > 0 ||
+    otherPensionMonthly > 0 ||
+    nationalPensionMonthly > 0
+  ) {
+    reasons.push('사업·프리랜서·기타·연금 소득이 있어 종합소득세 신고 검토가 필요합니다.')
+  }
+
+  if (rentalAnnual > 0) {
+    reasons.push(
+      rentalSeparateTaxationOption
+        ? '주택임대소득은 연 ' +
+            formatCompactCurrency(rentalAnnual) +
+            ' 수준이라 분리과세 선택 가능성을 함께 볼 수 있습니다.'
+        : '임대소득이 있어 과세 방식 확인이 필요합니다.',
+    )
+  }
+
+  if (totalFinancialIncomeAnnual > financialThresholdAnnual) {
+    reasons.push(
+      '금융소득이 연 ' +
+        formatCompactCurrency(totalFinancialIncomeAnnual) +
+        '로 2,000만원 기준을 넘어 종합과세 검토가 필요합니다.',
+    )
+  }
+
+  const level: ReviewLevel =
+    totalFinancialIncomeAnnual > financialThresholdAnnual ||
+    (businessMonthly > 0 && rentalAnnual > 0) ||
+    (businessMonthly > 0 && totalFinancialIncomeAnnual > financialThresholdAnnual)
+      ? 'high'
+      : reasons.length > 0
+        ? 'review'
+        : 'none'
+
+  return {
+    level,
+    reasons: Array.from(new Set(reasons)),
+    rentalSeparateTaxationOption,
   }
 }

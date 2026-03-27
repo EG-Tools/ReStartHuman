@@ -59,6 +59,18 @@ export const yesNoOptions = [
   { value: 'no', label: '아니오' },
 ] as const
 
+export const registrationStatusOptions = [
+  { value: 'yes', label: '예' },
+  { value: 'no', label: '아니오' },
+  { value: 'unknown', label: '잘 모르겠음' },
+] as const
+
+export const rentalIncomeTypeOptions = [
+  { value: 'housing', label: '주택임대' },
+  { value: 'commercial', label: '상가·기타' },
+  { value: 'unknown', label: '잘 모르겠음' },
+] as const
+
 export const simulationYearOptions = [
   { value: '10', label: '10년' },
   { value: '30', label: '30년' },

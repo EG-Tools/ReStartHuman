@@ -174,7 +174,21 @@ export const getHealthInsuranceTypeSummary = (
   }
 }
 
+const getHealthInsuranceInterpretationMessage = (
+  result: AlphaResult,
+  formData: AlphaFormData,
+) => {
+  if (
+    formData.healthInsuranceType === 'dependent' &&
+    result.healthInsuranceReviewLevel !== 'none'
+  ) {
+    return `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. 피부양자 기준으로 입력했지만 ${result.healthInsuranceReviewReasons.join(' ')} 실제 판정은 공단 또는 전문가 확인이 필요합니다.`
+  }
 
+  return result.healthInsuranceMonthly >= 1_000_000
+    ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보고 월 유입 대비 부담이 큰 편으로 추정했습니다.`
+    : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`
+}
 
 const getIncomeInterpretationMessage = (result: AlphaResult, formData: AlphaFormData) => {
   const visibleIncomeItems = result.incomeBreakdown.filter(
@@ -213,12 +227,14 @@ const getIncomeInterpretationMessage = (result: AlphaResult, formData: AlphaForm
           result.projectionEstimatedLocalIncomeTaxTotal > 0
         ? '종합소득세와 지방소득세는 추정값이며 연금 시작 나이와 소득 반영 기간에 따라 이후 구간부터 반영합니다.'
         : ''
+  const taxReviewMessage = result.estimatedComprehensiveTaxReviewReasons.join(' ')
 
   const messages = [
     currentIncomeSummary ? `${currentIncomeSummary}이 현재 월 유입에 반영됩니다.` : '',
     rentalTaxMessage,
     durationSummary,
     deferredIncomeSummary,
+    taxReviewMessage,
     estimatedTaxMessage,
   ].filter(Boolean)
 
@@ -836,9 +852,7 @@ export const buildInterpretationItems = ({
         ? `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘을 때 반영합니다. 현재 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 추정했습니다.`
         : `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘는 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
       : '일반계좌 배당이 인별 연 2,000만원 이하라 금융소득 종합과세 추가세액은 제외했습니다.',
-    result.healthInsuranceMonthly >= 1_000_000
-      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보고 월 유입 대비 부담이 큰 편으로 추정했습니다.`
-      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
+    getHealthInsuranceInterpretationMessage(result, formData),
     getIncomeInterpretationMessage(result, formData),
     assetInterpretation,
   ]

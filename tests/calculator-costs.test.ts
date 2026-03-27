@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+﻿import assert from 'node:assert/strict'
 import test from 'node:test'
 import { policyConfig } from '../src/config/policyConfig'
 import { defaultFormData } from '../src/data/defaultFormData'
@@ -6,6 +6,7 @@ import {
   calculateCashProjection,
   calculateExpenses,
   estimateHealthInsurance,
+  getDependentHealthInsuranceAssessment,
 } from '../src/engine/calculator.costs'
 import { calculateAlphaScenario } from '../src/engine/calculator'
 
@@ -174,3 +175,48 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
   )
   assert.equal(projection.endingBalance, 26_400_000)
 })
+test('피부양자 사업소득은 건강보험 재확인 high로 본다', () => {
+  const formData = {
+    ...defaultFormData,
+    healthInsuranceType: 'dependent' as const,
+    selectedIncomeCategories: ['business'] as Array<'business'>,
+    businessIncomeMonthly: 1_000_000,
+  }
+
+  const assessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross: 0,
+    age: 50,
+    pensionMonthly: 0,
+  })
+  const premium = estimateHealthInsurance(formData, 0, 50, 0)
+
+  assert.equal(assessment.level, 'high')
+  assert.ok(assessment.reasons.some((reason) => reason.includes('사업소득')))
+  assert.ok(premium > 0)
+})
+
+test('피부양자 프리랜서 소득이 소규모면 검토만 안내하고 보험료는 0으로 둔다', () => {
+  const formData = {
+    ...defaultFormData,
+    healthInsuranceType: 'dependent' as const,
+    selectedIncomeCategories: ['freelance'] as Array<'freelance'>,
+    freelanceIncomeMonthly: 200_000,
+    dependentBusinessRegistrationStatus: 'no' as const,
+    dependentFreelanceAnnualProfit: 2_400_000,
+  }
+
+  const assessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross: 0,
+    age: 50,
+    pensionMonthly: 0,
+  })
+  const premium = estimateHealthInsurance(formData, 0, 50, 0)
+
+  assert.equal(assessment.level, 'review')
+  assert.equal(assessment.shouldChargeRegional, false)
+  assert.ok(assessment.reasons.some((reason) => reason.includes('프리랜서')))
+  assert.equal(premium, 0)
+})
+

@@ -13,6 +13,8 @@ import {
   isaTypeOptions,
   livingCostModeOptions,
   propertyOwnershipOptions,
+  registrationStatusOptions,
+  rentalIncomeTypeOptions,
   simulationYearOptions,
   yesNoOptions,
 } from './questionScreen.config'
@@ -45,6 +47,12 @@ export function renderQuestionContent({
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
   const usesEarnedIncomeAsSalary =
     usesEmployeeHealthInsurance && selectedIncomeCategories.includes('earned')
+  const isDependentHealthInsurance = formData.healthInsuranceType === 'dependent'
+  const hasFreelanceIncome = selectedIncomeCategories.includes('freelance')
+  const hasBusinessIncome = selectedIncomeCategories.includes('business')
+  const hasRentalIncome = selectedIncomeCategories.includes('rental')
+  const showsDependentRegistrationQuestion =
+    isDependentHealthInsurance && !hasBusinessIncome && (hasFreelanceIncome || hasRentalIncome)
   const defaultIncomeDurationYears = 10
 
   const renderBooleanChoice = (
@@ -1110,6 +1118,71 @@ export function renderQuestionContent({
                   ]}
                 />
               )
+            ) : null}
+            {isDependentHealthInsurance ? (
+              <>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>피부양자 확인 안내</h2>
+                  </div>
+                  <p className="screen-copy question-copy-note">
+                    피부양자 자격은 사업자등록 여부, 임대소득, 프리랜서 순이익, 배당·연금·기타소득 합산에 따라 달라질 수 있습니다.
+                  </p>
+                </section>
+                {hasBusinessIncome ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>사업자등록 여부</h2>
+                    </div>
+                    <p className="screen-copy question-copy-note">
+                      사업소득은 사업자등록이 있는 상태로 보고 건강보험과 세금 경고를 계산합니다.
+                    </p>
+                  </section>
+                ) : null}
+                {showsDependentRegistrationQuestion ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>사업자등록 여부</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.dependentBusinessRegistrationStatus}
+                      options={registrationStatusOptions}
+                      onChange={(value) => update('dependentBusinessRegistrationStatus', value)}
+                    />
+                  </section>
+                ) : null}
+                {hasRentalIncome ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>임대소득 종류</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.dependentRentalIncomeType}
+                      options={rentalIncomeTypeOptions}
+                      onChange={(value) => update('dependentRentalIncomeType', value)}
+                    />
+                  </section>
+                ) : null}
+                {hasFreelanceIncome ? (
+                  <QuestionNumberFields
+                    fields={[
+                      {
+                        key: 'dependentFreelanceAnnualProfit',
+                        label: '프리랜서 연 순이익',
+                        value:
+                          formData.dependentFreelanceAnnualProfit > 0
+                            ? formData.dependentFreelanceAnnualProfit
+                            : formData.freelanceIncomeMonthly * 12,
+                        onChange: (value) => update('dependentFreelanceAnnualProfit', value),
+                        helperText:
+                          '현재 월 프리랜서 소득 기준 연 ' +
+                          formatCompactCurrency(formData.freelanceIncomeMonthly * 12) +
+                          '으로 볼 수 있습니다.',
+                      },
+                    ]}
+                  />
+                ) : null}
+              </>
             ) : null}
           </div>
         )

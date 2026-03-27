@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+﻿import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
@@ -149,4 +149,20 @@ test('deferred national pension stays visible without being added to current tot
   assert.equal(pensionRow?.monthly, '100만원')
   assert.equal(pensionRow?.annual, '1,200만원')
   assert.equal(totalIncomeRow?.input, '국민연금 65세 이후 반영')
+})
+test('임대소득만 있어도 종합소득세 행은 신고 가능성 안내 문구를 유지한다', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    healthInsuranceType: 'regional',
+    selectedIncomeCategories: ['rental'],
+    rentalIncomeMonthly: 1_000_000,
+    dependentRentalIncomeType: 'housing',
+  })
+
+  const comprehensiveTaxRow = rows.find((row) => row.item === '종합소득세')
+  const localTaxRow = rows.find((row) => row.item === '지방소득세')
+
+  assert.equal(comprehensiveTaxRow?.input, '신고 가능성 안내')
+  assert.equal(comprehensiveTaxRow?.note, '추정 · 신고 검토 필요')
+  assert.ok(localTaxRow)
 })

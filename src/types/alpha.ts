@@ -3,6 +3,9 @@ export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
 export type IncomeCategory = 'earned' | 'otherPension' | 'freelance' | 'business' | 'rental' | 'misc'
+export type RegistrationStatus = 'yes' | 'no' | 'unknown'
+export type RentalIncomeType = 'housing' | 'commercial' | 'unknown'
+export type ReviewLevel = 'none' | 'review' | 'high'
 
 export type HealthInsuranceType =
   | 'regional'
@@ -108,6 +111,9 @@ export interface AlphaFormData {
   healthInsuranceType: HealthInsuranceType
   salaryMonthly: number
   healthInsuranceOverrideMonthly: number | null
+  dependentBusinessRegistrationStatus: RegistrationStatus
+  dependentRentalIncomeType: RentalIncomeType
+  dependentFreelanceAnnualProfit: number
 
   insuranceMonthly: number
   insurancePaymentYears: number
@@ -234,6 +240,9 @@ export interface AlphaResult {
 
   healthInsuranceMonthly: number
   healthInsuranceSource: 'estimated' | 'manual'
+
+  healthInsuranceReviewLevel: ReviewLevel
+  healthInsuranceReviewReasons: string[]
   holdingTaxAnnual: number
   holdingTaxMonthly: number
   holdingTaxBreakdown: HoldingTaxBreakdownItem[]
@@ -246,6 +255,9 @@ export interface AlphaResult {
   projectionRentalIncomeTaxTotal: number
   projectionEstimatedComprehensiveIncomeTaxTotal: number
   projectionEstimatedLocalIncomeTaxTotal: number
+  estimatedComprehensiveTaxReviewLevel: ReviewLevel
+  estimatedComprehensiveTaxReviewReasons: string[]
+  rentalSeparateTaxationOption: boolean
 
   carMonthlyConverted: number
   housingMonthlyCost: number

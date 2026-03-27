@@ -1,4 +1,4 @@
-export const policyConfig = {
+﻿export const policyConfig = {
   policyBaseDate: '2026-03-20',
   policyStatus:
     '정책 기준일은 2026년 3월 20일입니다. 일반계좌 배당 원천징수, ISA 절세, 금융소득 종합과세 공개 기준을 반영했고, 보유세와 건강보험료는 공개 구조를 참고한 단순 추정치입니다.',
@@ -26,6 +26,7 @@ export const policyConfig = {
     regionalContributionPerPoint: 211.5,
     employeeIncomeShareRate: 0.5,
     employeeAdditionalIncomeThresholdAnnual: 20_000_000,
+    dependentFreelanceProfitThresholdAnnual: 5_000_000,
     regionalPropertyDeduction: 50_000_000,
     leaseValueRatio: 0.3,
     regionalPropertyValuePerPointApprox: 250_000,
@@ -156,6 +157,7 @@ export const policyConfig = {
     referenceDate: '2026-03-20',
     estimatedExpenseRate: 0.5,
     basicDeductionAnnual: 4_000_000,
+    separateTaxationThresholdAnnual: 20_000_000,
     localIncomeTaxMultiplier: 0.1,
     note:
       '월세소득은 필요경비 50%와 기본공제 400만원을 적용한 단순 추정이며, 다주택 보유 여부에 따른 실제 신고 방식과는 차이가 있을 수 있습니다.',

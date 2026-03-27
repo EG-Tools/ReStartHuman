@@ -1,5 +1,5 @@
 import { policyConfig } from '../config/policyConfig'
-import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome } from '../types/alpha'
+import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome, ReviewLevel } from '../types/alpha'
 import {
   calculateEstimatedComprehensiveIncomeTax,
   calculateRentalIncomeTax,
@@ -7,10 +7,12 @@ import {
 } from './calculator.income'
 import {
   getAgeQualifiedEarnedIncomeMonthly,
+  getAgeQualifiedIncomeCategoryMonthly,
   getAgeQualifiedNonSalaryIncomeMonthly,
   getAgeQualifiedOtherIncomeMonthly as getStructuredAgeQualifiedOtherIncomeMonthly,
   getAgeQualifiedRentalIncomeMonthly,
 } from '../utils/incomeStreams'
+import { formatCompactCurrency } from '../utils/format'
 import {
   type CashProjection,
   type HoldingTaxEstimate,
@@ -127,6 +129,105 @@ const getRegionalPropertyBase = (formData: AlphaFormData) => {
   return housingBase + getAdditionalHomeOfficialValueTotal(formData) + getAdditionalPropertyBase(formData)
 }
 
+type DependentHealthInsuranceAssessment = {
+  level: ReviewLevel
+  reasons: string[]
+  shouldChargeRegional: boolean
+}
+
+export const getDependentHealthInsuranceAssessment = ({
+  formData,
+  totalDividendAnnualGross,
+  age,
+  pensionMonthly,
+}: {
+  formData: AlphaFormData
+  totalDividendAnnualGross: number
+  age: number
+  pensionMonthly: number
+}): DependentHealthInsuranceAssessment => {
+  if (formData.healthInsuranceType !== 'dependent') {
+    return {
+      level: 'none',
+      reasons: [],
+      shouldChargeRegional: false,
+    }
+  }
+
+  const businessMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
+  const freelanceMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'freelance', age)
+  const rentalMonthly = getAgeQualifiedRentalIncomeMonthly(formData, age)
+  const miscMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'misc', age)
+  const otherPensionMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'otherPension', age)
+  const registrationStatus = businessMonthly > 0 ? 'yes' : formData.dependentBusinessRegistrationStatus
+  const freelanceAnnualProfit = Math.max(
+    formData.dependentFreelanceAnnualProfit,
+    freelanceMonthly * 12,
+  )
+  const passiveAnnualIncome =
+    totalDividendAnnualGross + pensionMonthly * 12 + (otherPensionMonthly + miscMonthly) * 12
+  const highReasons: string[] = []
+  const reviewReasons: string[] = []
+
+  if (businessMonthly > 0) {
+    highReasons.push('사업소득이 있어 피부양자 유지 가능성이 낮은 편으로 봤습니다.')
+  } else if (registrationStatus === 'yes' && (freelanceMonthly > 0 || rentalMonthly > 0)) {
+    highReasons.push('사업자등록 상태의 추가 소득이 있어 피부양자 기준 재확인이 필요합니다.')
+  }
+
+  if (rentalMonthly > 0) {
+    if (formData.dependentRentalIncomeType === 'housing') {
+      highReasons.push(
+        '주택임대소득을 연 ' +
+          formatCompactCurrency(rentalMonthly * 12) +
+          ' 수준으로 보고 피부양자 유지 가능성이 낮다고 봤습니다.',
+      )
+    } else {
+      reviewReasons.push('임대소득은 건강보험 판단에서 별도 확인이 필요한 항목입니다.')
+    }
+  }
+
+  if (freelanceMonthly > 0 && registrationStatus !== 'yes') {
+    if (
+      freelanceAnnualProfit >=
+      policyConfig.healthInsurance.dependentFreelanceProfitThresholdAnnual
+    ) {
+      highReasons.push(
+        '프리랜서 연 순이익을 ' +
+          formatCompactCurrency(freelanceAnnualProfit) +
+          '로 보면 피부양자 기준 재확인이 필요합니다.',
+      )
+    } else {
+      reviewReasons.push('프리랜서 소득은 연 순이익 규모에 따라 피부양자 판단이 달라질 수 있습니다.')
+    }
+  }
+
+  if (
+    passiveAnnualIncome >=
+    policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual
+  ) {
+    highReasons.push(
+      '배당·연금·기타소득 합산이 연 ' +
+        formatCompactCurrency(passiveAnnualIncome) +
+        '로 2,000만원 기준을 넘습니다.',
+    )
+  } else if (passiveAnnualIncome > 0) {
+    reviewReasons.push(
+      '배당·연금·기타소득 합산은 연 ' +
+        formatCompactCurrency(passiveAnnualIncome) +
+        ' 수준입니다.',
+    )
+  }
+
+  const reasons = Array.from(new Set([...highReasons, ...reviewReasons]))
+
+  return {
+    level: highReasons.length > 0 ? 'high' : reasons.length > 0 ? 'review' : 'none',
+    reasons,
+    shouldChargeRegional: highReasons.length > 0,
+  }
+}
+
 export const estimateHealthInsurance = (
   formData: AlphaFormData,
   totalDividendAnnualGross: number,
@@ -176,15 +277,19 @@ export const estimateHealthInsurance = (
 
   const regionalMonthlyPremium = roundCurrency(regionalIncomePremium + regionalPropertyPremium)
 
+  const dependentAssessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross,
+    age,
+    pensionMonthly,
+  })
+
   switch (formData.healthInsuranceType) {
     case 'employee':
     case 'employeeWithDependentSpouse':
       return roundCurrency(employeeMonthlyBasePremium + employeeMonthlyAdditionalPremium)
     case 'dependent':
-      return annualNonSalaryIncome >=
-        policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual
-        ? regionalMonthlyPremium
-        : 0
+      return dependentAssessment.shouldChargeRegional ? regionalMonthlyPremium : 0
     case 'bothRegional':
     case 'other':
     case 'regional':

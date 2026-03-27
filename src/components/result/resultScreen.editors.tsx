@@ -310,7 +310,8 @@ export function buildResultRows({
   const shouldShowEstimatedComprehensiveTaxRows =
     result.estimatedComprehensiveTaxBaseAnnual > 0 ||
     result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
-    result.projectionEstimatedLocalIncomeTaxTotal > 0
+    result.projectionEstimatedLocalIncomeTaxTotal > 0 ||
+    result.estimatedComprehensiveTaxReviewLevel !== 'none'
   const estimatedComprehensiveTaxSourceSummary = Array.from(
     new Set([
       ...(formData.pensionMonthlyAmount > 0 || result.projectionPensionIncomeTotal > 0 ? ['국민연금'] : []),
@@ -327,6 +328,9 @@ export function buildResultRows({
     result.estimatedComprehensiveTaxBaseAnnual <= 0 &&
     (result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
       result.projectionEstimatedLocalIncomeTaxTotal > 0)
+  const estimatedComprehensiveTaxReviewSummary =
+    result.estimatedComprehensiveTaxReviewReasons.join(' ')
+  const healthInsuranceReviewSummary = result.healthInsuranceReviewReasons.join(' ')
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
@@ -599,8 +603,16 @@ export function buildResultRows({
       monthly: formatCompactCurrency(result.healthInsuranceMonthly),
       annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
       tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * formData.simulationYears),
-      note: '단순 추정',
-      noteDetail: policyConfig.healthInsurance.approximationNotice,
+      note:
+        result.healthInsuranceReviewLevel === 'high'
+          ? '추정 · 피부양자 재확인'
+          : result.healthInsuranceReviewLevel === 'review'
+            ? '추정 · 기준 확인 권장'
+            : '단순 추정',
+      noteDetail:
+        result.healthInsuranceReviewLevel === 'none'
+          ? policyConfig.healthInsurance.approximationNotice
+          : `${policyConfig.healthInsurance.approximationNotice} ${healthInsuranceReviewSummary}`,
     },
     ...(shouldShowEstimatedComprehensiveTaxRows
       ? [
@@ -610,12 +622,21 @@ export function buildResultRows({
             input:
               result.estimatedComprehensiveTaxBaseAnnual > 0
                 ? `과세표준 연 ${formatCompactCurrency(result.estimatedComprehensiveTaxBaseAnnual)}`
-                : '현재 기준 과세표준 0원',
+                : result.estimatedComprehensiveTaxReviewLevel !== 'none'
+                  ? '신고 가능성 안내'
+                  : '현재 기준 과세표준 0원',
             monthly: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual / 12),
             annual: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual),
             tenYear: formatCompactCurrency(result.projectionEstimatedComprehensiveIncomeTaxTotal),
-            note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 시작 소득 반영' : '추정 · 국민연금·근로 등 반영',
-            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다. 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
+            note:
+              result.estimatedComprehensiveTaxReviewLevel === 'high'
+                ? '추정 · 신고 가능성 높음'
+                : result.estimatedComprehensiveTaxReviewLevel === 'review'
+                  ? '추정 · 신고 검토 필요'
+                  : estimatedComprehensiveTaxStartsLater
+                    ? '추정 · 향후 시작 소득 반영'
+                    : '추정 · 국민연금·근로 등 반영',
+            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봅니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',

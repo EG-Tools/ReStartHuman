@@ -76,6 +76,9 @@ export const defaultFormData: AlphaFormData = {
   healthInsuranceType: 'regional',
   salaryMonthly: 0,
   healthInsuranceOverrideMonthly: null,
+  dependentBusinessRegistrationStatus: 'unknown',
+  dependentRentalIncomeType: 'unknown',
+  dependentFreelanceAnnualProfit: 0,
 
   insuranceMonthly: 0,
   insurancePaymentYears: 10,

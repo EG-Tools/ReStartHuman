@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+﻿import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
@@ -189,3 +189,31 @@ test('result rows include additional homes and rental income tax rows', () => {
   assert.ok(rows.some((row) => row.item === '추가주택 1'))
   assert.ok(rows.some((row) => row.item === '임대소득세'))
 })
+test('해석 문구는 피부양자와 세금 검토 문구를 함께 보여준다', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    healthInsuranceType: 'dependent' as const,
+    selectedIncomeCategories: ['rental'] as Array<'rental'>,
+    rentalIncomeMonthly: 1_200_000,
+    dependentRentalIncomeType: 'housing' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+  const interpretationItems = buildInterpretationItems({
+    assetInterpretation: 'test interpretation',
+    effectiveComprehensiveRate: 0,
+    formData,
+    result,
+  })
+
+  assert.equal(interpretationItems.length, 5)
+  assert.ok(
+    interpretationItems.some((item) => item.includes('피부양자 기준으로 입력했지만')),
+  )
+  assert.ok(
+    interpretationItems.some(
+      (item) => item.includes('분리과세 선택 가능성') || item.includes('과세 방식 확인이 필요합니다'),
+    ),
+  )
+})
+
