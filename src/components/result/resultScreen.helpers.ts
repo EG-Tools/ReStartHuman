@@ -587,6 +587,14 @@ const findJeonseAdvice = (
 
   const nextFormData = buildJeonseShiftFormData(formData)
   const nextResult = calculateAlphaScenario(nextFormData)
+  const releasedHousingCash = Math.max(
+    0,
+    nextFormData.startingCashReserve - formData.startingCashReserve,
+  )
+  const releasedHousingCashMessage =
+    releasedHousingCash > 0
+      ? ` \uD604\uC7AC \uBCF4\uC720 \uD604\uAE08\uC744 +${formatCompactCurrency(releasedHousingCash)} \uD655\uBCF4\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`
+      : ''
 
   if (!improvesEnough(result, nextResult)) {
     return null
@@ -595,8 +603,8 @@ const findJeonseAdvice = (
   return createAdviceCandidate({
     id: 'jeonse-shift',
     message: resolvesDeficit(nextResult)
-      ? `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFB8\uBA74 \uBCF4\uC720\uC138\uC640 \uAC74\uAC15\uBCF4\uD5D8\uB8CC \uBD80\uB2F4\uC774 \uC904\uC5B4 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
-      : `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
+      ? `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFB8\uBA74${releasedHousingCashMessage} \uBCF4\uC720\uC138\uC640 \uAC74\uAC15\uBCF4\uD5D8\uB8CC \uBD80\uB2F4\uC774 \uC904\uC5B4 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      : `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74${releasedHousingCashMessage} \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
     actionLabel: '\uC804\uC138 \uC801\uC6A9',
     beforeResult: result,
     currentFormData: formData,
