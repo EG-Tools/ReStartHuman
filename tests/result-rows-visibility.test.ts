@@ -135,3 +135,18 @@ test('estimated comprehensive and local tax rows appear for taxable structured i
   assert.ok(rows.some((row) => row.item === '종합소득세'))
   assert.ok(rows.some((row) => row.item === '지방소득세'))
 })
+test('deferred national pension stays visible without being added to current total income', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    currentAge: 50,
+    pensionStartAge: 65,
+    pensionMonthlyAmount: 1_000_000,
+  })
+
+  const pensionRow = rows.find((row) => row.item === '국민연금')
+  const totalIncomeRow = rows.find((row) => row.item === '총 유입')
+
+  assert.equal(pensionRow?.monthly, '100만원')
+  assert.equal(pensionRow?.annual, '1,200만원')
+  assert.equal(totalIncomeRow?.input, '국민연금 65세 이후 반영')
+})

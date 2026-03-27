@@ -110,6 +110,7 @@ export interface AlphaFormData {
   healthInsuranceOverrideMonthly: number | null
 
   insuranceMonthly: number
+  insurancePaymentYears: number
   maintenanceMonthly: number
   telecomMonthly: number
   hasCar: boolean

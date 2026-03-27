@@ -99,6 +99,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   salaryMonthly: sanitizeMoney(formData.salaryMonthly),
   healthInsuranceOverrideMonthly: sanitizeOptionalMoney(formData.healthInsuranceOverrideMonthly),
   insuranceMonthly: sanitizeMoney(formData.insuranceMonthly),
+  insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears) || 10),
   maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
   telecomMonthly: sanitizeMoney(formData.telecomMonthly),
   currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),

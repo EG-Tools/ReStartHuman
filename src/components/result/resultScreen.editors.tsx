@@ -333,6 +333,8 @@ export function buildResultRows({
   const shouldShowAcademyRow =
     formData.livingCostInputMode === 'detailed' && academyMonthly > 0
   const pensionStartsLater = formData.currentAge < formData.pensionStartAge
+  const displayedPensionMonthly = pensionStartsLater ? formData.pensionMonthlyAmount : result.pensionMonthlyApplied
+  const displayedPensionAnnual = displayedPensionMonthly * 12
   const usesEmployeeHealthInsurance =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
@@ -392,7 +394,9 @@ export function buildResultRows({
       (item) => `${formatCompactCurrency(item.appliedMonthly)} ${item.label}`,
     ),
     shouldShowPensionRow
-      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
+      ? pensionStartsLater
+        ? `국민연금 ${formData.pensionStartAge}세 이후 반영`
+        : `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
       : null,
   ].filter((value): value is string => Boolean(value))
 
@@ -536,8 +540,8 @@ export function buildResultRows({
           onChange={(value) => onPatchFormData({ pensionMonthlyAmount: value })}
         />
       ),
-      monthly: formatCompactCurrency(result.pensionMonthlyApplied),
-      annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
+      monthly: formatCompactCurrency(displayedPensionMonthly),
+      annual: formatCompactCurrency(displayedPensionAnnual),
       tenYear: formatCompactCurrency(result.projectionPensionIncomeTotal),
       note: pensionStartsLater ? `${formData.pensionStartAge}세부터 반영` : '현재 기준 월 유입',
       noteDetail:
@@ -700,8 +704,22 @@ export function buildResultRows({
       input: <FixedExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />,
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
-      tenYear: formatCompactCurrency(fixedExpenseAnnualBase * formData.simulationYears),
-      note: '차량비 제외',
+      tenYear: formatCompactCurrency(
+        (formData.maintenanceMonthly + formData.telecomMonthly + formData.otherFixedMonthly) *
+          12 *
+          formData.simulationYears +
+          formData.insuranceMonthly *
+            12 *
+            Math.min(formData.insurancePaymentYears, formData.simulationYears),
+      ),
+      note:
+        formData.insuranceMonthly > 0 && formData.insurancePaymentYears > 0
+          ? `차량비 제외 · 보험료 ${Math.min(formData.insurancePaymentYears, formData.simulationYears)}년 반영`
+          : '차량비 제외',
+      noteDetail:
+        formData.insuranceMonthly > 0 && formData.insurancePaymentYears > 0
+          ? `보험료 ${formatCompactCurrency(formData.insuranceMonthly)}는 앞으로 ${Math.min(formData.insurancePaymentYears, formData.simulationYears)}년 동안만 반영합니다.`
+          : undefined,
     },
     {
       category: '지출',

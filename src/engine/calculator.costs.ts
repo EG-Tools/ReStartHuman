@@ -420,7 +420,11 @@ export const calculateCashProjection = (
   ]
 
   const fixedLoanInterestMonthly = formData.loanInterestMonthly
-  const baseExpenseMonthlyWithoutLoan = Math.max(totalExpenseMonthly - fixedLoanInterestMonthly, 0)
+  const fixedInsuranceMonthly = formData.insuranceMonthly
+  const baseExpenseMonthlyWithoutLoanAndInsurance = Math.max(
+    totalExpenseMonthly - fixedLoanInterestMonthly - fixedInsuranceMonthly,
+    0,
+  )
 
   for (let yearIndex = 0; yearIndex < projectionYears; yearIndex += 1) {
     const projectedAge = formData.currentAge + yearIndex
@@ -459,11 +463,16 @@ export const calculateCashProjection = (
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
 
-    const projectedBaseExpenses = baseExpenseMonthlyWithoutLoan * inflationMultiplier
+    const projectedBaseExpenses = baseExpenseMonthlyWithoutLoanAndInsurance * inflationMultiplier
+    const projectedInsuranceExpense =
+      yearIndex < formData.insurancePaymentYears
+        ? fixedInsuranceMonthly * inflationMultiplier
+        : 0
     const projectedLoanInterest =
       yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
 
-    const projectedExpenses = projectedBaseExpenses + projectedLoanInterest
+    const projectedExpenses =
+      projectedBaseExpenses + projectedInsuranceExpense + projectedLoanInterest
     const projectedMonthlySurplus = projectedMonthlyUsableCash - projectedExpenses
     const annualNetChange = roundCurrency(projectedMonthlySurplus * 12)
 

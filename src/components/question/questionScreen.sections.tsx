@@ -1116,15 +1116,35 @@ export function renderQuestionContent({
       case 'fixedExpenses':
         return (
           <div className="question-stack">
+            <QuestionNumberFieldPairs
+              pairs={[
+                {
+                  key: 'insurance-payment-pair',
+                  helperText: '보험료는 현재 월 고정지출에 넣고, 납입기간 동안만 반영합니다.',
+                  fields: [
+                    {
+                      key: 'insuranceMonthly',
+                      label: '보험료',
+                      value: formData.insuranceMonthly,
+                      onChange: (value) => update('insuranceMonthly', value),
+                    },
+                    {
+                      key: 'insurancePaymentYears',
+                      label: '납입기간',
+                      value: formData.insurancePaymentYears,
+                      onChange: (value) => update('insurancePaymentYears', Math.max(value, 0)),
+                      display: 'number' as const,
+                      suffix: '년',
+                      min: 0,
+                      step: 1,
+                    },
+                  ],
+                },
+              ]}
+            />
             <QuestionNumberFields
               columns={2}
               fields={[
-                {
-                  key: 'insuranceMonthly',
-                  label: '보험료',
-                  value: formData.insuranceMonthly,
-                  onChange: (value) => update('insuranceMonthly', value),
-                },
                 {
                   key: 'maintenanceMonthly',
                   label: '관리비',

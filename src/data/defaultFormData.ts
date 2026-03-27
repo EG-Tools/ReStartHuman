@@ -78,6 +78,7 @@ export const defaultFormData: AlphaFormData = {
   healthInsuranceOverrideMonthly: null,
 
   insuranceMonthly: 0,
+  insurancePaymentYears: 10,
   maintenanceMonthly: 0,
   telecomMonthly: 0,
   hasCar: false,
