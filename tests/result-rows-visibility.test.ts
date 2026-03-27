@@ -109,3 +109,29 @@ test('multiple selected income categories create separate rows', () => {
 
   assert.equal(rows.filter((row) => row.category === '소득').length, 2)
 })
+
+test('income rows show duration notes when a structured income ends before the projection horizon', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    selectedIncomeCategories: ['earned'],
+    earnedIncomeMonthly: 1_000_000,
+    earnedIncomeDurationYears: 5,
+    healthInsuranceType: 'dependent',
+  })
+
+  const earnedRow = rows.find((row) => row.item === '근로소득')
+  assert.equal(earnedRow?.note, '5년간 반영')
+})
+
+test('estimated comprehensive and local tax rows appear for taxable structured income', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    selectedIncomeCategories: ['earned', 'business'],
+    earnedIncomeMonthly: 2_000_000,
+    businessIncomeMonthly: 1_000_000,
+    healthInsuranceType: 'dependent',
+  })
+
+  assert.ok(rows.some((row) => row.item === '종합소득세(추정)'))
+  assert.ok(rows.some((row) => row.item === '지방소득세(추정)'))
+})

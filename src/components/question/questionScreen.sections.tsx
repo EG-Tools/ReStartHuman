@@ -45,6 +45,7 @@ export function renderQuestionContent({
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
   const usesEarnedIncomeAsSalary =
     usesEmployeeHealthInsurance && selectedIncomeCategories.includes('earned')
+  const defaultIncomeDurationYears = Math.max(formData.simulationYears, 1)
 
   const renderBooleanChoice = (
     label: string,
@@ -110,6 +111,7 @@ export function renderQuestionContent({
       switch (category) {
         case 'earned':
           patch.earnedIncomeMonthly = 0
+          patch.earnedIncomeDurationYears = defaultIncomeDurationYears
           if (usesEmployeeHealthInsurance) {
             patch.salaryMonthly = 0
           }
@@ -120,15 +122,19 @@ export function renderQuestionContent({
           break
         case 'freelance':
           patch.freelanceIncomeMonthly = 0
+          patch.freelanceIncomeDurationYears = defaultIncomeDurationYears
           break
         case 'business':
           patch.businessIncomeMonthly = 0
+          patch.businessIncomeDurationYears = defaultIncomeDurationYears
           break
         case 'rental':
           patch.rentalIncomeMonthly = 0
+          patch.rentalIncomeDurationYears = defaultIncomeDurationYears
           break
         case 'misc':
           patch.miscIncomeMonthly = 0
+          patch.miscIncomeDurationYears = defaultIncomeDurationYears
           break
       }
     } else if (
@@ -862,6 +868,21 @@ export function renderQuestionContent({
                             ? '직장가입자 선택 시 급여에도 같은 금액을 반영합니다.'
                             : undefined,
                         },
+                        {
+                          key: 'earnedIncomeDurationYears',
+                          label: '근로소득 반영 기간',
+                          value: formData.earnedIncomeDurationYears,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('earned', {
+                                earnedIncomeDurationYears: Math.max(value, 1),
+                              }),
+                            ),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 1,
+                          step: 1,
+                        },
                       ]
                     : []),
                   ...(selectedIncomeCategories.includes('otherPension')
@@ -909,6 +930,21 @@ export function renderQuestionContent({
                             ),
                           helperText: '등록 없이 받는 자문·외주·인적용역 수입 기준입니다.',
                         },
+                        {
+                          key: 'freelanceIncomeDurationYears',
+                          label: '프리랜서 소득 반영 기간',
+                          value: formData.freelanceIncomeDurationYears,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('freelance', {
+                                freelanceIncomeDurationYears: Math.max(value, 1),
+                              }),
+                            ),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 1,
+                          step: 1,
+                        },
                       ]
                     : []),
                   ...(selectedIncomeCategories.includes('business')
@@ -924,6 +960,21 @@ export function renderQuestionContent({
                               }),
                             ),
                           helperText: '사업자등록이 있는 사업 소득 기준입니다.',
+                        },
+                        {
+                          key: 'businessIncomeDurationYears',
+                          label: '사업소득 반영 기간',
+                          value: formData.businessIncomeDurationYears,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('business', {
+                                businessIncomeDurationYears: Math.max(value, 1),
+                              }),
+                            ),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 1,
+                          step: 1,
                         },
                       ]
                     : []),
@@ -941,6 +992,21 @@ export function renderQuestionContent({
                             ),
                           helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
                         },
+                        {
+                          key: 'rentalIncomeDurationYears',
+                          label: '임대소득 반영 기간',
+                          value: formData.rentalIncomeDurationYears,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('rental', {
+                                rentalIncomeDurationYears: Math.max(value, 1),
+                              }),
+                            ),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 1,
+                          step: 1,
+                        },
                       ]
                     : []),
                   ...(selectedIncomeCategories.includes('misc')
@@ -956,6 +1022,21 @@ export function renderQuestionContent({
                               }),
                             ),
                           helperText: '위 분류 외에 별도로 들어오는 월 유입을 적습니다.',
+                        },
+                        {
+                          key: 'miscIncomeDurationYears',
+                          label: '기타소득 반영 기간',
+                          value: formData.miscIncomeDurationYears,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('misc', {
+                                miscIncomeDurationYears: Math.max(value, 1),
+                              }),
+                            ),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 1,
+                          step: 1,
                         },
                       ]
                     : []),

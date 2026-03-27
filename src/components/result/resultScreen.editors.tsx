@@ -307,6 +307,26 @@ export function buildResultRows({
   )
   const rentalIncomeBreakdown = visibleIncomeBreakdown.find((item) => item.key === 'rental')
   const shouldShowRentalIncomeTaxRow = result.rentalIncomeTaxAnnual > 0
+  const shouldShowEstimatedComprehensiveTaxRows =
+    result.estimatedComprehensiveTaxBaseAnnual > 0 ||
+    result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
+    result.projectionEstimatedLocalIncomeTaxTotal > 0
+  const estimatedComprehensiveTaxSourceSummary = Array.from(
+    new Set([
+      ...(formData.pensionMonthlyAmount > 0 || result.projectionPensionIncomeTotal > 0 ? ['국민연금'] : []),
+      ...result.incomeBreakdown
+        .filter(
+          (item) =>
+            ['earned', 'otherPension', 'freelance', 'business', 'misc'].includes(item.key) &&
+            (item.inputMonthly > 0 || item.projectionTotal > 0),
+        )
+        .map((item) => item.label),
+    ]),
+  ).join(', ')
+  const estimatedComprehensiveTaxStartsLater =
+    result.estimatedComprehensiveTaxBaseAnnual <= 0 &&
+    (result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
+      result.projectionEstimatedLocalIncomeTaxTotal > 0)
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
@@ -529,6 +549,8 @@ export function buildResultRows({
 
   visibleIncomeBreakdown.forEach((incomeItem) => {
     const startsLater = typeof incomeItem.startAge === 'number' && formData.currentAge < incomeItem.startAge
+    const hasDurationLimit =
+      typeof incomeItem.durationYears === 'number' && incomeItem.durationYears < formData.simulationYears
 
     rows.push({
       category: '소득',
@@ -543,13 +565,15 @@ export function buildResultRows({
       monthly: formatCompactCurrency(incomeItem.appliedMonthly),
       annual: formatCompactCurrency(incomeItem.appliedMonthly * 12),
       tenYear: formatCompactCurrency(incomeItem.projectionTotal),
-      note:
-        startsLater
-          ? `${incomeItem.startAge}세부터 반영`
+      note: startsLater
+        ? `${incomeItem.startAge}세부터${hasDurationLimit ? ` ${incomeItem.durationYears}년간 반영` : ' 반영'}`
+        : hasDurationLimit
+          ? `${incomeItem.durationYears}년간 반영`
           : `${incomeItem.label} 현재 반영`,
-      noteDetail:
-        startsLater
-          ? `현재 ${formData.currentAge}세 기준이라 ${incomeItem.label}은 ${incomeItem.startAge}세부터 반영됩니다.`
+      noteDetail: startsLater
+        ? `현재 ${formData.currentAge}세 기준이라 ${incomeItem.label}은 ${incomeItem.startAge}세부터${hasDurationLimit ? ` ${incomeItem.durationYears}년 동안` : ''} 반영됩니다.`
+        : hasDurationLimit
+          ? `현재 ${formData.currentAge}세 기준으로 ${incomeItem.label}은 앞으로 ${incomeItem.durationYears}년 동안 반영됩니다.`
           : undefined,
     })
   })
@@ -574,6 +598,33 @@ export function buildResultRows({
       note: '단순 추정',
       noteDetail: policyConfig.healthInsurance.approximationNotice,
     },
+    ...(shouldShowEstimatedComprehensiveTaxRows
+      ? [
+          {
+            category: '세금',
+            item: '종합소득세(추정)',
+            input:
+              result.estimatedComprehensiveTaxBaseAnnual > 0
+                ? `과세표준 연 ${formatCompactCurrency(result.estimatedComprehensiveTaxBaseAnnual)}`
+                : '현재 기준 과세표준 0원',
+            monthly: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual / 12),
+            annual: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual),
+            tenYear: formatCompactCurrency(result.projectionEstimatedComprehensiveIncomeTaxTotal),
+            note: estimatedComprehensiveTaxStartsLater ? '향후 시작 소득 반영' : '국민연금·근로 등 단순 추정',
+            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다. 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
+          },
+          {
+            category: '세금',
+            item: '지방소득세(추정)',
+            input: '종합소득세의 10%',
+            monthly: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual / 12),
+            annual: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual),
+            tenYear: formatCompactCurrency(result.projectionEstimatedLocalIncomeTaxTotal),
+            note: estimatedComprehensiveTaxStartsLater ? '향후 시작 소득 반영' : '종합소득세 연동',
+            noteDetail: '종합소득세 추정액의 10%를 지방소득세로 반영했습니다.',
+          },
+        ]
+      : []),
     {
       category: '세금',
       item: '금융소득 종합과세 추가세액',
@@ -632,7 +683,9 @@ export function buildResultRows({
       item: '실수령 가용액',
       input: (
         <span>
-          총 유입에서 건강보험료, 보유세, 금융소득 종합과세 추가세액
+          총 유입에서 건강보험료, 보유세
+          {shouldShowEstimatedComprehensiveTaxRows ? ', 종합소득세(추정), 지방소득세(추정)' : ''},
+          금융소득 종합과세 추가세액
           {shouldShowRentalIncomeTaxRow ? ', 임대소득세' : ''} 반영
         </span>
       ),

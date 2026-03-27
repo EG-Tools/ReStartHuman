@@ -15,9 +15,11 @@ import {
 } from '../utils/incomeStreams'
 import {
   calculateComprehensiveTax,
+  calculateEstimatedComprehensiveIncomeTax,
   calculateIsaTax,
   calculateRentalIncomeTax,
   calculateTaxableStream,
+  getEstimatedComprehensiveTaxBaseAnnual,
 } from './calculator.income'
 import {
   clampRate,
@@ -79,12 +81,17 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   spouseAnnualIsaDividendAttributed: sanitizeMoney(formData.spouseAnnualIsaDividendAttributed),
   selectedIncomeCategories: getSelectedIncomeCategories(formData),
   earnedIncomeMonthly: sanitizeMoney(formData.earnedIncomeMonthly),
+  earnedIncomeDurationYears: Math.max(1, sanitizeMoney(formData.earnedIncomeDurationYears) || formData.simulationYears || 30),
   otherPensionMonthly: sanitizeMoney(formData.otherPensionMonthly),
   otherPensionStartAge: Math.max(1, sanitizeMoney(formData.otherPensionStartAge) || 65),
   freelanceIncomeMonthly: sanitizeMoney(formData.freelanceIncomeMonthly),
+  freelanceIncomeDurationYears: Math.max(1, sanitizeMoney(formData.freelanceIncomeDurationYears) || formData.simulationYears || 30),
   businessIncomeMonthly: sanitizeMoney(formData.businessIncomeMonthly),
+  businessIncomeDurationYears: Math.max(1, sanitizeMoney(formData.businessIncomeDurationYears) || formData.simulationYears || 30),
   rentalIncomeMonthly: sanitizeMoney(formData.rentalIncomeMonthly),
+  rentalIncomeDurationYears: Math.max(1, sanitizeMoney(formData.rentalIncomeDurationYears) || formData.simulationYears || 30),
   miscIncomeMonthly: sanitizeMoney(formData.miscIncomeMonthly),
+  miscIncomeDurationYears: Math.max(1, sanitizeMoney(formData.miscIncomeDurationYears) || formData.simulationYears || 30),
   otherIncomeMonthly: sanitizeMoney(formData.otherIncomeMonthly),
   otherIncomeStartAge: Math.max(1, sanitizeMoney(formData.otherIncomeStartAge) || 65),
   pensionStartAge: Math.max(1, sanitizeMoney(formData.pensionStartAge) || 65),
@@ -150,6 +157,13 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   const pensionMonthlyApplied = getAgeQualifiedPensionMonthly(formData, formData.currentAge)
   const otherIncomeMonthlyApplied = getAgeQualifiedOtherIncomeMonthly(formData, formData.currentAge)
   const incomeBreakdown = getIncomeBreakdown(formData, formData.currentAge, formData.simulationYears)
+  const estimatedComprehensiveTax = calculateEstimatedComprehensiveIncomeTax(
+    getEstimatedComprehensiveTaxBaseAnnual({
+      formData,
+      age: formData.currentAge,
+      nationalPensionMonthly: pensionMonthlyApplied,
+    }),
+  )
   const estimatedHealthInsurance = estimateHealthInsurance(
     formData,
     totalDividend.annualGross,
@@ -170,6 +184,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     totalIncomeMonthly -
       healthInsuranceMonthly -
       holdingTax.monthly -
+      estimatedComprehensiveTax.incomeTaxAnnual / 12 -
+      estimatedComprehensiveTax.localIncomeTaxAnnual / 12 -
       comprehensiveTax.impactAnnual / 12 -
       rentalIncomeTax.monthlyTax,
   )
@@ -221,6 +237,9 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     comprehensiveTaxThresholdAnnual: comprehensiveTax.thresholdAnnual,
     comprehensiveTaxBaseAnnual: comprehensiveTax.baseAnnual,
     comprehensiveTaxBreakdown: comprehensiveTax.breakdown,
+    estimatedComprehensiveIncomeTaxAnnual: estimatedComprehensiveTax.incomeTaxAnnual,
+    estimatedLocalIncomeTaxAnnual: estimatedComprehensiveTax.localIncomeTaxAnnual,
+    estimatedComprehensiveTaxBaseAnnual: estimatedComprehensiveTax.taxableBaseAnnual,
     rentalIncomeTaxAnnual: rentalIncomeTax.annualTax,
     rentalIncomeTaxMonthly: rentalIncomeTax.monthlyTax,
     healthInsuranceMonthly,
@@ -234,6 +253,9 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
     projectionRentalIncomeTaxTotal: cashProjection.cumulativeRentalIncomeTax,
+    projectionEstimatedComprehensiveIncomeTaxTotal:
+      cashProjection.cumulativeEstimatedComprehensiveIncomeTax,
+    projectionEstimatedLocalIncomeTaxTotal: cashProjection.cumulativeEstimatedLocalIncomeTax,
     carMonthlyConverted: expenses.carMonthlyConverted,
     housingMonthlyCost: expenses.housingMonthlyCost,
     fixedExpenseMonthly: expenses.fixedExpenseMonthly,

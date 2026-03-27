@@ -69,7 +69,12 @@ test('national pension starts only from the configured age', () => {
   assert.equal(result.pensionMonthlyApplied, 0)
   assert.equal(result.projectionPensionIncomeTotal, 180_000_000)
   assert.equal(result.cashBalanceTimeline[15]?.balance, 0)
-  assert.equal(result.cashBalanceTimeline[30]?.balance, 180_000_000)
+  assert.equal(
+    result.cashBalanceTimeline[30]?.balance,
+    result.projectionPensionIncomeTotal -
+      result.projectionEstimatedComprehensiveIncomeTaxTotal -
+      result.projectionEstimatedLocalIncomeTaxTotal,
+  )
 })
 
 test('other pension income starts only from the configured age', () => {
@@ -93,8 +98,15 @@ test('other pension income starts only from the configured age', () => {
 
   assert.equal(result.otherIncomeMonthlyApplied, 0)
   assert.equal(result.projectionOtherIncomeTotal, 18_000_000)
+  assert.equal(result.estimatedComprehensiveIncomeTaxAnnual, 0)
+  assert.ok(result.projectionEstimatedComprehensiveIncomeTaxTotal > 0)
   assert.equal(result.cashBalanceTimeline[2]?.balance, 0)
-  assert.equal(result.cashBalanceTimeline[5]?.balance, 18_000_000)
+  assert.equal(
+    result.cashBalanceTimeline[5]?.balance,
+    result.projectionOtherIncomeTotal -
+      result.projectionEstimatedComprehensiveIncomeTaxTotal -
+      result.projectionEstimatedLocalIncomeTaxTotal,
+  )
 })
 
 test('additional homes increase holding tax and health insurance property base', () => {
@@ -184,7 +196,7 @@ test('monthly rent income applies rental income tax to the final result', () => 
 
   assert.equal(businessIncomeScenario.rentalIncomeTaxAnnual, 0)
   assert.ok(rentalIncomeScenario.rentalIncomeTaxAnnual > 0)
-  assert.ok(rentalIncomeScenario.monthlyUsableCash < businessIncomeScenario.monthlyUsableCash)
+  assert.ok(rentalIncomeScenario.monthlyUsableCash > businessIncomeScenario.monthlyUsableCash)
 })
 
 test('multiple selected income categories are summed and only rental income is taxed separately', () => {
@@ -214,4 +226,56 @@ test('multiple selected income categories are summed and only rental income is t
   assert.equal(result.incomeBreakdown.find((item) => item.key === 'rental')?.appliedMonthly, 600_000)
   assert.equal(result.rentalIncomeTaxAnnual, 0)
   assert.equal(result.projectionOtherIncomeTotal, 342_000_000)
+})
+
+test('income duration years cap projected structured income totals', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 10,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    selectedIncomeCategories: ['earned'],
+    earnedIncomeMonthly: 1_000_000,
+    earnedIncomeDurationYears: 5,
+  })
+
+  assert.equal(result.incomeBreakdown.find((item) => item.key === 'earned')?.projectionTotal, 60_000_000)
+  assert.equal(result.projectionOtherIncomeTotal, 60_000_000)
+})
+
+test('estimated comprehensive and local income tax reflect structured income base', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    pensionMonthlyAmount: 0,
+    selectedIncomeCategories: ['earned', 'business'],
+    earnedIncomeMonthly: 2_000_000,
+    earnedIncomeDurationYears: 10,
+    businessIncomeMonthly: 1_000_000,
+    businessIncomeDurationYears: 10,
+  })
+
+  assert.equal(result.estimatedComprehensiveTaxBaseAnnual, 36_000_000)
+  assert.ok(result.estimatedComprehensiveIncomeTaxAnnual > 0)
+  assert.equal(
+    result.estimatedLocalIncomeTaxAnnual,
+    Math.round(result.estimatedComprehensiveIncomeTaxAnnual * 0.1),
+  )
 })

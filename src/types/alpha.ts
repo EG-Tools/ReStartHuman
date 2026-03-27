@@ -86,12 +86,17 @@ export interface AlphaFormData {
 
   selectedIncomeCategories: IncomeCategory[]
   earnedIncomeMonthly: number
+  earnedIncomeDurationYears: number
   otherPensionMonthly: number
   otherPensionStartAge: number
   freelanceIncomeMonthly: number
+  freelanceIncomeDurationYears: number
   businessIncomeMonthly: number
+  businessIncomeDurationYears: number
   rentalIncomeMonthly: number
+  rentalIncomeDurationYears: number
   miscIncomeMonthly: number
+  miscIncomeDurationYears: number
 
   otherIncomeType: 'earned' | 'business' | 'pension' | 'monthlyRent' | 'other' | 'none'
   otherIncomeMonthly: number
@@ -178,6 +183,7 @@ export interface IncomeBreakdownItem {
   appliedMonthly: number
   projectionTotal: number
   startAge?: number
+  durationYears?: number
 }
 
 export interface AlphaResult {
@@ -219,6 +225,9 @@ export interface AlphaResult {
   comprehensiveTaxThresholdAnnual: number
   comprehensiveTaxBaseAnnual: number
   comprehensiveTaxBreakdown: ComprehensiveTaxPersonBreakdown[]
+  estimatedComprehensiveIncomeTaxAnnual: number
+  estimatedLocalIncomeTaxAnnual: number
+  estimatedComprehensiveTaxBaseAnnual: number
   rentalIncomeTaxAnnual: number
   rentalIncomeTaxMonthly: number
 
@@ -234,6 +243,8 @@ export interface AlphaResult {
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
   projectionRentalIncomeTaxTotal: number
+  projectionEstimatedComprehensiveIncomeTaxTotal: number
+  projectionEstimatedLocalIncomeTaxTotal: number
 
   carMonthlyConverted: number
   housingMonthlyCost: number

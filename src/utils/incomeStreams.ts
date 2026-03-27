@@ -41,6 +41,14 @@ const toSafeMoney = (value: number | undefined) => {
   return Math.max(value ?? 0, 0)
 }
 
+const toSafeDurationYears = (value: number | undefined, fallback: number) => {
+  if (!Number.isFinite(value)) {
+    return Math.max(fallback, 1)
+  }
+
+  return Math.max(value ?? fallback, 1)
+}
+
 export const incomeCategoryOptions: Array<{
   value: IncomeCategory
   label: string
@@ -223,6 +231,27 @@ export const getIncomeCategoryStartAge = (
     : 65
 }
 
+export const getIncomeCategoryDurationYears = (
+  formData: AlphaFormData,
+  category: IncomeCategory,
+) => {
+  switch (category) {
+    case 'earned':
+      return toSafeDurationYears(formData.earnedIncomeDurationYears, formData.simulationYears)
+    case 'freelance':
+      return toSafeDurationYears(formData.freelanceIncomeDurationYears, formData.simulationYears)
+    case 'business':
+      return toSafeDurationYears(formData.businessIncomeDurationYears, formData.simulationYears)
+    case 'rental':
+      return toSafeDurationYears(formData.rentalIncomeDurationYears, formData.simulationYears)
+    case 'misc':
+      return toSafeDurationYears(formData.miscIncomeDurationYears, formData.simulationYears)
+    case 'otherPension':
+    default:
+      return null
+  }
+}
+
 export const getAgeQualifiedIncomeCategoryMonthly = (
   formData: AlphaFormData,
   category: IncomeCategory,
@@ -230,8 +259,13 @@ export const getAgeQualifiedIncomeCategoryMonthly = (
 ) => {
   const monthlyValue = getIncomeCategoryMonthlyValue(formData, category)
   const startAge = getIncomeCategoryStartAge(formData, category)
+  const durationYears = getIncomeCategoryDurationYears(formData, category)
 
   if (startAge !== null && age < startAge) {
+    return 0
+  }
+
+  if (durationYears !== null && age >= formData.currentAge + durationYears) {
     return 0
   }
 
@@ -267,6 +301,7 @@ export const getIncomeBreakdown = (
     const inputMonthly = getIncomeCategoryMonthlyValue(formData, category)
     const appliedMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, category, currentAge)
     const startAge = getIncomeCategoryStartAge(formData, category)
+    const durationYears = getIncomeCategoryDurationYears(formData, category)
     let projectionTotal = 0
 
     for (let yearIndex = 0; yearIndex < projectionYears; yearIndex += 1) {
@@ -281,6 +316,7 @@ export const getIncomeBreakdown = (
       appliedMonthly,
       projectionTotal,
       ...(startAge !== null ? { startAge } : {}),
+      ...(durationYears !== null ? { durationYears } : {}),
     }
   })
 

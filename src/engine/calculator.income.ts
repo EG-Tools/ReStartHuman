@@ -4,7 +4,9 @@ import type {
   IsaTaxBreakdown,
   IsaType,
   AlphaFormData,
+  IncomeCategory,
 } from '../types/alpha'
+import { getAgeQualifiedIncomeCategoryMonthly } from '../utils/incomeStreams'
 import {
   createDividendStream,
   type ComprehensiveTaxCalculation,
@@ -36,6 +38,14 @@ const getIsaTypeForPerson = (
   )
 }
 
+const ESTIMATED_COMPREHENSIVE_TAX_CATEGORIES: IncomeCategory[] = [
+  'earned',
+  'otherPension',
+  'freelance',
+  'business',
+  'misc',
+]
+
 export const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
   const normalizedTaxBase = Math.max(annualTaxBase, 0)
 
@@ -52,6 +62,39 @@ export const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
     ]
 
   return roundCurrency(normalizedTaxBase * matchedBracket.rate - matchedBracket.deduction)
+}
+
+export const getEstimatedComprehensiveTaxBaseAnnual = ({
+  formData,
+  age,
+  nationalPensionMonthly,
+}: {
+  formData: AlphaFormData
+  age: number
+  nationalPensionMonthly: number
+}) => {
+  const monthlyTaxBase =
+    ESTIMATED_COMPREHENSIVE_TAX_CATEGORIES.reduce(
+      (sum, category) => sum + getAgeQualifiedIncomeCategoryMonthly(formData, category, age),
+      0,
+    ) + Math.max(nationalPensionMonthly, 0)
+
+  return roundCurrency(Math.max(monthlyTaxBase, 0) * 12)
+}
+
+export const calculateEstimatedComprehensiveIncomeTax = (annualTaxBase: number) => {
+  const taxableBaseAnnual = roundCurrency(Math.max(annualTaxBase, 0))
+  const incomeTaxAnnual = calculateProgressiveIncomeTax(taxableBaseAnnual)
+  const localIncomeTaxAnnual = roundCurrency(
+    incomeTaxAnnual * policyConfig.comprehensiveIncomeTax.localIncomeTaxMultiplier,
+  )
+
+  return {
+    taxableBaseAnnual,
+    incomeTaxAnnual,
+    localIncomeTaxAnnual,
+    totalTaxAnnual: roundCurrency(incomeTaxAnnual + localIncomeTaxAnnual),
+  }
 }
 
 export const calculateRentalIncomeTax = (annualRentalIncome: number) => {

@@ -1,6 +1,10 @@
 import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome } from '../types/alpha'
-import { calculateRentalIncomeTax } from './calculator.income'
+import {
+  calculateEstimatedComprehensiveIncomeTax,
+  calculateRentalIncomeTax,
+  getEstimatedComprehensiveTaxBaseAnnual,
+} from './calculator.income'
 import {
   getAgeQualifiedEarnedIncomeMonthly,
   getAgeQualifiedNonSalaryIncomeMonthly,
@@ -306,7 +310,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'home',
-        label: '二쇳깮',
+        label: '주택',
         annual: homeHoldingTax.annual,
         baseValue: formData.homeOfficialValue,
       }),
@@ -327,7 +331,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'additionalHome',
-        label: `異붽?二쇳깮 ${index + 1}`,
+        label: `추가주택 ${index + 1}`,
         annual: additionalHomeHoldingTax.annual,
         baseValue: home.officialValue,
       }),
@@ -352,7 +356,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'land',
-        label: '?좎?',
+        label: '토지',
         annual: landHoldingTax.annual,
         baseValue: landAssessedValue,
       }),
@@ -374,7 +378,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'otherProperty',
-        label: '湲고? 遺?숈궛',
+        label: '기타 부동산',
         annual: otherPropertyHoldingTax.annual,
         baseValue: formData.otherPropertyOfficialValue,
       }),
@@ -396,7 +400,7 @@ export const calculateCashProjection = (
   totalDividendAnnualGross: number,
   totalExpenseMonthly: number,
   holdingTaxMonthly: number,
-  comprehensiveTaxImpactAnnual: number,
+  financialComprehensiveTaxImpactAnnual: number,
   projectionYears = 30,
 ): CashProjection => {
   let cumulativeNetChange = 0
@@ -405,6 +409,8 @@ export const calculateCashProjection = (
   let cumulativeTotalIncome = 0
   let cumulativeUsableCash = 0
   let cumulativeRentalIncomeTax = 0
+  let cumulativeEstimatedComprehensiveIncomeTax = 0
+  let cumulativeEstimatedLocalIncomeTax = 0
   let balance = formData.startingCashReserve
   const timeline = [
     {
@@ -432,13 +438,22 @@ export const calculateCashProjection = (
       getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) > 0
         ? calculateRentalIncomeTax(getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) * 12).annualTax
         : 0
+    const projectedEstimatedComprehensiveTax = calculateEstimatedComprehensiveIncomeTax(
+      getEstimatedComprehensiveTaxBaseAnnual({
+        formData,
+        age: projectedAge,
+        nationalPensionMonthly: projectedPensionMonthly,
+      }),
+    )
     const projectedTotalIncomeMonthly =
       totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
     const projectedMonthlyUsableCash =
       projectedTotalIncomeMonthly -
       projectedHealthInsuranceMonthly -
       holdingTaxMonthly -
-      comprehensiveTaxImpactAnnual / 12 -
+      projectedEstimatedComprehensiveTax.incomeTaxAnnual / 12 -
+      projectedEstimatedComprehensiveTax.localIncomeTaxAnnual / 12 -
+      financialComprehensiveTaxImpactAnnual / 12 -
       projectedRentalIncomeTaxAnnual / 12
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
@@ -457,6 +472,8 @@ export const calculateCashProjection = (
     cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
     cumulativeUsableCash += roundCurrency(projectedMonthlyUsableCash * 12)
     cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
+    cumulativeEstimatedComprehensiveIncomeTax += projectedEstimatedComprehensiveTax.incomeTaxAnnual
+    cumulativeEstimatedLocalIncomeTax += projectedEstimatedComprehensiveTax.localIncomeTaxAnnual
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -474,6 +491,8 @@ export const calculateCashProjection = (
     cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),
     cumulativeUsableCash: roundCurrency(cumulativeUsableCash),
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
+    cumulativeEstimatedComprehensiveIncomeTax: roundCurrency(cumulativeEstimatedComprehensiveIncomeTax),
+    cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
   }
 }
 

@@ -54,12 +54,17 @@ export const defaultFormData: AlphaFormData = {
 
   selectedIncomeCategories: [],
   earnedIncomeMonthly: 0,
+  earnedIncomeDurationYears: 30,
   otherPensionMonthly: 0,
   otherPensionStartAge: 65,
   freelanceIncomeMonthly: 0,
+  freelanceIncomeDurationYears: 30,
   businessIncomeMonthly: 0,
+  businessIncomeDurationYears: 30,
   rentalIncomeMonthly: 0,
+  rentalIncomeDurationYears: 30,
   miscIncomeMonthly: 0,
+  miscIncomeDurationYears: 30,
 
   otherIncomeType: 'none',
   otherIncomeMonthly: 0,
