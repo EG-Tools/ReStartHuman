@@ -1,10 +1,11 @@
-/* eslint-disable react-refresh/only-export-components */
+﻿/* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { formatCompactCurrency, formatCurrency, formatSignedCompactCurrency } from '../../utils/format'
 import { InlineNumericField } from '../common/Ui'
 import { buildStructuredIncomePatch, getSelectedIncomeCategories } from '../../utils/incomeStreams'
+import { rebalanceSplitAmounts } from '../../utils/splitAllocations'
 import {
   getComprehensiveTaxInput,
   getComprehensiveTaxNote,
@@ -390,6 +391,42 @@ export function buildResultRows({
     }
   }
 
+  const buildTaxableDividendPatch = (value: number): Partial<AlphaFormData> => {
+    if (formData.householdType === 'couple' && formData.dividendOwnershipType === 'split') {
+      const splitAmounts = rebalanceSplitAmounts({
+        nextTotalAmount: value,
+        previousTotalAmount: formData.taxableAccountDividendAnnual,
+        currentMineAmount: formData.myAnnualDividendAttributed,
+      })
+
+      return {
+        taxableAccountDividendAnnual: Math.max(Math.round(value), 0),
+        myAnnualDividendAttributed: splitAmounts.mineAmount,
+        spouseAnnualDividendAttributed: splitAmounts.spouseAmount,
+      }
+    }
+
+    return { taxableAccountDividendAnnual: value }
+  }
+
+  const buildIsaDividendPatch = (value: number): Partial<AlphaFormData> => {
+    if (formData.householdType === 'couple' && formData.isaOwnershipType === 'split') {
+      const splitAmounts = rebalanceSplitAmounts({
+        nextTotalAmount: value,
+        previousTotalAmount: formData.isaDividendAnnual,
+        currentMineAmount: formData.myAnnualIsaDividendAttributed,
+      })
+
+      return {
+        isaDividendAnnual: Math.max(Math.round(value), 0),
+        myAnnualIsaDividendAttributed: splitAmounts.mineAmount,
+        spouseAnnualIsaDividendAttributed: splitAmounts.spouseAmount,
+      }
+    }
+
+    return { isaDividendAnnual: value }
+  }
+
   const totalIncomePieces = [
     result.totalDividendMonthlyNet > 0
       ? `${formatCompactCurrency(result.totalDividendMonthlyNet)} 세후 배당`
@@ -503,7 +540,7 @@ export function buildResultRows({
         <InlineAmountInput
           label="일반계좌 연 배당금"
           value={formData.taxableAccountDividendAnnual}
-          onChange={(value) => onPatchFormData({ taxableAccountDividendAnnual: value })}
+          onChange={(value) => onPatchFormData(buildTaxableDividendPatch(value))}
         />
       ),
       monthly: formatCompactCurrency(result.taxableDividendMonthlyNet),
@@ -522,7 +559,7 @@ export function buildResultRows({
         <InlineAmountInput
           label="ISA 연 배당금"
           value={formData.isaDividendAnnual}
-          onChange={(value) => onPatchFormData({ isaDividendAnnual: value })}
+          onChange={(value) => onPatchFormData(buildIsaDividendPatch(value))}
         />
       ),
       monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
@@ -831,3 +868,4 @@ export function buildResultRows({
 
   return rows
 }
+
