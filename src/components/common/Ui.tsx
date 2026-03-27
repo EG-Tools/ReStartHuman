@@ -13,6 +13,13 @@ const formatDraftValue = (
 ) =>
   Number.isFinite(value) && (value !== 0 || zeroDisplayMode === 'zero') ? String(value) : ''
 
+const sanitizeDraftValue = (draftValue: string) => {
+  const normalizedValue = draftValue.replace(/,/g, '').replace(/[^\d.]/g, '')
+  const [integerPart, ...decimalParts] = normalizedValue.split('.')
+
+  return decimalParts.length > 0 ? `${integerPart}.${decimalParts.join('')}` : integerPart
+}
+
 const parseDraftValue = (draftValue: string, minValue: number) => {
   const normalizedValue = Number(draftValue) || 0
   return Math.max(normalizedValue, minValue)
@@ -78,6 +85,15 @@ function useNumericDraftController({
       onMouseUp: (event: React.MouseEvent<HTMLInputElement>) => {
         moveCaretToInputEnd(event.currentTarget)
       },
+      onClick: (event: React.MouseEvent<HTMLInputElement>) => {
+        moveCaretToInputEnd(event.currentTarget)
+      },
+      onPointerUp: (event: React.PointerEvent<HTMLInputElement>) => {
+        moveCaretToInputEnd(event.currentTarget)
+      },
+      onTouchEnd: (event: React.TouchEvent<HTMLInputElement>) => {
+        moveCaretToInputEnd(event.currentTarget)
+      },
       onBlur: () => {
         if (commitMode === 'blur') {
           commitRawValue(draftValue)
@@ -102,7 +118,7 @@ function useNumericDraftController({
         }
       },
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-        const nextDraftValue = event.target.value
+        const nextDraftValue = sanitizeDraftValue(event.target.value)
         setEditBuffer(nextDraftValue)
 
         if (commitMode === 'change') {
@@ -301,7 +317,7 @@ export function InlineNumericField({
       <div className={shellClassName} style={shellStyle}>
         <input
           className={inputClassName}
-          type="number"
+          type="text"
           inputMode="decimal"
           min={min}
           step={resolvedStep}

@@ -27,6 +27,13 @@ interface SaveSlotCardProps {
   onDelete: (slotId: number) => void
 }
 
+const moveCaretToInputEnd = (input: HTMLInputElement) => {
+  requestAnimationFrame(() => {
+    const caretPosition = input.value.length
+    input.setSelectionRange(caretPosition, caretPosition)
+  })
+}
+
 function SaveSlotModeTabs({ activeMode, canSave, onModeChange }: SaveSlotModeTabsProps) {
   return (
     <div className="slot-mode-switch" role="tablist" aria-label="저장 슬롯 모드">
@@ -78,6 +85,18 @@ function SaveSlotCard({
               maxLength={24}
               autoComplete="off"
               spellCheck={false}
+              onFocus={(event) => {
+                moveCaretToInputEnd(event.currentTarget)
+              }}
+              onClick={(event) => {
+                moveCaretToInputEnd(event.currentTarget)
+              }}
+              onPointerUp={(event) => {
+                moveCaretToInputEnd(event.currentTarget)
+              }}
+              onTouchEnd={(event) => {
+                moveCaretToInputEnd(event.currentTarget)
+              }}
               onChange={(event) => {
                 onChangeSlotName(slotId, event.target.value)
               }}
