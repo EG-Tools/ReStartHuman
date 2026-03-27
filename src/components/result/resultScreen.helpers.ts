@@ -343,11 +343,15 @@ const buildJeonseShiftFormData = (formData: AlphaFormData): AlphaFormData => {
             formData.homeMarketValue > 0 ? formData.homeMarketValue * 0.55 : 0,
           ),
         )
+  const currentHomeValue =
+    formData.homeMarketValue > 0 ? formData.homeMarketValue : formData.homeOfficialValue
+  const releasedHousingCash = Math.max(0, currentHomeValue - inferredJeonseDeposit)
 
   return {
     ...formData,
     housingType: 'jeonse',
     jeonseDeposit: inferredJeonseDeposit,
+    startingCashReserve: formData.startingCashReserve + releasedHousingCash,
     homeMarketValue: 0,
     homeOfficialValue: 0,
     monthlyRentDeposit: 0,

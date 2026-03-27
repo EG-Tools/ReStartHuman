@@ -97,6 +97,35 @@ test('결과 해석은 적자일 때 행동 조언을 추가한다', () => {
   assert.ok(items.some((item) => item.patch && Object.keys(item.patch).length > 0))
 })
 
+test('jeonse advice moves released housing cash into starting reserve', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    housingType: 'own' as const,
+    homeMarketValue: 1_000_000_000,
+    homeOfficialValue: 600_000_000,
+    jeonseDeposit: 0,
+    startingCashReserve: 100_000_000,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 0,
+    taxableAccountDividendAnnual: 0,
+    isaDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+    otherIncomeType: 'none' as const,
+    healthInsuranceType: 'regional' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+  const items = buildDeficitAdviceItems(formData, result)
+  const jeonseAdvice = items.find((item) => item.id === 'jeonse-shift')
+
+  assert.ok(jeonseAdvice)
+  assert.equal(jeonseAdvice.patch?.housingType, 'jeonse')
+  assert.equal(jeonseAdvice.patch?.jeonseDeposit, 600_000_000)
+  assert.equal(jeonseAdvice.patch?.startingCashReserve, 500_000_000)
+})
 test('결과 해석은 흑자일 때 기본 해석만 유지한다', () => {
   const formData = {
     ...defaultFormData,
