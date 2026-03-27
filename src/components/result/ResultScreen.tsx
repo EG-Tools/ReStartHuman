@@ -36,6 +36,8 @@ interface ResultCaptureContentProps {
   adviceItems: ResultInterpretationItem[]
   rows: ResultRow[]
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
+  recentAdviceText?: string
+  onUndoAdvice?: () => void
 }
 
 const ResultCaptureContent = memo(function ResultCaptureContent({
@@ -46,6 +48,8 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
   adviceItems,
   rows,
   onPatchFormData,
+  recentAdviceText,
+  onUndoAdvice,
 }: ResultCaptureContentProps) {
   return (
     <div ref={captureRef} className="result-capture">
@@ -69,12 +73,28 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
       <section className="result-panel">
         <div className="panel-header">
           <div>
-            <h2>결과표</h2>
+            <h2>{'\uACB0\uACFC\uD45C'}</h2>
           </div>
         </div>
-        <p className="table-scroll-hint">결과표는 좌우로 밀어서 확인할 수 있어요.</p>
+        <p className="table-scroll-hint">{'\uACB0\uACFC\uD45C\uB294 \uC88C\uC6B0\uB85C \uBC00\uC5B4\uC11C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694.'}</p>
         <ResultTable rows={rows} projectionYears={formData.simulationYears} />
       </section>
+
+      {recentAdviceText && onUndoAdvice ? (
+        <section className="result-panel recent-advice-panel" data-capture-exclude="true">
+          <div className="panel-header">
+            <div>
+              <h2>{'\uCD5C\uADFC \uC801\uC6A9\uD55C \uC870\uC5B8'}</h2>
+            </div>
+          </div>
+          <p className="recent-advice-copy">{recentAdviceText}</p>
+          <div className="recent-advice-actions">
+            <PrimaryButton variant="secondary" onClick={onUndoAdvice}>
+              {'\uB418\uB3CC\uB9AC\uAE30'}
+            </PrimaryButton>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 })
@@ -273,23 +293,9 @@ export const ResultScreen = memo(function ResultScreen({
         adviceItems={adviceItems}
         rows={rows}
         onPatchFormData={handleResultPatch}
+        recentAdviceText={recentAdvice?.text}
+        onUndoAdvice={recentAdvice ? handleUndoAdvice : undefined}
       />
-
-      {recentAdvice ? (
-        <section className="result-panel recent-advice-panel" data-capture-exclude="true">
-          <div className="panel-header">
-            <div>
-              <h2>{'\uCD5C\uADFC \uC801\uC6A9\uD55C \uC870\uC5B8'}</h2>
-            </div>
-          </div>
-          <p className="recent-advice-copy">{recentAdvice.text}</p>
-          <div className="recent-advice-actions">
-            <PrimaryButton variant="secondary" onClick={handleUndoAdvice}>
-              {'\uB418\uB3CC\uB9AC\uAE30'}
-            </PrimaryButton>
-          </div>
-        </section>
-      ) : null}
 
       <div className="footer-actions footer-actions-wrap result-actions">
         <PrimaryButton variant="secondary" onClick={onEditAnswers}>

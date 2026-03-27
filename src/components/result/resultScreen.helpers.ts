@@ -180,6 +180,9 @@ const statsKoreaLivingCostBenchmarks = {
   },
 } as const
 
+const MAX_ADVICE_CACHE_SIZE = 24
+const deficitAdviceCache = new Map<string, DeficitAdviceItem[]>()
+
 const isDeficitLike = (result: AlphaResult) =>
   result.monthlySurplusOrDeficit < 0 || result.cashBalanceAfterTenYears < 0
 
@@ -204,6 +207,32 @@ const rankAdviceCandidate = (candidate: AdviceCandidate) =>
 
 const pickBestAdviceCandidate = (candidates: AdviceCandidate[]) =>
   [...candidates].sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))[0] ?? null
+
+const getCachedDeficitAdviceItems = (cacheKey: string) => {
+  const cachedValue = deficitAdviceCache.get(cacheKey)
+
+  if (!cachedValue) {
+    return null
+  }
+
+  deficitAdviceCache.delete(cacheKey)
+  deficitAdviceCache.set(cacheKey, cachedValue)
+  return cachedValue
+}
+
+const setCachedDeficitAdviceItems = (cacheKey: string, items: DeficitAdviceItem[]) => {
+  deficitAdviceCache.set(cacheKey, items)
+
+  if (deficitAdviceCache.size <= MAX_ADVICE_CACHE_SIZE) {
+    return
+  }
+
+  const oldestKey = deficitAdviceCache.keys().next().value
+
+  if (oldestKey) {
+    deficitAdviceCache.delete(oldestKey)
+  }
+}
 
 const buildFormDataPatch = (current: AlphaFormData, next: AlphaFormData): Partial<AlphaFormData> => {
   const patch: Partial<AlphaFormData> = {}
@@ -606,8 +635,24 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): D
   ]
 }
 
-export const buildDeficitAdviceItems = (formData: AlphaFormData, result: AlphaResult) =>
-  buildActionAdviceItems(formData, result)
+export const buildDeficitAdviceItems = (formData: AlphaFormData, result: AlphaResult) => {
+  const cacheKey = JSON.stringify([
+    formData,
+    result.monthlySurplusOrDeficit,
+    result.cashBalanceAfterTenYears,
+    result.healthInsuranceMonthly,
+    result.totalIncomeMonthly,
+  ])
+  const cachedItems = getCachedDeficitAdviceItems(cacheKey)
+
+  if (cachedItems) {
+    return cachedItems
+  }
+
+  const nextItems = buildActionAdviceItems(formData, result)
+  setCachedDeficitAdviceItems(cacheKey, nextItems)
+  return nextItems
+}
 
 export const buildInterpretationItems = ({
   assetInterpretation,
