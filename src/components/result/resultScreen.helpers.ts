@@ -5,7 +5,8 @@ import type {
   AlphaFormData,
   AlphaResult,
 } from '../../types/alpha'
-import { formatCompactCurrency } from '../../utils/format'
+import { calculateAlphaScenario } from '../../engine/calculator'
+import { formatCompactCurrency, formatPercent } from '../../utils/format'
 
 export interface ResultRow {
   category: string
@@ -155,6 +156,295 @@ export const getHealthInsuranceTypeSummary = (
 }
 
 
+type AdviceCandidate = {
+  message: string
+  monthlyImprovement: number
+  endingImprovement: number
+  resolvesDeficit: boolean
+}
+
+const statsKoreaLivingCostBenchmarks = {
+  single: {
+    averageMonthlyConsumption: 1_800_000,
+    label: '1인 가구',
+  },
+  couple: {
+    averageMonthlyConsumption: 2_900_000,
+    label: '2인 가구',
+  },
+} as const
+
+const isDeficitLike = (result: AlphaResult) =>
+  result.monthlySurplusOrDeficit < 0 || result.cashBalanceAfterTenYears < 0
+
+const improvesEnough = (before: AlphaResult, after: AlphaResult) => {
+  const monthlyImprovement = after.monthlySurplusOrDeficit - before.monthlySurplusOrDeficit
+  const endingImprovement = after.cashBalanceAfterTenYears - before.cashBalanceAfterTenYears
+
+  return monthlyImprovement > 0 || endingImprovement > 0
+}
+
+const resolvesDeficit = (result: AlphaResult) =>
+  result.monthlySurplusOrDeficit >= 0 && result.cashBalanceAfterTenYears >= 0
+
+const rankAdviceCandidate = (candidate: AdviceCandidate) =>
+  (candidate.resolvesDeficit ? 10_000_000_000 : 0) +
+  candidate.endingImprovement +
+  candidate.monthlyImprovement * 10_000
+
+const pickBestAdviceCandidate = (candidates: AdviceCandidate[]) =>
+  [...candidates].sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))[0] ?? null
+
+const buildReducedLivingCostFormData = (
+  formData: AlphaFormData,
+  reductionMonthly: number,
+): AlphaFormData => {
+  if (reductionMonthly <= 0) {
+    return formData
+  }
+
+  if (formData.livingCostInputMode === 'total') {
+    return {
+      ...formData,
+      livingCostMonthlyTotal: Math.max(0, formData.livingCostMonthlyTotal - reductionMonthly),
+    }
+  }
+
+  let remaining = reductionMonthly
+  const nextFormData: AlphaFormData = { ...formData }
+  const reduceKeys: Array<
+    'otherLivingMonthly' | 'hobbyMonthly' | 'diningOutMonthly' | 'necessitiesMonthly' | 'foodMonthly' | 'academyMonthly'
+  > = [
+    'otherLivingMonthly',
+    'hobbyMonthly',
+    'diningOutMonthly',
+    'necessitiesMonthly',
+    'foodMonthly',
+    'academyMonthly',
+  ]
+
+  for (const key of reduceKeys) {
+    if (remaining <= 0) {
+      break
+    }
+
+    const currentValue = nextFormData[key] ?? 0
+
+    if (currentValue <= 0) {
+      continue
+    }
+
+    const amountToReduce = Math.min(currentValue, remaining)
+    nextFormData[key] = currentValue - amountToReduce
+    remaining -= amountToReduce
+  }
+
+  return nextFormData
+}
+
+const buildDividendBoostFormData = (
+  formData: AlphaFormData,
+  additionalDividendMonthly: number,
+): AlphaFormData => {
+  const additionalDividendAnnual = additionalDividendMonthly * 12
+  const nextFormData: AlphaFormData = {
+    ...formData,
+    taxableAccountDividendAnnual: formData.taxableAccountDividendAnnual + additionalDividendAnnual,
+  }
+
+  if (formData.dividendOwnershipType === 'split' && formData.householdType === 'couple') {
+    const totalAttributedAnnual =
+      formData.myAnnualDividendAttributed + formData.spouseAnnualDividendAttributed
+    const myShare =
+      totalAttributedAnnual > 0 ? formData.myAnnualDividendAttributed / totalAttributedAnnual : 0.5
+
+    nextFormData.myAnnualDividendAttributed = Math.round(
+      formData.myAnnualDividendAttributed + additionalDividendAnnual * myShare,
+    )
+    nextFormData.spouseAnnualDividendAttributed = Math.round(
+      formData.spouseAnnualDividendAttributed + additionalDividendAnnual * (1 - myShare),
+    )
+  }
+
+  return nextFormData
+}
+
+const buildJeonseShiftFormData = (formData: AlphaFormData): AlphaFormData => {
+  const inferredJeonseDeposit =
+    formData.jeonseDeposit > 0
+      ? formData.jeonseDeposit
+      : Math.round(
+          Math.max(
+            formData.homeOfficialValue,
+            formData.homeMarketValue > 0 ? formData.homeMarketValue * 0.55 : 0,
+          ),
+        )
+
+  return {
+    ...formData,
+    housingType: 'jeonse',
+    jeonseDeposit: inferredJeonseDeposit,
+    homeMarketValue: 0,
+    homeOfficialValue: 0,
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    maintenanceIncludedInRent: true,
+    monthlyMaintenanceFee: 0,
+  }
+}
+
+const findLivingCostAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  const currentLivingCost = getLivingCostSnapshot(formData)
+
+  if (currentLivingCost <= 0) {
+    return null
+  }
+
+  const benchmark = statsKoreaLivingCostBenchmarks[formData.householdType]
+  const maxReduction = Math.min(currentLivingCost, 2_000_000)
+  const candidates: AdviceCandidate[] = []
+
+  for (let reductionMonthly = 100_000; reductionMonthly <= maxReduction; reductionMonthly += 100_000) {
+    const nextFormData = buildReducedLivingCostFormData(formData, reductionMonthly)
+    const nextResult = calculateAlphaScenario(nextFormData)
+
+    if (!improvesEnough(result, nextResult)) {
+      continue
+    }
+
+    const nextLivingCost = getLivingCostSnapshot(nextFormData)
+    const statsNote =
+      currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
+        ? ` 통계청 가계동향조사 참고선 기준 ${benchmark.label} 월평균 소비지출은 ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} 안팎입니다.`
+        : ''
+
+    candidates.push({
+      message: resolvesDeficit(nextResult)
+        ? `월 생활비를 ${formatCompactCurrency(currentLivingCost)}에서 ${formatCompactCurrency(nextLivingCost)}로 낮추면 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.${statsNote}`
+        : `월 생활비를 ${formatCompactCurrency(currentLivingCost)}에서 ${formatCompactCurrency(nextLivingCost)}로 낮추면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.${statsNote}`,
+      monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
+      endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
+      resolvesDeficit: resolvesDeficit(nextResult),
+    })
+
+    if (resolvesDeficit(nextResult)) {
+      break
+    }
+  }
+
+  return pickBestAdviceCandidate(candidates)
+}
+
+const findDividendAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  const candidates: AdviceCandidate[] = []
+
+  for (let additionalDividendMonthly = 100_000; additionalDividendMonthly <= 3_000_000; additionalDividendMonthly += 100_000) {
+    const nextResult = calculateAlphaScenario(
+      buildDividendBoostFormData(formData, additionalDividendMonthly),
+    )
+
+    if (!improvesEnough(result, nextResult)) {
+      continue
+    }
+
+    candidates.push({
+      message: resolvesDeficit(nextResult)
+        ? `월 배당금 기준으로 ${formatCompactCurrency(additionalDividendMonthly)}를 더 확보하면 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.`
+        : `월 배당금 기준으로 ${formatCompactCurrency(additionalDividendMonthly)}를 더 확보하면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.`,
+      monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
+      endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
+      resolvesDeficit: resolvesDeficit(nextResult),
+    })
+
+    if (resolvesDeficit(nextResult)) {
+      break
+    }
+  }
+
+  return pickBestAdviceCandidate(candidates)
+}
+
+const findJeonseAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  if (
+    formData.housingType !== 'own' ||
+    (formData.homeMarketValue <= 0 && formData.homeOfficialValue <= 0)
+  ) {
+    return null
+  }
+
+  const nextResult = calculateAlphaScenario(buildJeonseShiftFormData(formData))
+
+  if (!improvesEnough(result, nextResult)) {
+    return null
+  }
+
+  return {
+    message: resolvesDeficit(nextResult)
+      ? `자가 대신 전세 시나리오로 바꾸면 보유세와 재산 반영 부담이 줄어 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.`
+      : `자가 대신 전세 시나리오로 바꾸면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.`,
+    monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
+    endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
+    resolvesDeficit: resolvesDeficit(nextResult),
+  }
+}
+
+const buildHealthInsuranceAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): string | null => {
+  if (result.healthInsuranceMonthly <= 0 || result.totalIncomeMonthly <= 0) {
+    return null
+  }
+
+  const healthInsuranceShare = result.healthInsuranceMonthly / result.totalIncomeMonthly
+
+  if (result.healthInsuranceMonthly < 250_000 && healthInsuranceShare < 0.12) {
+    return null
+  }
+
+  return `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)}로 현재 월 유입의 ${formatPercent(healthInsuranceShare)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 계산됐으니 건강보험 유형, 추가소득, 부동산 입력을 다시 확인해보는 편이 좋습니다.`
+}
+
+const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult) => {
+  if (!isDeficitLike(result)) {
+    return []
+  }
+
+  const scenarioCandidates = [
+    findLivingCostAdvice(formData, result),
+    findDividendAdvice(formData, result),
+    findJeonseAdvice(formData, result),
+  ].filter((candidate): candidate is AdviceCandidate => candidate !== null)
+
+  const actionAdvice = scenarioCandidates
+    .sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))
+    .slice(0, 2)
+    .map((candidate) => candidate.message)
+
+  const healthInsuranceAdvice = buildHealthInsuranceAdvice(formData, result)
+
+  if (healthInsuranceAdvice && actionAdvice.length < 3) {
+    actionAdvice.push(healthInsuranceAdvice)
+  }
+
+  if (actionAdvice.length > 0) {
+    return actionAdvice
+  }
+
+  return [
+    '현재 입력값에서는 한 가지 조정만으로 적자를 해소하기 어렵습니다. 생활비, 주거비, 배당 현금흐름 중 두세 항목을 함께 조정해보세요.',
+  ]
+}
+
 export const buildInterpretationItems = ({
   assetInterpretation,
   effectiveComprehensiveRate,
@@ -165,25 +455,30 @@ export const buildInterpretationItems = ({
   effectiveComprehensiveRate: number
   formData: AlphaFormData
   result: AlphaResult
-}) => [
-  result.holdingTaxAnnual >= 10_000_000
-    ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
-    : result.holdingTaxAnnual > 0
-      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 추정했습니다.`
-      : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
-  result.comprehensiveTaxIncluded
-    ? result.comprehensiveTaxImpactAnnual > 0
-      ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-      : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
-    : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
-  result.healthInsuranceMonthly >= 1_000_000
-    ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
-    : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
-  result.otherIncomeMonthlyApplied > 0
-    ? `${getOtherIncomeTypeLabel(formData.otherIncomeType)} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
-    : '추가 월소득은 별도 입력이 없어 반영하지 않았습니다.',
-  assetInterpretation,
-]
+}) => {
+  const adviceItems = buildActionAdviceItems(formData, result)
+
+  return [
+    ...adviceItems,
+    result.holdingTaxAnnual >= 10_000_000
+      ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
+      : result.holdingTaxAnnual > 0
+        ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 추정했습니다.`
+        : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
+    result.comprehensiveTaxIncluded
+      ? result.comprehensiveTaxImpactAnnual > 0
+        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
+        : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
+      : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
+    result.healthInsuranceMonthly >= 1_000_000
+      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
+      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
+    result.otherIncomeMonthlyApplied > 0
+      ? `${getOtherIncomeTypeLabel(formData.otherIncomeType)} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
+      : '추가 월소득은 별도 입력이 없어 반영하지 않았습니다.',
+    assetInterpretation,
+  ]
+}
 
 export const getPropertyOwnershipLabel = (ownershipType: string) => {
   switch (ownershipType) {
