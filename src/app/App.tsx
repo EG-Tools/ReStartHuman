@@ -18,7 +18,7 @@ import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHisto
 import { useViewportCssVars } from '../hooks/useViewportCssVars'
 import { useSaveSlots } from '../hooks/useSaveSlots'
 import { appRoutes } from './routes'
-import type { AlphaFormData, SaveSlotRecord } from '../types/alpha'
+import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
 
 const QuestionScreen = lazy(async () => {
   const module = await import('../components/question/QuestionScreen')
@@ -52,6 +52,7 @@ const hasPatchChanges = (
 
 export default function App() {
   const [formData, setFormData] = useState<AlphaFormData>(defaultFormData)
+  const [loadedSlotResult, setLoadedSlotResult] = useState<AlphaResult | null>(null)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
@@ -62,10 +63,14 @@ export default function App() {
   const deferredCalculationInput = useDeferredValue(calculationInput)
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
-  const result = useMemo(
-    () => (shouldRenderResult ? calculateAlphaScenario(deferredCalculationInput) : null),
-    [deferredCalculationInput, shouldRenderResult],
+  const liveResult = useMemo(
+    () =>
+      shouldRenderResult && loadedSlotResult === null
+        ? calculateAlphaScenario(deferredCalculationInput)
+        : null,
+    [deferredCalculationInput, loadedSlotResult, shouldRenderResult],
   )
+  const result = loadedSlotResult ?? liveResult
   const optionsButton = useMemo(
     () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
     [],
@@ -75,6 +80,11 @@ export default function App() {
   const openResult = flow.openResult
 
   useViewportCssVars()
+
+  useEffect(() => {
+    void import('../components/result/ResultScreen')
+    void import('../components/ad/ResultAdScreen')
+  }, [])
 
   useAppHistoryNavigation({
     route: flowRoute,
@@ -91,9 +101,7 @@ export default function App() {
       return
     }
 
-    startTransition(() => {
-      openResult()
-    })
+    openResult()
   }, [adSupport.isAdFreeEnabled, flowRoute, openResult])
 
   const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
@@ -108,11 +116,13 @@ export default function App() {
           ...patch,
         }
       })
+      setLoadedSlotResult(null)
     })
   }, [])
 
   const startFresh = useCallback(() => {
     startTransition(() => {
+      setLoadedSlotResult(null)
       setFormData(defaultFormData)
       flow.goToQuestion(0)
     })
@@ -120,11 +130,10 @@ export default function App() {
 
   const handleLoadSlot = useCallback(
     (slot: SaveSlotRecord) => {
-      startTransition(() => {
-        setFormData({ ...defaultFormData, ...slot.formData })
-        setSaveSlotMode(null)
-        flow.openAd()
-      })
+      setLoadedSlotResult(slot.result)
+      setFormData({ ...defaultFormData, ...slot.formData })
+      setSaveSlotMode(null)
+      flow.openAd()
     },
     [flow],
   )
@@ -150,6 +159,7 @@ export default function App() {
 
   const startOver = useCallback(() => {
     startTransition(() => {
+      setLoadedSlotResult(null)
       setFormData(defaultFormData)
       setSaveSlotMode(null)
       flow.reset()
