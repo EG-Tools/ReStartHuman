@@ -438,12 +438,22 @@ export function renderQuestionContent({
                   value: formData.isaDividendAnnual,
                   onChange: (value) => update('isaDividendAnnual', value),
                 },
-                {
+                                {
                   key: 'pensionMonthlyAmount',
                   label: '국민연금 월 실수령액 예상',
                   value: formData.pensionMonthlyAmount,
                   onChange: (value) => update('pensionMonthlyAmount', value),
                   helperText: '세후 기준, 실제 통장에 들어오는 금액을 입력합니다.',
+                },
+                {
+                  key: 'pensionStartAge',
+                  label: '국민연금 수령 시작 나이',
+                  value: formData.pensionStartAge,
+                  onChange: (value) => update('pensionStartAge', Math.max(value, 1)),
+                  display: 'number',
+                  suffix: '세',
+                  min: 1,
+                  step: 1,
                 },
               ]}
             />
@@ -596,8 +606,9 @@ export function renderQuestionContent({
                   : {}),
               }),
             )}
-            {formData.otherIncomeType !== 'none' ? (
+                        {formData.otherIncomeType !== 'none' ? (
               <QuestionNumberFields
+                columns={formData.otherIncomeType === 'pension' ? 2 : 1}
                 fields={[
                   {
                     key: 'otherIncomeMonthly',
@@ -622,6 +633,21 @@ export function renderQuestionContent({
                         ? '근로소득을 선택한 상태라 건강보험 직장가입 월 급여에 같은 금액을 자동 반영합니다.'
                         : undefined,
                   },
+                  ...(formData.otherIncomeType === 'pension'
+                    ? [
+                        {
+                          key: 'otherIncomeStartAge',
+                          label: '기타연금 수령 시작 나이',
+                          value: formData.otherIncomeStartAge,
+                          onChange: (value: number) =>
+                            update('otherIncomeStartAge', Math.max(value, 1)),
+                          display: 'number' as const,
+                          suffix: '세',
+                          min: 1,
+                          step: 1,
+                        },
+                      ]
+                    : []),
                 ]}
               />
             ) : null}

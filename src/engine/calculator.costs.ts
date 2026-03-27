@@ -49,6 +49,26 @@ export const calculateExpenses = (formData: AlphaFormData) => {
   }
 }
 
+const getBaseOtherIncomeMonthly = (formData: AlphaFormData) =>
+  formData.otherIncomeType === 'none'
+    ? 0
+    : formData.otherIncomeType === 'earned'
+      ? Math.max(formData.otherIncomeMonthly, formData.salaryMonthly)
+      : formData.otherIncomeMonthly
+
+export const getAgeQualifiedPensionMonthly = (formData: AlphaFormData, age: number) =>
+  age >= formData.pensionStartAge ? formData.pensionMonthlyAmount : 0
+
+export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) => {
+  const baseOtherIncomeMonthly = getBaseOtherIncomeMonthly(formData)
+
+  if (formData.otherIncomeType === 'pension' && age < formData.otherIncomeStartAge) {
+    return 0
+  }
+
+  return baseOtherIncomeMonthly
+}
+
 const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   const landTotal = formData.landValue
   const otherPropertyTotal = formData.otherPropertyOfficialValue
@@ -328,14 +348,18 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
 
 export const calculateCashProjection = (
   formData: AlphaFormData,
-  totalIncomeMonthly: number,
+  totalDividendMonthlyNet: number,
+  totalDividendAnnualGross: number,
   totalExpenseMonthly: number,
-  healthInsuranceMonthly: number,
   holdingTaxMonthly: number,
   comprehensiveTaxImpactAnnual: number,
   projectionYears = 30,
 ): CashProjection => {
   let cumulativeNetChange = 0
+  let cumulativePensionIncome = 0
+  let cumulativeOtherIncome = 0
+  let cumulativeTotalIncome = 0
+  let cumulativeUsableCash = 0
   let balance = formData.startingCashReserve
   const timeline = [
     {
@@ -348,6 +372,24 @@ export const calculateCashProjection = (
   const baseExpenseMonthlyWithoutLoan = Math.max(totalExpenseMonthly - fixedLoanInterestMonthly, 0)
 
   for (let yearIndex = 0; yearIndex < projectionYears; yearIndex += 1) {
+    const projectedAge = formData.currentAge + yearIndex
+    const projectedOtherIncomeMonthly = getAgeQualifiedOtherIncomeMonthly(formData, projectedAge)
+    const projectedPensionMonthly = getAgeQualifiedPensionMonthly(formData, projectedAge)
+    const projectedHealthInsuranceMonthly =
+      formData.healthInsuranceOverrideMonthly ??
+      estimateHealthInsurance(
+        formData,
+        totalDividendAnnualGross,
+        projectedOtherIncomeMonthly,
+        projectedPensionMonthly,
+      )
+    const projectedTotalIncomeMonthly =
+      totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
+    const projectedMonthlyUsableCash =
+      projectedTotalIncomeMonthly -
+      projectedHealthInsuranceMonthly -
+      holdingTaxMonthly -
+      comprehensiveTaxImpactAnnual / 12
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
@@ -357,14 +399,13 @@ export const calculateCashProjection = (
       yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
 
     const projectedExpenses = projectedBaseExpenses + projectedLoanInterest
-    const projectedMonthlySurplus =
-      totalIncomeMonthly -
-      projectedExpenses -
-      healthInsuranceMonthly -
-      holdingTaxMonthly -
-      comprehensiveTaxImpactAnnual / 12
+    const projectedMonthlySurplus = projectedMonthlyUsableCash - projectedExpenses
     const annualNetChange = roundCurrency(projectedMonthlySurplus * 12)
 
+    cumulativePensionIncome += roundCurrency(projectedPensionMonthly * 12)
+    cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
+    cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
+    cumulativeUsableCash += roundCurrency(projectedMonthlyUsableCash * 12)
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -377,5 +418,9 @@ export const calculateCashProjection = (
     cumulativeNetChange: roundCurrency(cumulativeNetChange),
     endingBalance: roundCurrency(balance),
     timeline,
+    cumulativePensionIncome: roundCurrency(cumulativePensionIncome),
+    cumulativeOtherIncome: roundCurrency(cumulativeOtherIncome),
+    cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),
+    cumulativeUsableCash: roundCurrency(cumulativeUsableCash),
   }
 }

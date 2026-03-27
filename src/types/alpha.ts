@@ -85,6 +85,7 @@ export interface AlphaFormData {
 
   otherIncomeType: 'earned' | 'business' | 'pension' | 'other' | 'none'
   otherIncomeMonthly: number
+  otherIncomeStartAge: number
 
   hasPensionIncome: boolean
   pensionStartAge: number
@@ -212,6 +213,8 @@ export interface AlphaResult {
 
   pensionMonthlyApplied: number
   otherIncomeMonthlyApplied: number
+  projectionPensionIncomeTotal: number
+  projectionOtherIncomeTotal: number
 
   carMonthlyConverted: number
   housingMonthlyCost: number
@@ -219,8 +222,10 @@ export interface AlphaResult {
   livingExpenseMonthly: number
   totalExpenseMonthly: number
   totalIncomeMonthly: number
+  projectionTotalIncomeTotal: number
 
   monthlyUsableCash: number
+  projectionUsableCashTotal: number
   monthlySurplusOrDeficit: number
 
   yearlySurplusOrDeficit: number
