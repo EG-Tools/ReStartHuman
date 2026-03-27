@@ -450,11 +450,22 @@ export const ResultTable = memo(function ResultTable({
   )
 })
 
+export interface ResultInterpretationItem {
+  id: string
+  text: string
+  actionLabel?: string
+  onAction?: () => void
+}
+
+const normalizeInterpretationItem = (
+  item: string | ResultInterpretationItem,
+): ResultInterpretationItem => (typeof item === 'string' ? { id: item, text: item } : item)
+
 export const ResultInterpretation = memo(function ResultInterpretation({
   items,
-  title = '결과표 해석',
+  title = '\uACB0\uACFC\uD45C \uD574\uC11D',
 }: {
-  items: string[]
+  items: Array<string | ResultInterpretationItem>
   title?: string
 }) {
   return (
@@ -465,9 +476,25 @@ export const ResultInterpretation = memo(function ResultInterpretation({
         </div>
       </div>
       <ul className="interpretation-list">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
+        {items.map((rawItem) => {
+          const item = normalizeInterpretationItem(rawItem)
+
+          return (
+            <li key={item.id}>
+              <span className="interpretation-list-text">{item.text}</span>
+              {item.actionLabel && item.onAction ? (
+                <button
+                  type="button"
+                  className="interpretation-action-button"
+                  onClick={item.onAction}
+                  data-capture-exclude="true"
+                >
+                  {item.actionLabel}
+                </button>
+              ) : null}
+            </li>
+          )
+        })}
       </ul>
     </section>
   )

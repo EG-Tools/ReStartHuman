@@ -156,8 +156,14 @@ export const getHealthInsuranceTypeSummary = (
 }
 
 
-type AdviceCandidate = {
+export type DeficitAdviceItem = {
+  id: string
   message: string
+  actionLabel?: string
+  patch?: Partial<AlphaFormData>
+}
+
+type AdviceCandidate = DeficitAdviceItem & {
   monthlyImprovement: number
   endingImprovement: number
   resolvesDeficit: boolean
@@ -166,20 +172,24 @@ type AdviceCandidate = {
 const statsKoreaLivingCostBenchmarks = {
   single: {
     averageMonthlyConsumption: 1_800_000,
-    label: '1인 가구',
+    label: '\u0031\uC778 \uAC00\uAD6C',
   },
   couple: {
     averageMonthlyConsumption: 2_900_000,
-    label: '2인 가구',
+    label: '\u0032\uC778 \uAC00\uAD6C',
   },
 } as const
 
 const isDeficitLike = (result: AlphaResult) =>
   result.monthlySurplusOrDeficit < 0 || result.cashBalanceAfterTenYears < 0
 
+const getScenarioImprovement = (before: AlphaResult, after: AlphaResult) => ({
+  monthlyImprovement: after.monthlySurplusOrDeficit - before.monthlySurplusOrDeficit,
+  endingImprovement: after.cashBalanceAfterTenYears - before.cashBalanceAfterTenYears,
+})
+
 const improvesEnough = (before: AlphaResult, after: AlphaResult) => {
-  const monthlyImprovement = after.monthlySurplusOrDeficit - before.monthlySurplusOrDeficit
-  const endingImprovement = after.cashBalanceAfterTenYears - before.cashBalanceAfterTenYears
+  const { monthlyImprovement, endingImprovement } = getScenarioImprovement(before, after)
 
   return monthlyImprovement > 0 || endingImprovement > 0
 }
@@ -194,6 +204,60 @@ const rankAdviceCandidate = (candidate: AdviceCandidate) =>
 
 const pickBestAdviceCandidate = (candidates: AdviceCandidate[]) =>
   [...candidates].sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))[0] ?? null
+
+const buildFormDataPatch = (current: AlphaFormData, next: AlphaFormData): Partial<AlphaFormData> => {
+  const patch: Partial<AlphaFormData> = {}
+
+  for (const key of Object.keys(next) as Array<keyof AlphaFormData>) {
+    if (Object.is(current[key], next[key])) {
+      continue
+    }
+
+    ;(patch as Record<string, unknown>)[key] = next[key]
+  }
+
+  return patch
+}
+
+const createAdviceCandidate = ({
+  id,
+  message,
+  actionLabel,
+  beforeResult,
+  currentFormData,
+  afterFormData,
+  afterResult,
+}: {
+  id: string
+  message: string
+  actionLabel?: string
+  beforeResult: AlphaResult
+  currentFormData: AlphaFormData
+  afterFormData: AlphaFormData
+  afterResult: AlphaResult
+}): AdviceCandidate | null => {
+  if (!improvesEnough(beforeResult, afterResult)) {
+    return null
+  }
+
+  const patch = buildFormDataPatch(currentFormData, afterFormData)
+
+  if (Object.keys(patch).length === 0) {
+    return null
+  }
+
+  const { monthlyImprovement, endingImprovement } = getScenarioImprovement(beforeResult, afterResult)
+
+  return {
+    id,
+    message,
+    actionLabel,
+    patch,
+    monthlyImprovement,
+    endingImprovement,
+    resolvesDeficit: resolvesDeficit(afterResult),
+  }
+}
 
 const buildReducedLivingCostFormData = (
   formData: AlphaFormData,
@@ -288,10 +352,20 @@ const buildJeonseShiftFormData = (formData: AlphaFormData): AlphaFormData => {
     homeOfficialValue: 0,
     monthlyRentDeposit: 0,
     monthlyRentAmount: 0,
-    maintenanceIncludedInRent: true,
-    monthlyMaintenanceFee: 0,
   }
 }
+
+const buildLoanFreeFormData = (formData: AlphaFormData): AlphaFormData => ({
+  ...formData,
+  hasLoan: false,
+  loanInterestMonthly: 0,
+  loanInterestYears: 0,
+})
+
+const buildCarCostCutFormData = (formData: AlphaFormData): AlphaFormData => ({
+  ...formData,
+  carYearlyCost: 0,
+})
 
 const findLivingCostAdvice = (
   formData: AlphaFormData,
@@ -318,17 +392,24 @@ const findLivingCostAdvice = (
     const nextLivingCost = getLivingCostSnapshot(nextFormData)
     const statsNote =
       currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
-        ? ` 통계청 가계동향조사 참고선 기준 ${benchmark.label} 월평균 소비지출은 ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} 안팎입니다.`
+        ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD31D\uC785\uB2C8\uB2E4.`
         : ''
-
-    candidates.push({
-      message: resolvesDeficit(nextResult)
-        ? `월 생활비를 ${formatCompactCurrency(currentLivingCost)}에서 ${formatCompactCurrency(nextLivingCost)}로 낮추면 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.${statsNote}`
-        : `월 생활비를 ${formatCompactCurrency(currentLivingCost)}에서 ${formatCompactCurrency(nextLivingCost)}로 낮추면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.${statsNote}`,
-      monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
-      endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
-      resolvesDeficit: resolvesDeficit(nextResult),
+    const message = resolvesDeficit(nextResult)
+      ? `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.${statsNote}`
+      : `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.${statsNote}`
+    const candidate = createAdviceCandidate({
+      id: `living-cost-${reductionMonthly}`,
+      message,
+      actionLabel: '\uC0DD\uD65C\uBE44 \uC801\uC6A9',
+      beforeResult: result,
+      currentFormData: formData,
+      afterFormData: nextFormData,
+      afterResult: nextResult,
     })
+
+    if (candidate) {
+      candidates.push(candidate)
+    }
 
     if (resolvesDeficit(nextResult)) {
       break
@@ -345,22 +426,29 @@ const findDividendAdvice = (
   const candidates: AdviceCandidate[] = []
 
   for (let additionalDividendMonthly = 100_000; additionalDividendMonthly <= 3_000_000; additionalDividendMonthly += 100_000) {
-    const nextResult = calculateAlphaScenario(
-      buildDividendBoostFormData(formData, additionalDividendMonthly),
-    )
+    const nextFormData = buildDividendBoostFormData(formData, additionalDividendMonthly)
+    const nextResult = calculateAlphaScenario(nextFormData)
 
     if (!improvesEnough(result, nextResult)) {
       continue
     }
 
-    candidates.push({
-      message: resolvesDeficit(nextResult)
-        ? `월 배당금 기준으로 ${formatCompactCurrency(additionalDividendMonthly)}를 더 확보하면 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.`
-        : `월 배당금 기준으로 ${formatCompactCurrency(additionalDividendMonthly)}를 더 확보하면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.`,
-      monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
-      endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
-      resolvesDeficit: resolvesDeficit(nextResult),
+    const message = resolvesDeficit(nextResult)
+      ? `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      : `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`
+    const candidate = createAdviceCandidate({
+      id: `dividend-${additionalDividendMonthly}`,
+      message,
+      actionLabel: '\uBC30\uB2F9 \uC801\uC6A9',
+      beforeResult: result,
+      currentFormData: formData,
+      afterFormData: nextFormData,
+      afterResult: nextResult,
     })
+
+    if (candidate) {
+      candidates.push(candidate)
+    }
 
     if (resolvesDeficit(nextResult)) {
       break
@@ -381,20 +469,80 @@ const findJeonseAdvice = (
     return null
   }
 
-  const nextResult = calculateAlphaScenario(buildJeonseShiftFormData(formData))
+  const nextFormData = buildJeonseShiftFormData(formData)
+  const nextResult = calculateAlphaScenario(nextFormData)
 
   if (!improvesEnough(result, nextResult)) {
     return null
   }
 
-  return {
+  return createAdviceCandidate({
+    id: 'jeonse-shift',
     message: resolvesDeficit(nextResult)
-      ? `자가 대신 전세 시나리오로 바꾸면 보유세와 재산 반영 부담이 줄어 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.`
-      : `자가 대신 전세 시나리오로 바꾸면 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.`,
-    monthlyImprovement: nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit,
-    endingImprovement: nextResult.cashBalanceAfterTenYears - result.cashBalanceAfterTenYears,
-    resolvesDeficit: resolvesDeficit(nextResult),
+      ? `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74 \uBCF4\uC720\uC138\uC640 \uAC74\uAC15\uBCF4\uD5D8\uB8CC \uBD80\uB2F4\uC774 \uC904\uC5B4 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      : `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
+    actionLabel: '\uC804\uC138 \uC801\uC6A9',
+    beforeResult: result,
+    currentFormData: formData,
+    afterFormData: nextFormData,
+    afterResult: nextResult,
+  })
+}
+
+const findLoanAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  if (formData.loanInterestMonthly <= 0) {
+    return null
   }
+
+  const nextFormData = buildLoanFreeFormData(formData)
+  const nextResult = calculateAlphaScenario(nextFormData)
+
+  if (!improvesEnough(result, nextResult)) {
+    return null
+  }
+
+  return createAdviceCandidate({
+    id: 'loan-interest',
+    message: resolvesDeficit(nextResult)
+      ? `\uC6D4 \uB300\uCD9C\uC774\uC790 ${formatCompactCurrency(formData.loanInterestMonthly)} \uBD80\uB2F4\uC744 \uC5C6\uC560\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      : `\uC6D4 \uB300\uCD9C\uC774\uC790 ${formatCompactCurrency(formData.loanInterestMonthly)} \uBD80\uB2F4\uC744 \uC5C6\uC560\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
+    actionLabel: '\uC774\uC790 \uC801\uC6A9',
+    beforeResult: result,
+    currentFormData: formData,
+    afterFormData: nextFormData,
+    afterResult: nextResult,
+  })
+}
+
+const findCarCostAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  if (formData.carYearlyCost <= 0) {
+    return null
+  }
+
+  const nextFormData = buildCarCostCutFormData(formData)
+  const nextResult = calculateAlphaScenario(nextFormData)
+
+  if (!improvesEnough(result, nextResult)) {
+    return null
+  }
+
+  return createAdviceCandidate({
+    id: 'car-cost',
+    message: resolvesDeficit(nextResult)
+      ? `\uC5F0 \uCC28\uB7C9 \uC720\uC9C0\uBE44 ${formatCompactCurrency(formData.carYearlyCost)}\uB97C 0\uC6D0\uC73C\uB85C \uC904\uC774\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      : `\uC5F0 \uCC28\uB7C9 \uC720\uC9C0\uBE44 ${formatCompactCurrency(formData.carYearlyCost)}\uB97C 0\uC6D0\uC73C\uB85C \uC904\uC774\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
+    actionLabel: '\uCC28\uB7C9\uBE44 \uC801\uC6A9',
+    beforeResult: result,
+    currentFormData: formData,
+    afterFormData: nextFormData,
+    afterResult: nextResult,
+  })
 }
 
 const buildHealthInsuranceAdvice = (
@@ -411,10 +559,10 @@ const buildHealthInsuranceAdvice = (
     return null
   }
 
-  return `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)}로 현재 월 유입의 ${formatPercent(healthInsuranceShare)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 계산됐으니 건강보험 유형, 추가소득, 부동산 입력을 다시 확인해보는 편이 좋습니다.`
+  return `\uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uC6D4 ${formatCompactCurrency(result.healthInsuranceMonthly)}\uB85C \uD604\uC7AC \uC6D4 \uC720\uC785\uC758 ${formatPercent(healthInsuranceShare)} \uC218\uC900\uC785\uB2C8\uB2E4. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}\uC73C\uB85C \uACC4\uC0B0\uB410\uC73C\uB2C8 \uAC74\uAC15\uBCF4\uD5D8 \uC720\uD615, \uCD94\uAC00\uC18C\uB4DD, \uBD80\uB3D9\uC0B0 \uC785\uB825\uC744 \uB2E4\uC2DC \uD655\uC778\uD574\uBCF4\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4.`
 }
 
-const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult) => {
+const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): DeficitAdviceItem[] => {
   if (!isDeficitLike(result)) {
     return []
   }
@@ -423,17 +571,22 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult) =>
     findLivingCostAdvice(formData, result),
     findDividendAdvice(formData, result),
     findJeonseAdvice(formData, result),
+    findLoanAdvice(formData, result),
+    findCarCostAdvice(formData, result),
   ].filter((candidate): candidate is AdviceCandidate => candidate !== null)
 
-  const actionAdvice = scenarioCandidates
+  const actionAdvice: DeficitAdviceItem[] = scenarioCandidates
     .sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))
     .slice(0, 2)
-    .map((candidate) => candidate.message)
+    .map(({ id, message, actionLabel, patch }) => ({ id, message, actionLabel, patch }))
 
   const healthInsuranceAdvice = buildHealthInsuranceAdvice(formData, result)
 
   if (healthInsuranceAdvice && actionAdvice.length < 3) {
-    actionAdvice.push(healthInsuranceAdvice)
+    actionAdvice.push({
+      id: 'health-insurance-review',
+      message: healthInsuranceAdvice,
+    })
   }
 
   if (actionAdvice.length > 0) {
@@ -441,7 +594,11 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult) =>
   }
 
   return [
-    '현재 입력값에서는 한 가지 조정만으로 적자를 해소하기 어렵습니다. 생활비, 주거비, 배당 현금흐름 중 두세 항목을 함께 조정해보세요.',
+    {
+      id: 'broad-review',
+      message:
+        '\uD604\uC7AC \uC785\uB825\uAC12\uC5D0\uC11C\uB294 \uD55C \uAC00\uC9C0 \uC870\uC815\uB9CC\uC73C\uB85C \uC801\uC790\uB97C \uD574\uC18C\uD558\uAE30 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uC0DD\uD65C\uBE44, \uC8FC\uAC70\uD615\uD0DC, \uBC30\uB2F9\uAE08, \uCD94\uAC00\uC18C\uB4DD\uC744 \uD568\uAED8 \uC870\uC815\uD574\uBCF4\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4.',
+    },
   ]
 }
 

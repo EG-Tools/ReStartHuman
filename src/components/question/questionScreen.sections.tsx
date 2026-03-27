@@ -175,8 +175,6 @@ export function renderQuestionContent({
                   onPatchFormData({
                     housingType: value,
                     isSingleHomeOwner: value === 'own',
-                    maintenanceIncludedInRent: value === 'monthlyRent' ? true : formData.maintenanceIncludedInRent,
-                    monthlyMaintenanceFee: value === 'monthlyRent' ? 0 : formData.monthlyMaintenanceFee,
                   })
                 }
               />
@@ -593,8 +591,6 @@ export function renderQuestionContent({
             ) : null}
           </div>
         )
-      case 'isa':
-        return null
       case 'income':
         return (
           <div className="question-stack">

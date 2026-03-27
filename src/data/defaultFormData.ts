@@ -18,8 +18,6 @@ export const defaultFormData: AlphaFormData = {
 
   monthlyRentDeposit: 0,
   monthlyRentAmount: 0,
-  maintenanceIncludedInRent: true,
-  monthlyMaintenanceFee: 0,
 
   landValue: 0,
   landOwnershipType: 'mineOnly',
@@ -42,8 +40,6 @@ export const defaultFormData: AlphaFormData = {
   dividendInputMode: 'gross',
 
   isaType: 'general',
-  isaYearsSinceOpen: 0,
-  isaMaturityExtended: 'yes',
   myIsaType: 'general',
   spouseIsaType: 'general',
 
@@ -58,20 +54,16 @@ export const defaultFormData: AlphaFormData = {
   otherIncomeMonthly: 0,
   otherIncomeStartAge: 65,
 
-  hasPensionIncome: false,
   pensionStartAge: 65,
   pensionMonthlyAmount: 0,
 
   healthInsuranceType: 'regional',
   salaryMonthly: 0,
-  isBusinessOwner: false,
-  isUnpaidOwner: false,
   healthInsuranceOverrideMonthly: null,
 
   insuranceMonthly: 0,
   maintenanceMonthly: 0,
   telecomMonthly: 0,
-  nationalPensionMonthly: 0,
   hasCar: false,
   currentCarMarketValue: 0,
   carYearlyCost: 0,

@@ -3,20 +3,7 @@
 This file lists known simplifications, legacy remnants, and fields that can mislead an editor.
 Read this before assuming that every typed field is fully active.
 
-## 1) Question-flow legacy remnants
-In `src/types/alpha.ts`, `QuestionStepId` still includes:
-- `housingType`
-- `isa`
-- `pension`
-
-But the active step list in `src/data/questionFlow.ts` does not use separate visible steps for those anymore.
-Also, `src/components/question/questionScreen.sections.tsx` still contains a `case 'isa': return null` branch.
-
-Interpretation:
-- The current app uses a simplified active step list.
-- Not every old step name in the type is still part of the live UI.
-
-## 2) Visibility API exists, but current flow is static
+## 1) Visibility API exists, but current flow is static
 `questionFlow.ts` uses a `visibility` callback per step.
 Right now every step returns `true`.
 
@@ -25,26 +12,19 @@ Interpretation:
 - The current project state is effectively a static step list.
 - Do not assume there is already meaningful conditional step filtering.
 
-## 3) Fields that exist but are not central in the live current UX
-These fields are in `AlphaFormData`, but are not currently first-class active question-flow drivers or are only weakly connected.
+## 2) Fields that still need end-to-end verification
+These fields remain important, but their behavior is only safe to edit after checking the full path from question flow to calculation to result output.
 
 Examples:
-- `maintenanceIncludedInRent`
-- `monthlyMaintenanceFee`
 - `isaType`
-- `isaYearsSinceOpen`
-- `isaMaturityExtended`
-- `hasPensionIncome`
+- `myIsaType`
+- `spouseIsaType`
 - `pensionStartAge`
-- `isBusinessOwner`
-- `isUnpaidOwner`
-- `nationalPensionMonthly`
 
 Interpretation:
-- Their presence in types does not guarantee full end-to-end support.
 - Check actual render, calculation, and result usage before reusing them.
 
-## 4) Save-slot caution
+## 3) Save-slot caution
 The save-slot record stores both `formData` and `result`.
 But on load, the app restores the form state and recalculates using current logic.
 
@@ -52,19 +32,19 @@ Interpretation:
 - Stored `result` should not be treated as stronger than current engine output.
 - If you redesign save data, make that decision explicitly instead of assuming the current structure is ideal.
 
-## 5) Housing simplification caution
+## 4) Housing simplification caution
 Current housing handling is intentionally simplified.
 Examples:
 - owned housing uses market value for asset interpretation and official value for holding-tax modeling
 - jeonse deposit behaves more like stored property value than monthly expense
-- monthly-rent maintenance split fields exist, but active monthly housing cost logic uses rent amount directly
+- monthly rent uses deposit plus rent amount without a separate maintenance-fee input
 
-## 6) Loan simplification caution
+## 5) Loan simplification caution
 Current loan modeling is not a full amortization model.
 The user enters monthly interest burden plus the number of years to include it.
 The cash projection stops applying that burden after the configured years.
 
-## 7) Tax and policy caution
+## 6) Tax and policy caution
 The project uses public-policy-inspired simplified rules from `src/config/policyConfig.ts`.
 It is not a substitute for a fully authoritative legal or professional tax calculation.
 
@@ -73,7 +53,7 @@ If a task asks for legal accuracy changes, inspect:
 - `src/engine/calculator.income.ts`
 - `src/engine/calculator.costs.ts`
 
-## 8) Result-table caution
+## 7) Result-table caution
 The result table is intentionally selective.
 A missing row does not automatically mean the data is ignored.
 Sometimes the data is folded into:
@@ -83,7 +63,7 @@ Sometimes the data is folded into:
 
 Always check `buildResultRows()` before deciding a row is missing by mistake.
 
-## 9) Safe editing rule
+## 8) Safe editing rule
 Before changing a field, verify all of these:
 1. where it is collected
 2. where it is sanitized

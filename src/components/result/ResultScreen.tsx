@@ -1,7 +1,13 @@
 import { memo, useMemo, useRef, type ReactNode, type RefObject } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
-import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
+import {
+  CashFlowChart,
+  ResultInterpretation,
+  ResultTable,
+  SummaryCards,
+  type ResultInterpretationItem,
+} from './resultScreen.sections'
 import { useResultShare } from './useResultShare'
 import { buildResultRows } from './resultScreen.editors'
 import { ProjectionInlineControls, ResultHelpDrawer } from './resultScreen.notices'
@@ -20,7 +26,7 @@ interface ResultCaptureContentProps {
   formData: AlphaFormData
   result: AlphaResult
   interpretationItems: string[]
-  adviceItems: string[]
+  adviceItems: ResultInterpretationItem[]
   rows: ResultRow[]
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
@@ -50,7 +56,7 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
 
       <ResultInterpretation items={interpretationItems} />
       {adviceItems.length > 0 ? (
-        <ResultInterpretation title="적자 해결 참고" items={adviceItems} />
+        <ResultInterpretation title={'\uC801\uC790 \uD574\uACB0 \uCC38\uACE0'} items={adviceItems} />
       ) : null}
 
       <section className="result-panel">
@@ -157,9 +163,15 @@ export const ResultScreen = memo(function ResultScreen({
       }),
     [assetInterpretation, effectiveComprehensiveRate, formData, result],
   )
-  const adviceItems = useMemo(
-    () => buildDeficitAdviceItems(formData, result),
-    [formData, result],
+  const adviceItems = useMemo<ResultInterpretationItem[]>(
+    () =>
+      buildDeficitAdviceItems(formData, result).map((item) => ({
+        id: item.id,
+        text: item.message,
+        actionLabel: item.actionLabel,
+        onAction: item.patch ? () => onPatchFormData(item.patch!) : undefined,
+      })),
+    [formData, onPatchFormData, result],
   )
   const householdSummary = `${formData.householdType === 'couple' ? '부부 합산' : '1인 가구'}, ${
     formData.housingType === 'own'

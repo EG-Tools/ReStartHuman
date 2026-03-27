@@ -2,7 +2,6 @@ export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
-export type YesNoUnknown = 'yes' | 'no' | 'unknown'
 
 export type HealthInsuranceType =
   | 'regional'
@@ -16,14 +15,11 @@ export type OwnershipType = 'mineOnly' | 'spouseOnly' | 'split'
 
 export type QuestionStepId =
   | 'household'
-  | 'housingType'
   | 'housingDetails'
   | 'propertyAssets'
   | 'assets'
   | 'dividends'
-  | 'isa'
   | 'income'
-  | 'pension'
   | 'healthInsurance'
   | 'fixedExpenses'
   | 'livingCosts'
@@ -47,8 +43,6 @@ export interface AlphaFormData {
 
   monthlyRentDeposit: number
   monthlyRentAmount: number
-  maintenanceIncludedInRent: boolean
-  monthlyMaintenanceFee: number
 
   landValue: number
   landOwnershipType: OwnershipType
@@ -71,8 +65,6 @@ export interface AlphaFormData {
   dividendInputMode: DividendInputMode
 
   isaType: IsaType
-  isaYearsSinceOpen: number
-  isaMaturityExtended: YesNoUnknown
   myIsaType: IsaType
   spouseIsaType: IsaType
 
@@ -87,20 +79,16 @@ export interface AlphaFormData {
   otherIncomeMonthly: number
   otherIncomeStartAge: number
 
-  hasPensionIncome: boolean
   pensionStartAge: number
   pensionMonthlyAmount: number
 
   healthInsuranceType: HealthInsuranceType
   salaryMonthly: number
-  isBusinessOwner: boolean
-  isUnpaidOwner: boolean
   healthInsuranceOverrideMonthly: number | null
 
   insuranceMonthly: number
   maintenanceMonthly: number
   telecomMonthly: number
-  nationalPensionMonthly: number
   hasCar: boolean
   currentCarMarketValue: number
   carYearlyCost: number

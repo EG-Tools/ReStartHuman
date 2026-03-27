@@ -45,13 +45,10 @@ Main fields:
 - `monthlyRentDeposit`
 - `monthlyRentAmount`
 - `isSingleHomeOwner`
-- `maintenanceIncludedInRent`
-- `monthlyMaintenanceFee`
 
 Behavior notes:
 - `housingType === 'own'` marks `isSingleHomeOwner` as true.
-- Monthly rent mode resets the currently unused maintenance fee fields to rent-friendly defaults.
-- UI currently collects monthly-rent deposit and monthly-rent amount, but does not expose a separate maintenance fee control.
+- UI collects monthly-rent deposit and monthly-rent amount directly.
 
 ### `propertyAssets`
 Main fields:
@@ -174,12 +171,6 @@ These are not the main question-flow entry points, but they affect final outputs
 ## 4) Type fields that are not part of the active visible step list
 These fields exist in `AlphaFormData`, but the active question flow does not expose them as standalone steps right now.
 - `isaType`
-- `isaYearsSinceOpen`
-- `isaMaturityExtended`
-- `hasPensionIncome`
 - `pensionStartAge`
-- `isBusinessOwner`
-- `isUnpaidOwner`
-- `nationalPensionMonthly`
 
 Read `KNOWN_LIMITATIONS_AND_LEGACY.md` before touching those.

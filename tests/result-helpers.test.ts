@@ -92,14 +92,9 @@ test('결과 해석은 적자일 때 행동 조언을 추가한다', () => {
   const items = buildDeficitAdviceItems(formData, result)
 
   assert.ok(items.length > 0)
-  assert.ok(
-    items.some(
-      (item) =>
-        item.includes('월 생활비를') ||
-        item.includes('월 배당금 기준으로') ||
-        item.includes('한 가지 조정만으로'),
-    ),
-  )
+  assert.ok(items.every((item) => typeof item.message === 'string' && item.message.length > 0))
+  assert.ok(items.some((item) => Boolean(item.actionLabel)))
+  assert.ok(items.some((item) => item.patch && Object.keys(item.patch).length > 0))
 })
 
 test('결과 해석은 흑자일 때 기본 해석만 유지한다', () => {
