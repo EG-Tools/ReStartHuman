@@ -9,16 +9,17 @@ import {
   useState,
 } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
+import { policyConfig } from '../config/policyConfig'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateAlphaScenario } from '../engine/calculator'
 import { useAdSupport } from '../hooks/useAdSupport'
 import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
-import { useViewportCssVars } from '../hooks/useViewportCssVars'
 import { useSaveSlots } from '../hooks/useSaveSlots'
-import { appRoutes } from './routes'
+import { useViewportCssVars } from '../hooks/useViewportCssVars'
 import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
+import { appRoutes } from './routes'
 
 const QuestionScreen = lazy(async () => {
   const module = await import('../components/question/QuestionScreen')
@@ -48,11 +49,15 @@ const createCalculatorInput = (formData: AlphaFormData): AlphaFormData => ({
 const hasPatchChanges = (
   currentValue: AlphaFormData,
   patch: Partial<AlphaFormData>,
-) => Object.entries(patch).some(([key, value]) => currentValue[key as keyof AlphaFormData] !== value)
+) =>
+  Object.entries(patch).some(
+    ([key, value]) => currentValue[key as keyof AlphaFormData] !== value,
+  )
 
 export default function App() {
   const [formData, setFormData] = useState<AlphaFormData>(defaultFormData)
   const [loadedSlotResult, setLoadedSlotResult] = useState<AlphaResult | null>(null)
+  const [needsLoadedSlotRefresh, setNeedsLoadedSlotRefresh] = useState(false)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
@@ -104,6 +109,25 @@ export default function App() {
     openResult()
   }, [adSupport.isAdFreeEnabled, flowRoute, openResult])
 
+  useEffect(() => {
+    if (!needsLoadedSlotRefresh) {
+      return
+    }
+
+    const refreshTimer = window.setTimeout(() => {
+      const refreshedResult = calculateAlphaScenario(calculationInput)
+
+      startTransition(() => {
+        setLoadedSlotResult(refreshedResult)
+        setNeedsLoadedSlotRefresh(false)
+      })
+    }, 0)
+
+    return () => {
+      window.clearTimeout(refreshTimer)
+    }
+  }, [calculationInput, needsLoadedSlotRefresh])
+
   const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
     startTransition(() => {
       setFormData((currentValue) => {
@@ -117,12 +141,14 @@ export default function App() {
         }
       })
       setLoadedSlotResult(null)
+      setNeedsLoadedSlotRefresh(false)
     })
   }, [])
 
   const startFresh = useCallback(() => {
     startTransition(() => {
       setLoadedSlotResult(null)
+      setNeedsLoadedSlotRefresh(false)
       setFormData(defaultFormData)
       flow.goToQuestion(0)
     })
@@ -130,8 +156,13 @@ export default function App() {
 
   const handleLoadSlot = useCallback(
     (slot: SaveSlotRecord) => {
-      setLoadedSlotResult(slot.result)
-      setFormData({ ...defaultFormData, ...slot.formData })
+      const nextFormData = { ...defaultFormData, ...slot.formData }
+      const canReuseStoredResult =
+        slot.result.policyBaseDate === policyConfig.policyBaseDate
+
+      setLoadedSlotResult(canReuseStoredResult ? slot.result : null)
+      setNeedsLoadedSlotRefresh(true)
+      setFormData(nextFormData)
       setSaveSlotMode(null)
       flow.openAd()
     },
@@ -160,6 +191,7 @@ export default function App() {
   const startOver = useCallback(() => {
     startTransition(() => {
       setLoadedSlotResult(null)
+      setNeedsLoadedSlotRefresh(false)
       setFormData(defaultFormData)
       setSaveSlotMode(null)
       flow.reset()
@@ -242,6 +274,7 @@ export default function App() {
         <AppOptionsModal
           onClose={() => setIsOptionsOpen(false)}
           isAdFreeEnabled={adSupport.isAdFreeEnabled}
+          canEnableAdFree={adSupport.canEnableAdFree}
           onEnableAdFree={adSupport.enableAdFree}
         />
       ) : null}

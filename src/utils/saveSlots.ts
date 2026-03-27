@@ -3,6 +3,7 @@ import type {
   AlphaResult,
   SaveSlotRecord,
 } from '../types/alpha'
+import { safeStorageGetItem, safeStorageRemoveItem, safeStorageSetItem } from './browserStorage'
 
 export const SAVE_SLOT_COUNT = 5
 export const SAVE_SLOT_STORAGE_VERSION = 1 as const
@@ -93,7 +94,7 @@ export const readSaveSlotRecords = (storage?: Storage): SaveSlotRecord[] => {
 
   return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => index + 1)
     .map((slotId) => {
-      const rawValue = storage.getItem(getSaveSlotStorageKey(slotId))
+      const rawValue = safeStorageGetItem(storage, getSaveSlotStorageKey(slotId))
 
       if (!rawValue) {
         return null
@@ -126,7 +127,7 @@ export const writeSaveSlotRecord = (storage: Storage | undefined, record: SaveSl
     return
   }
 
-  storage.setItem(getSaveSlotStorageKey(record.slotId), JSON.stringify(serializeSaveSlotRecord(record)))
+  safeStorageSetItem(storage, getSaveSlotStorageKey(record.slotId), JSON.stringify(serializeSaveSlotRecord(record)))
 }
 
 export const removeSaveSlotRecord = (storage: Storage | undefined, slotId: number) => {
@@ -134,5 +135,5 @@ export const removeSaveSlotRecord = (storage: Storage | undefined, slotId: numbe
     return
   }
 
-  storage.removeItem(getSaveSlotStorageKey(slotId))
+  safeStorageRemoveItem(storage, getSaveSlotStorageKey(slotId))
 }

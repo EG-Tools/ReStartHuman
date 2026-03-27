@@ -14,28 +14,59 @@ import {
 class MemoryStorage implements Storage {
   private store = new Map<string, string>()
 
-  get length() {
+  get length(): number {
     return this.store.size
   }
 
-  clear() {
+  clear(): void {
     this.store.clear()
   }
 
-  getItem(key: string) {
+  getItem(key: string): string | null {
     return this.store.has(key) ? this.store.get(key)! : null
   }
 
-  key(index: number) {
+  key(index: number): string | null {
     return Array.from(this.store.keys())[index] ?? null
   }
 
-  removeItem(key: string) {
+  removeItem(key: string): void {
     this.store.delete(key)
   }
 
-  setItem(key: string, value: string) {
+  setItem(key: string, value: string): void {
     this.store.set(key, value)
+  }
+}
+
+class ThrowingStorage implements Storage {
+  get length(): number {
+    return 0
+  }
+
+  clear(): void {
+    throw new Error('storage-disabled')
+  }
+
+  getItem(key: string): string | null {
+    void key
+    throw new Error('storage-disabled')
+  }
+
+  key(index: number): string | null {
+    void index
+    return null
+  }
+
+  removeItem(key: string): void {
+    void key
+    throw new Error('storage-disabled')
+  }
+
+  setItem(key: string, value: string): void {
+    void key
+    void value
+    throw new Error('storage-disabled')
   }
 }
 
@@ -94,4 +125,23 @@ test('저장 슬롯 삭제는 해당 슬롯만 제거한다', () => {
   const records = readSaveSlotRecords(storage)
 
   assert.deepEqual(records.map((record) => record.slotId), [1])
+})
+
+
+test('readSaveSlotRecords tolerates storage access failures', () => {
+  const storage = new ThrowingStorage()
+
+  assert.doesNotThrow(() => {
+    assert.deepEqual(readSaveSlotRecords(storage), [])
+  })
+})
+
+test('writeSaveSlotRecord and removeSaveSlotRecord tolerate storage access failures', () => {
+  const storage = new ThrowingStorage()
+  const record = makeRecord(1, 'safe write')
+
+  assert.doesNotThrow(() => {
+    writeSaveSlotRecord(storage, record)
+    removeSaveSlotRecord(storage, 1)
+  })
 })

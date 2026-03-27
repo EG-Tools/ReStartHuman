@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
+import { getBrowserStorage } from '../utils/browserStorage'
 import {
   SAVE_SLOT_COUNT,
   createSaveSlotRecord,
@@ -8,8 +9,6 @@ import {
   sortSaveSlotRecords,
   writeSaveSlotRecord,
 } from '../utils/saveSlots'
-
-const getBrowserStorage = () => (typeof window === 'undefined' ? undefined : window.localStorage)
 
 const readSlots = (): SaveSlotRecord[] => readSaveSlotRecords(getBrowserStorage())
 
@@ -27,28 +26,33 @@ export const useSaveSlots = () => {
   }, [slots])
 
   const replaceSlot = useCallback((nextRecord: SaveSlotRecord) => {
-    setSlots((currentSlots) => sortSaveSlotRecords([
-      ...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId),
-      nextRecord,
-    ]))
+    setSlots((currentSlots) =>
+      sortSaveSlotRecords([
+        ...currentSlots.filter((slot) => slot.slotId !== nextRecord.slotId),
+        nextRecord,
+      ]),
+    )
   }, [])
 
-  const saveSlot = useCallback((
-    slotId: number,
-    formData: AlphaFormData,
-    result: AlphaResult,
-    slotName?: string,
-  ) => {
-    const storage = getBrowserStorage()
+  const saveSlot = useCallback(
+    (
+      slotId: number,
+      formData: AlphaFormData,
+      result: AlphaResult,
+      slotName?: string,
+    ) => {
+      const storage = getBrowserStorage()
 
-    if (!storage) {
-      return
-    }
+      if (!storage) {
+        return
+      }
 
-    const record = createSaveSlotRecord(slotId, formData, result, slotName)
-    writeSaveSlotRecord(storage, record)
-    replaceSlot(record)
-  }, [replaceSlot])
+      const record = createSaveSlotRecord(slotId, formData, result, slotName)
+      writeSaveSlotRecord(storage, record)
+      replaceSlot(record)
+    },
+    [replaceSlot],
+  )
 
   const deleteSlot = useCallback((slotId: number) => {
     const storage = getBrowserStorage()

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { PrimaryButton } from './Ui'
 import { APP_VERSION_LABEL } from '../../config/appMeta'
+import { PrimaryButton } from './Ui'
 
 interface AppOptionsButtonProps {
   onClick: () => void
@@ -9,7 +9,8 @@ interface AppOptionsButtonProps {
 interface AppOptionsModalProps {
   onClose: () => void
   isAdFreeEnabled: boolean
-  onEnableAdFree: () => void
+  canEnableAdFree: boolean
+  onEnableAdFree: () => boolean
 }
 
 function SettingsIcon() {
@@ -32,7 +33,7 @@ export function AppOptionsButton({ onClick }: AppOptionsButtonProps) {
     <button
       type="button"
       className="icon-button app-options-button"
-      aria-label="옵션 열기"
+      aria-label="?? ??"
       onClick={onClick}
     >
       <SettingsIcon />
@@ -43,9 +44,11 @@ export function AppOptionsButton({ onClick }: AppOptionsButtonProps) {
 export function AppOptionsModal({
   onClose,
   isAdFreeEnabled,
+  canEnableAdFree,
   onEnableAdFree,
 }: AppOptionsModalProps) {
   const [isSupportPromptOpen, setIsSupportPromptOpen] = useState(false)
+  const canOpenSupportPrompt = canEnableAdFree && !isAdFreeEnabled
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -67,10 +70,34 @@ export function AppOptionsModal({
   }, [isSupportPromptOpen, onClose])
 
   const handleConfirmSupport = () => {
-    onEnableAdFree()
+    const didEnable = onEnableAdFree()
+
+    if (!didEnable) {
+      setIsSupportPromptOpen(false)
+      return
+    }
+
     setIsSupportPromptOpen(false)
     onClose()
   }
+
+  const supportStatusLabel = isAdFreeEnabled
+    ? '?? ?? ??'
+    : canEnableAdFree
+      ? '?? ??'
+      : '?? ?'
+
+  const supportButtonLabel = isAdFreeEnabled
+    ? '?? ?? ?? ?'
+    : canEnableAdFree
+      ? '?? 1?? 3,000?'
+      : '?? ?? ?'
+
+  const supportCopy = isAdFreeEnabled
+    ? '? ????? ?? ? ??? ?????. ??? ??? ??? ? ??, ??? ???? 1? ?? ?????. ??? ??? ?? ???? ???? ???? ??? ?? ??? ?? ? ????.'
+    : canEnableAdFree
+      ? '?? ??? ?? ?????? ?? ??? ????. ??? ??? ??? ? ??, ??? ???? 1? ?? ?????. ??? ??? ? ????? ?? ? ??? ??? ????.'
+      : '?? ??? ?? ????. ?? ?? ??? ???? ???? ?? ????? ?? ??? ?? ????.'
 
   return (
     <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
@@ -78,12 +105,12 @@ export function AppOptionsModal({
         className="modal-panel settings-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="설정"
+        aria-label="??"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header settings-modal-header">
           <div>
-            <p className="eyebrow">옵션</p>
+            <p className="eyebrow">??</p>
           </div>
         </div>
 
@@ -91,45 +118,46 @@ export function AppOptionsModal({
           <div className="support-panel-header">
             <div>
               <p className="support-version-label">{APP_VERSION_LABEL}</p>
-              <h2>개발자 후원</h2>
+              <h2>??? ??</h2>
             </div>
-            <span className={`support-status-pill${isAdFreeEnabled ? ' is-active' : ''}`}>
-              {isAdFreeEnabled ? '광고 생략 활성' : '임시 후원'}
+            <span className={'support-status-pill' + (isAdFreeEnabled ? ' is-active' : '')}>
+              {supportStatusLabel}
             </span>
           </div>
 
-          <p className="support-copy">
-            {isAdFreeEnabled
-              ? '이 기기에서는 결과 전 광고를 건너뜁니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 임시 구현이라 브라우저 저장소를 지우면 다시 광고가 보일 수 있습니다.'
-              : '후원 기능을 임시로 연결했습니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 한 번 활성화하면 이 기기에서는 결과 전 광고를 건너뜁니다.'}
-          </p>
+          <p className="support-copy">{supportCopy}</p>
 
           <div className="support-actions">
             <PrimaryButton
               variant={isAdFreeEnabled ? 'primary' : 'secondary'}
-              onClick={() => setIsSupportPromptOpen(true)}
+              onClick={() => {
+                if (canOpenSupportPrompt) {
+                  setIsSupportPromptOpen(true)
+                }
+              }}
+              disabled={!canOpenSupportPrompt}
             >
-              {isAdFreeEnabled ? '광고 없이 사용 중' : '후원 1년에 3,000원'}
+              {supportButtonLabel}
             </PrimaryButton>
           </div>
 
           <div className="support-option-list">
             <div className="support-option-row">
-              <span>제작자명</span>
+              <span>????</span>
               <strong>EGSY</strong>
             </div>
             <div className="support-option-row">
-              <span>이메일</span>
+              <span>???</span>
               <strong>Lyrikey@Naver.com</strong>
             </div>
           </div>
 
           <PrimaryButton className="settings-close-button" onClick={onClose}>
-            닫기
+            ??
           </PrimaryButton>
         </section>
 
-        {isSupportPromptOpen ? (
+        {isSupportPromptOpen && canOpenSupportPrompt ? (
           <div
             className="support-confirm-backdrop"
             role="presentation"
@@ -139,18 +167,19 @@ export function AppOptionsModal({
               className="support-confirm-dialog"
               role="dialog"
               aria-modal="true"
-              aria-label="후원 확인"
+              aria-label="?? ??"
               onClick={(event) => event.stopPropagation()}
             >
-              <p className="eyebrow">후원 확인</p>
-              <h2>후원하겠습니까?</h2>
+              <p className="eyebrow">?? ??</p>
+              <h2>?????????</h2>
               <p className="support-note">
-                예를 누르면 이 기기에서는 결과 전 광고를 임시로 숨깁니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.
+                ?? ??? ? ????? ?? ? ??? ??? ????. ??? ??? ??? ? ??,
+                ??? ???? 1? ?? ?????.
               </p>
               <div className="support-confirm-actions">
-                <PrimaryButton onClick={handleConfirmSupport}>예</PrimaryButton>
+                <PrimaryButton onClick={handleConfirmSupport}>?</PrimaryButton>
                 <PrimaryButton variant="secondary" onClick={() => setIsSupportPromptOpen(false)}>
-                  아니오
+                  ???
                 </PrimaryButton>
               </div>
             </div>
