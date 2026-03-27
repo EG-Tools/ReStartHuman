@@ -9,6 +9,11 @@ import {
   getAgeQualifiedPensionMonthly,
 } from './calculator.costs'
 import {
+  getAgeQualifiedRentalIncomeMonthly,
+  getIncomeBreakdown,
+  getSelectedIncomeCategories,
+} from '../utils/incomeStreams'
+import {
   calculateComprehensiveTax,
   calculateIsaTax,
   calculateRentalIncomeTax,
@@ -72,6 +77,14 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   spouseAnnualDividendAttributed: sanitizeMoney(formData.spouseAnnualDividendAttributed),
   myAnnualIsaDividendAttributed: sanitizeMoney(formData.myAnnualIsaDividendAttributed),
   spouseAnnualIsaDividendAttributed: sanitizeMoney(formData.spouseAnnualIsaDividendAttributed),
+  selectedIncomeCategories: getSelectedIncomeCategories(formData),
+  earnedIncomeMonthly: sanitizeMoney(formData.earnedIncomeMonthly),
+  otherPensionMonthly: sanitizeMoney(formData.otherPensionMonthly),
+  otherPensionStartAge: Math.max(1, sanitizeMoney(formData.otherPensionStartAge) || 65),
+  freelanceIncomeMonthly: sanitizeMoney(formData.freelanceIncomeMonthly),
+  businessIncomeMonthly: sanitizeMoney(formData.businessIncomeMonthly),
+  rentalIncomeMonthly: sanitizeMoney(formData.rentalIncomeMonthly),
+  miscIncomeMonthly: sanitizeMoney(formData.miscIncomeMonthly),
   otherIncomeMonthly: sanitizeMoney(formData.otherIncomeMonthly),
   otherIncomeStartAge: Math.max(1, sanitizeMoney(formData.otherIncomeStartAge) || 65),
   pensionStartAge: Math.max(1, sanitizeMoney(formData.pensionStartAge) || 65),
@@ -136,18 +149,20 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   const expenses = calculateExpenses(formData)
   const pensionMonthlyApplied = getAgeQualifiedPensionMonthly(formData, formData.currentAge)
   const otherIncomeMonthlyApplied = getAgeQualifiedOtherIncomeMonthly(formData, formData.currentAge)
+  const incomeBreakdown = getIncomeBreakdown(formData, formData.currentAge, formData.simulationYears)
   const estimatedHealthInsurance = estimateHealthInsurance(
     formData,
     totalDividend.annualGross,
-    otherIncomeMonthlyApplied,
+    formData.currentAge,
     pensionMonthlyApplied,
   )
   const healthInsuranceMonthly =
     formData.healthInsuranceOverrideMonthly ?? estimatedHealthInsurance
   const holdingTax = estimateHoldingTax(formData)
+  const rentalIncomeMonthlyApplied = getAgeQualifiedRentalIncomeMonthly(formData, formData.currentAge)
   const rentalIncomeTax =
-    formData.otherIncomeType === 'monthlyRent'
-      ? calculateRentalIncomeTax(otherIncomeMonthlyApplied * 12)
+    rentalIncomeMonthlyApplied > 0
+      ? calculateRentalIncomeTax(rentalIncomeMonthlyApplied * 12)
       : calculateRentalIncomeTax(0)
   const totalIncomeMonthly =
     totalDividend.monthlyNet + otherIncomeMonthlyApplied + pensionMonthlyApplied
@@ -215,6 +230,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     holdingTaxBreakdown: holdingTax.breakdown,
     pensionMonthlyApplied,
     otherIncomeMonthlyApplied,
+    incomeBreakdown,
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
     projectionRentalIncomeTaxTotal: cashProjection.cumulativeRentalIncomeTax,

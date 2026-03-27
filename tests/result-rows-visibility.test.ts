@@ -98,3 +98,14 @@ test('other income row appears only when an income type is selected and has valu
   assert.ok(!hiddenRows.some((row) => row.item === '기타 소득'))
   assert.ok(visibleRows.some((row) => row.item === '사업소득'))
 })
+
+test('multiple selected income categories create separate rows', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    selectedIncomeCategories: ['earned', 'rental'],
+    earnedIncomeMonthly: 1_000_000,
+    rentalIncomeMonthly: 700_000,
+  })
+
+  assert.equal(rows.filter((row) => row.category === '??').length, 2)
+})

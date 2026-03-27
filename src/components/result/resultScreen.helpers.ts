@@ -175,6 +175,43 @@ export const getHealthInsuranceTypeSummary = (
 }
 
 
+
+const getIncomeInterpretationMessage = (result: AlphaResult) => {
+  const visibleIncomeItems = result.incomeBreakdown.filter(
+    (item) => item.inputMonthly > 0 || item.appliedMonthly > 0,
+  )
+
+  if (visibleIncomeItems.length === 0) {
+    return '?? ???? ?? ??? ?? ???? ?????.'
+  }
+
+  const currentIncomeItems = visibleIncomeItems.filter((item) => item.appliedMonthly > 0)
+  const deferredIncomeItems = visibleIncomeItems.filter(
+    (item) => item.appliedMonthly <= 0 && typeof item.startAge === 'number',
+  )
+  const currentIncomeSummary = currentIncomeItems
+    .map((item) => `${item.label} ${formatCompactCurrency(item.appliedMonthly)}`)
+    .join(', ')
+  const deferredIncomeSummary = deferredIncomeItems
+    .map((item) => `${item.label} ${formatCompactCurrency(item.inputMonthly)}? ${item.startAge}??? ?????.`)
+    .join(' ')
+  const rentalIncomeItem = visibleIncomeItems.find((item) => item.key === 'rental')
+  const rentalTaxMessage =
+    rentalIncomeItem && result.rentalIncomeTaxAnnual > 0
+      ? ` ????? ? ${formatCompactCurrency(result.rentalIncomeTaxAnnual)}? ??? ??????.`
+      : ''
+
+  if (currentIncomeSummary && deferredIncomeSummary) {
+    return `${currentIncomeSummary}? ??? ?? ? ???? ??????.${rentalTaxMessage} ${deferredIncomeSummary}`.trim()
+  }
+
+  if (currentIncomeSummary) {
+    return `${currentIncomeSummary}? ??? ?? ? ???? ??????.${rentalTaxMessage}`.trim()
+  }
+
+  return deferredIncomeSummary
+}
+
 export type DeficitAdviceItem = {
   id: string
   message: string
@@ -787,13 +824,9 @@ export const buildInterpretationItems = ({
         : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
       : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
     result.healthInsuranceMonthly >= 1_000_000
-      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보수 외 소득과 재산 영향을 함께 반영한 결과입니다.`
-      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
-    result.otherIncomeMonthlyApplied > 0
-      ? formData.otherIncomeType === 'monthlyRent' && result.rentalIncomeTaxAnnual > 0
-        ? `월세소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했고, 임대소득세 연 ${formatCompactCurrency(result.rentalIncomeTaxAnnual)}을 추가로 차감했습니다.`
-        : `${getOtherIncomeTypeLabel(formData.otherIncomeType)} ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}은 자산이 아닌 월 유입으로 반영했습니다.`
-      : '추가 월소득은 별도 입력이 없어 반영하지 않았습니다.',
+      ? `?????? ? ${formatCompactCurrency(result.healthInsuranceMonthly)} ?????. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}?? ?? ? ??? ?? ???? ?? ??? ?????.`
+      : `?????? ? ${formatCompactCurrency(result.healthInsuranceMonthly)} ?????. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}?? ??????.`,
+    getIncomeInterpretationMessage(result),
     assetInterpretation,
   ]
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
-import type { QuestionStep, AlphaFormData } from '../../types/alpha'
+import type { QuestionStep, AlphaFormData, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
 import { QuestionNumberFields } from './questionScreen.shared'
 import {
@@ -12,12 +12,16 @@ import {
   housingOptions,
   isaTypeOptions,
   livingCostModeOptions,
-  otherIncomeTypeOptionRows,
   propertyOwnershipOptions,
   simulationYearOptions,
   yesNoOptions,
 } from './questionScreen.config'
 
+import {
+  buildStructuredIncomePatch,
+  getSelectedIncomeCategories,
+  incomeCategoryOptionRows,
+} from '../../utils/incomeStreams'
 export interface RenderQuestionContentArgs {
   question: QuestionStep
   formData: AlphaFormData
@@ -38,8 +42,9 @@ export function renderQuestionContent({
   const usesEmployeeHealthInsurance =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
+  const selectedIncomeCategories = getSelectedIncomeCategories(formData)
   const usesEarnedIncomeAsSalary =
-    usesEmployeeHealthInsurance && formData.otherIncomeType === 'earned'
+    usesEmployeeHealthInsurance && selectedIncomeCategories.includes('earned')
 
   const renderBooleanChoice = (
     label: string,
@@ -85,6 +90,147 @@ export function renderQuestionContent({
       ))}
     </div>
   )
+
+  const patchStructuredIncomeSelection = (
+    categories: IncomeCategory[],
+    patch: Partial<AlphaFormData> = {},
+  ) => {
+    onPatchFormData(buildStructuredIncomePatch(categories, patch))
+  }
+
+  const handleToggleIncomeCategory = (category: IncomeCategory) => {
+    const isSelected = selectedIncomeCategories.includes(category)
+    const nextCategories = isSelected
+      ? selectedIncomeCategories.filter((item) => item !== category)
+      : [...selectedIncomeCategories, category]
+
+    const patch: Partial<AlphaFormData> = {}
+
+    if (isSelected) {
+      switch (category) {
+        case 'earned':
+          patch.earnedIncomeMonthly = 0
+          if (usesEmployeeHealthInsurance) {
+            patch.salaryMonthly = 0
+          }
+          break
+        case 'otherPension':
+          patch.otherPensionMonthly = 0
+          patch.otherPensionStartAge = 65
+          break
+        case 'freelance':
+          patch.freelanceIncomeMonthly = 0
+          break
+        case 'business':
+          patch.businessIncomeMonthly = 0
+          break
+        case 'rental':
+          patch.rentalIncomeMonthly = 0
+          break
+        case 'misc':
+          patch.miscIncomeMonthly = 0
+          break
+      }
+    } else if (
+      category === 'earned' &&
+      usesEmployeeHealthInsurance &&
+      formData.salaryMonthly <= 0 &&
+      formData.earnedIncomeMonthly > 0
+    ) {
+      patch.salaryMonthly = formData.earnedIncomeMonthly
+    }
+
+    patchStructuredIncomeSelection(nextCategories, patch)
+  }
+
+  const handleClearIncomeSelection = () => {
+    patchStructuredIncomeSelection([], {
+      earnedIncomeMonthly: 0,
+      otherPensionMonthly: 0,
+      otherPensionStartAge: 65,
+      freelanceIncomeMonthly: 0,
+      businessIncomeMonthly: 0,
+      rentalIncomeMonthly: 0,
+      miscIncomeMonthly: 0,
+      otherIncomeMonthly: 0,
+      otherIncomeStartAge: 65,
+      ...(usesEmployeeHealthInsurance ? { salaryMonthly: 0 } : {}),
+    })
+  }
+
+  const buildIncomeFieldPatch = (
+    category: IncomeCategory,
+    patch: Partial<AlphaFormData>,
+  ) => {
+    if (selectedIncomeCategories.length !== 1 || selectedIncomeCategories[0] !== category) {
+      return buildStructuredIncomePatch(selectedIncomeCategories, patch)
+    }
+
+    switch (category) {
+      case 'earned':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.earnedIncomeMonthly ?? formData.earnedIncomeMonthly,
+        })
+      case 'otherPension':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.otherPensionMonthly ?? formData.otherPensionMonthly,
+          otherIncomeStartAge: patch.otherPensionStartAge ?? formData.otherPensionStartAge,
+        })
+      case 'business':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.businessIncomeMonthly ?? formData.businessIncomeMonthly,
+        })
+      case 'rental':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.rentalIncomeMonthly ?? formData.rentalIncomeMonthly,
+        })
+      case 'misc':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.miscIncomeMonthly ?? formData.miscIncomeMonthly,
+        })
+      case 'freelance':
+      default:
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.freelanceIncomeMonthly ?? formData.freelanceIncomeMonthly,
+        })
+    }
+  }
+
+  const renderIncomeCategoryRows = () => (
+    <div className="question-stack question-stack-compact">
+      {incomeCategoryOptionRows.map((row, rowIndex) => (
+        <div
+          key={`income-row-${rowIndex}`}
+          className={`toggle-group toggle-group-grid toggle-group-count-${row.length}`}
+        >
+          {row.map((option) => {
+            const active = selectedIncomeCategories.includes(option.value)
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`toggle-card ${active ? 'is-active' : ''}`.trim()}
+                onClick={() => handleToggleIncomeCategory(option.value)}
+              >
+                <span className="toggle-card-label">{option.label}</span>
+                {option.description ? (
+                  <span className="toggle-card-description">{option.description}</span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+
   const createAdditionalHome = (): AlphaFormData['additionalHomes'][number] => ({
     housingType: 'own',
     marketValue: 0,
@@ -697,58 +843,142 @@ export function renderQuestionContent({
             ) : null}
           </div>
         )
-            case 'income':
+      case 'income':
         return (
           <div className="question-stack">
-            {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
-              onPatchFormData({
-                otherIncomeType: value,
-                ...(value === 'earned' && usesEmployeeHealthInsurance
-                  ? { salaryMonthly: formData.otherIncomeMonthly }
-                  : {}),
-              }),
-            )}
-            {formData.otherIncomeType !== 'none' ? (
+            <section className="question-block">
+              <div className="question-block-header">
+                <h2>?? ?? ??</h2>
+              </div>
+              {renderIncomeCategoryRows()}
+              <p className="screen-copy question-copy-note">
+                ???????? ? ???? ?? ?????. ???? ??? ?? ?????.
+              </p>
+              {selectedIncomeCategories.length > 0 ? (
+                <PrimaryButton variant="ghost" onClick={handleClearIncomeSelection}>
+                  ?? ?? ??
+                </PrimaryButton>
+              ) : (
+                <p className="screen-copy question-copy-note">
+                  ??? ??? ?? ?? ???? ?????.
+                </p>
+              )}
+            </section>
+            {selectedIncomeCategories.length > 0 ? (
               <QuestionNumberFields
-                columns={formData.otherIncomeType === 'pension' ? 2 : 1}
+                columns={2}
                 fields={[
-                  {
-                    key: 'otherIncomeMonthly',
-                    label:
-                      formData.otherIncomeType === 'earned'
-                        ? '월 근로소득'
-                        : formData.otherIncomeType === 'business'
-                          ? '월 사업소득'
-                          : formData.otherIncomeType === 'pension'
-                            ? '월 기타연금'
-                            : formData.otherIncomeType === 'monthlyRent'
-                              ? '월 월세소득'
-                              : '월 기타소득',
-                    value: formData.otherIncomeMonthly,
-                    onChange: (value) =>
-                      onPatchFormData({
-                        otherIncomeMonthly: value,
-                        ...(usesEarnedIncomeAsSalary ? { salaryMonthly: value } : {}),
-                      }),
-                    helperText:
-                      formData.otherIncomeType === 'monthlyRent'
-                        ? '월세소득은 결과표에서 임대소득세를 별도로 추정해 반영합니다.'
-                        : usesEarnedIncomeAsSalary
-                          ? '근로소득을 선택한 상태에서 직장가입자를 고르면 급여에도 같은 금액을 자동 반영합니다.'
-                          : undefined,
-                  },
-                  ...(formData.otherIncomeType === 'pension'
+                  ...(selectedIncomeCategories.includes('earned')
                     ? [
                         {
-                          key: 'otherIncomeStartAge',
-                          label: '기타연금 수령 시작 나이',
-                          value: formData.otherIncomeStartAge,
+                          key: 'earnedIncomeMonthly',
+                          label: '? ????',
+                          value: formData.earnedIncomeMonthly,
                           onChange: (value: number) =>
-                            update('otherIncomeStartAge', Math.max(value, 1)),
+                            onPatchFormData(
+                              buildIncomeFieldPatch('earned', {
+                                earnedIncomeMonthly: value,
+                                ...(usesEmployeeHealthInsurance ? { salaryMonthly: value } : {}),
+                              }),
+                            ),
+                          helperText: usesEmployeeHealthInsurance
+                            ? '????? ?? ? ???? ?? ??? ?????.'
+                            : undefined,
+                        },
+                      ]
+                    : []),
+                  ...(selectedIncomeCategories.includes('otherPension')
+                    ? [
+                        {
+                          key: 'otherPensionMonthly',
+                          label: '? ????',
+                          value: formData.otherPensionMonthly,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('otherPension', {
+                                otherPensionMonthly: value,
+                              }),
+                            ),
+                          helperText: '????? ??? ?? ??? ?????.',
+                        },
+                        {
+                          key: 'otherPensionStartAge',
+                          label: '???? ?? ??',
+                          value: formData.otherPensionStartAge,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('otherPension', {
+                                otherPensionStartAge: Math.max(value, 1),
+                              }),
+                            ),
                           display: 'number' as const,
-                          suffix: '세',
+                          suffix: '?',
                           min: 1,
                           step: 1,
+                        },
+                      ]
+                    : []),
+                  ...(selectedIncomeCategories.includes('freelance')
+                    ? [
+                        {
+                          key: 'freelanceIncomeMonthly',
+                          label: '? ???? ??',
+                          value: formData.freelanceIncomeMonthly,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('freelance', {
+                                freelanceIncomeMonthly: value,
+                              }),
+                            ),
+                          helperText: '?? ?? ?? ?????????? ?? ?????.',
+                        },
+                      ]
+                    : []),
+                  ...(selectedIncomeCategories.includes('business')
+                    ? [
+                        {
+                          key: 'businessIncomeMonthly',
+                          label: '? ????',
+                          value: formData.businessIncomeMonthly,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('business', {
+                                businessIncomeMonthly: value,
+                              }),
+                            ),
+                          helperText: '?????? ?? ?? ?? ?????.',
+                        },
+                      ]
+                    : []),
+                  ...(selectedIncomeCategories.includes('rental')
+                    ? [
+                        {
+                          key: 'rentalIncomeMonthly',
+                          label: '? ????',
+                          value: formData.rentalIncomeMonthly,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('rental', {
+                                rentalIncomeMonthly: value,
+                              }),
+                            ),
+                          helperText: '????? ?????? ?? ??? ?????.',
+                        },
+                      ]
+                    : []),
+                  ...(selectedIncomeCategories.includes('misc')
+                    ? [
+                        {
+                          key: 'miscIncomeMonthly',
+                          label: '? ????',
+                          value: formData.miscIncomeMonthly,
+                          onChange: (value: number) =>
+                            onPatchFormData(
+                              buildIncomeFieldPatch('misc', {
+                                miscIncomeMonthly: value,
+                              }),
+                            ),
+                          helperText: '? ?? ?? ??? ???? ? ??? ????.',
                         },
                       ]
                     : []),
@@ -777,7 +1007,7 @@ export function renderQuestionContent({
                   </div>
                   <p className="screen-copy question-copy-note">
                     근로소득을 선택했으므로 월 급여는 기타 소득 단계의 근로소득 금액
-                    ({formatCompactCurrency(formData.otherIncomeMonthly)})을 그대로 사용합니다.
+                    ({formatCompactCurrency(formData.earnedIncomeMonthly)})을 그대로 사용합니다.
                   </p>
                 </section>
               ) : (

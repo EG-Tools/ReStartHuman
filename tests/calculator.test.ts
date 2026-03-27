@@ -186,3 +186,32 @@ test('monthly rent income applies rental income tax to the final result', () => 
   assert.ok(rentalIncomeScenario.rentalIncomeTaxAnnual > 0)
   assert.ok(rentalIncomeScenario.monthlyUsableCash < businessIncomeScenario.monthlyUsableCash)
 })
+
+test('multiple selected income categories are summed and only rental income is taxed separately', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 60,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    selectedIncomeCategories: ['earned', 'business', 'otherPension', 'rental'],
+    earnedIncomeMonthly: 1_200_000,
+    businessIncomeMonthly: 800_000,
+    otherPensionMonthly: 500_000,
+    otherPensionStartAge: 65,
+    rentalIncomeMonthly: 600_000,
+    healthInsuranceType: 'employee',
+  })
+
+  assert.equal(result.otherIncomeMonthlyApplied, 2_600_000)
+  assert.equal(result.incomeBreakdown.length, 4)
+  assert.equal(result.incomeBreakdown.find((item) => item.key === 'otherPension')?.appliedMonthly, 0)
+  assert.equal(result.incomeBreakdown.find((item) => item.key === 'rental')?.appliedMonthly, 600_000)
+  assert.equal(result.rentalIncomeTaxAnnual, 0)
+  assert.equal(result.projectionOtherIncomeTotal, 342_000_000)
+})

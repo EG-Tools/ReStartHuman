@@ -2,6 +2,7 @@ export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
+export type IncomeCategory = 'earned' | 'otherPension' | 'freelance' | 'business' | 'rental' | 'misc'
 
 export type HealthInsuranceType =
   | 'regional'
@@ -83,6 +84,15 @@ export interface AlphaFormData {
   myAnnualIsaDividendAttributed: number
   spouseAnnualIsaDividendAttributed: number
 
+  selectedIncomeCategories: IncomeCategory[]
+  earnedIncomeMonthly: number
+  otherPensionMonthly: number
+  otherPensionStartAge: number
+  freelanceIncomeMonthly: number
+  businessIncomeMonthly: number
+  rentalIncomeMonthly: number
+  miscIncomeMonthly: number
+
   otherIncomeType: 'earned' | 'business' | 'pension' | 'monthlyRent' | 'other' | 'none'
   otherIncomeMonthly: number
   otherIncomeStartAge: number
@@ -161,6 +171,15 @@ export interface HoldingTaxBreakdownItem {
   baseValue: number
 }
 
+export interface IncomeBreakdownItem {
+  key: IncomeCategory
+  label: string
+  inputMonthly: number
+  appliedMonthly: number
+  projectionTotal: number
+  startAge?: number
+}
+
 export interface AlphaResult {
   policyBaseDate: string
   policyStatus: string
@@ -211,6 +230,7 @@ export interface AlphaResult {
 
   pensionMonthlyApplied: number
   otherIncomeMonthlyApplied: number
+  incomeBreakdown: IncomeBreakdownItem[]
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
   projectionRentalIncomeTaxTotal: number
@@ -252,3 +272,4 @@ export interface QuestionStep {
   description: string
   visibility: (formData: AlphaFormData) => boolean
 }
+

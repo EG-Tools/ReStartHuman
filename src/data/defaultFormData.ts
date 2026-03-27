@@ -52,6 +52,15 @@ export const defaultFormData: AlphaFormData = {
   myAnnualIsaDividendAttributed: 0,
   spouseAnnualIsaDividendAttributed: 0,
 
+  selectedIncomeCategories: [],
+  earnedIncomeMonthly: 0,
+  otherPensionMonthly: 0,
+  otherPensionStartAge: 65,
+  freelanceIncomeMonthly: 0,
+  businessIncomeMonthly: 0,
+  rentalIncomeMonthly: 0,
+  miscIncomeMonthly: 0,
+
   otherIncomeType: 'none',
   otherIncomeMonthly: 0,
   otherIncomeStartAge: 65,
@@ -87,3 +96,4 @@ export const defaultFormData: AlphaFormData = {
   startingCashReserve: 100_000_000,
   currentAge: 50,
 }
+

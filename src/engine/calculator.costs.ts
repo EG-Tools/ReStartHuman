@@ -2,6 +2,12 @@ import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome } from '../types/alpha'
 import { calculateRentalIncomeTax } from './calculator.income'
 import {
+  getAgeQualifiedEarnedIncomeMonthly,
+  getAgeQualifiedNonSalaryIncomeMonthly,
+  getAgeQualifiedOtherIncomeMonthly as getStructuredAgeQualifiedOtherIncomeMonthly,
+  getAgeQualifiedRentalIncomeMonthly,
+} from '../utils/incomeStreams'
+import {
   type CashProjection,
   type HoldingTaxEstimate,
   getMineAttributedPropertyValue,
@@ -66,25 +72,11 @@ export const calculateExpenses = (formData: AlphaFormData) => {
   }
 }
 
-const getBaseOtherIncomeMonthly = (formData: AlphaFormData) =>
-  formData.otherIncomeType === 'none'
-    ? 0
-    : formData.otherIncomeType === 'earned'
-      ? Math.max(formData.otherIncomeMonthly, formData.salaryMonthly)
-      : formData.otherIncomeMonthly
-
 export const getAgeQualifiedPensionMonthly = (formData: AlphaFormData, age: number) =>
   age >= formData.pensionStartAge ? formData.pensionMonthlyAmount : 0
 
-export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) => {
-  const baseOtherIncomeMonthly = getBaseOtherIncomeMonthly(formData)
-
-  if (formData.otherIncomeType === 'pension' && age < formData.otherIncomeStartAge) {
-    return 0
-  }
-
-  return baseOtherIncomeMonthly
-}
+export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) =>
+  roundCurrency(getStructuredAgeQualifiedOtherIncomeMonthly(formData, age))
 
 const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   const landTotal = formData.hasLandOrOtherProperty ? formData.landValue : 0
@@ -134,16 +126,18 @@ const getRegionalPropertyBase = (formData: AlphaFormData) => {
 export const estimateHealthInsurance = (
   formData: AlphaFormData,
   totalDividendAnnualGross: number,
-  otherIncomeMonthly: number,
+  age: number,
   pensionMonthly: number,
 ) => {
   const usesEmployeeHealthInsurance =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
-  const earnedIncomeMonthly =
-    formData.otherIncomeType === 'earned' && usesEmployeeHealthInsurance ? otherIncomeMonthly : 0
-  const nonSalaryOtherIncomeMonthly =
-    formData.otherIncomeType === 'earned' && usesEmployeeHealthInsurance ? 0 : otherIncomeMonthly
+  const earnedIncomeMonthly = usesEmployeeHealthInsurance
+    ? getAgeQualifiedEarnedIncomeMonthly(formData, age)
+    : 0
+  const nonSalaryOtherIncomeMonthly = usesEmployeeHealthInsurance
+    ? getAgeQualifiedNonSalaryIncomeMonthly(formData, age)
+    : getStructuredAgeQualifiedOtherIncomeMonthly(formData, age)
   const effectiveSalaryMonthly = Math.max(formData.salaryMonthly, earnedIncomeMonthly)
   const annualNonSalaryIncome =
     totalDividendAnnualGross + nonSalaryOtherIncomeMonthly * 12 + pensionMonthly * 12
@@ -312,7 +306,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'home',
-        label: '주택',
+        label: '二쇳깮',
         annual: homeHoldingTax.annual,
         baseValue: formData.homeOfficialValue,
       }),
@@ -333,7 +327,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'additionalHome',
-        label: `추가주택 ${index + 1}`,
+        label: `異붽?二쇳깮 ${index + 1}`,
         annual: additionalHomeHoldingTax.annual,
         baseValue: home.officialValue,
       }),
@@ -358,7 +352,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'land',
-        label: '토지',
+        label: '?좎?',
         annual: landHoldingTax.annual,
         baseValue: landAssessedValue,
       }),
@@ -380,7 +374,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     breakdown.push(
       createHoldingTaxItem({
         key: 'otherProperty',
-        label: '기타 부동산',
+        label: '湲고? 遺?숈궛',
         annual: otherPropertyHoldingTax.annual,
         baseValue: formData.otherPropertyOfficialValue,
       }),
@@ -431,12 +425,12 @@ export const calculateCashProjection = (
       estimateHealthInsurance(
         formData,
         totalDividendAnnualGross,
-        projectedOtherIncomeMonthly,
+        projectedAge,
         projectedPensionMonthly,
       )
     const projectedRentalIncomeTaxAnnual =
-      formData.otherIncomeType === 'monthlyRent'
-        ? calculateRentalIncomeTax(projectedOtherIncomeMonthly * 12).annualTax
+      getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) > 0
+        ? calculateRentalIncomeTax(getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) * 12).annualTax
         : 0
     const projectedTotalIncomeMonthly =
       totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
@@ -482,3 +476,4 @@ export const calculateCashProjection = (
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
   }
 }
+

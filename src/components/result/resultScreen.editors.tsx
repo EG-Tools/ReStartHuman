@@ -4,6 +4,7 @@ import { policyConfig } from '../../config/policyConfig'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { formatCompactCurrency, formatCurrency, formatSignedCompactCurrency } from '../../utils/format'
 import { InlineNumericField } from '../common/Ui'
+import { buildStructuredIncomePatch, getSelectedIncomeCategories } from '../../utils/incomeStreams'
 import {
   getComprehensiveTaxInput,
   getComprehensiveTaxNote,
@@ -12,7 +13,6 @@ import {
   getHousingTypeLabel,
   getIsaDividendNote,
   getLivingCostSnapshot,
-  getOtherIncomeTypeLabel,
   getPropertyOwnershipLabel,
   getRiskLabel,
   getTaxableDividendNote,
@@ -302,33 +302,77 @@ export function buildResultRows({
     formData.isaDividendAnnual > 0 || result.isaDividendAnnualNet > 0
   const shouldShowPensionRow =
     formData.pensionMonthlyAmount > 0 || result.pensionMonthlyApplied > 0
-  const shouldShowOtherIncomeRow =
-    formData.otherIncomeType !== 'none' &&
-    (formData.otherIncomeMonthly > 0 || result.otherIncomeMonthlyApplied > 0)
+  const visibleIncomeBreakdown = result.incomeBreakdown.filter(
+    (item) => item.inputMonthly > 0 || item.appliedMonthly > 0,
+  )
+  const rentalIncomeBreakdown = visibleIncomeBreakdown.find((item) => item.key === 'rental')
   const shouldShowRentalIncomeTaxRow = result.rentalIncomeTaxAnnual > 0
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
   const shouldShowAcademyRow =
     formData.livingCostInputMode === 'detailed' && academyMonthly > 0
-  const otherIncomeTypeLabel = getOtherIncomeTypeLabel(formData.otherIncomeType)
-  const otherIncomeInputMonthly =
-    formData.otherIncomeType === 'earned'
-      ? Math.max(formData.otherIncomeMonthly, formData.salaryMonthly)
-      : formData.otherIncomeMonthly
   const pensionStartsLater = formData.currentAge < formData.pensionStartAge
-  const otherPensionStartsLater =
-    formData.otherIncomeType === 'pension' && formData.currentAge < formData.otherIncomeStartAge
+  const usesEmployeeHealthInsurance =
+    formData.healthInsuranceType === 'employee' ||
+    formData.healthInsuranceType === 'employeeWithDependentSpouse'
+  const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const buildIncomeRowPatch = (
+    key: AlphaResult['incomeBreakdown'][number]['key'],
+    value: number,
+  ): Partial<AlphaFormData> => {
+    const basePatch =
+      selectedIncomeCategories.length === 1 && selectedIncomeCategories[0] === key
+        ? { otherIncomeMonthly: value }
+        : {}
+
+    switch (key) {
+      case 'earned':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          earnedIncomeMonthly: value,
+          ...(usesEmployeeHealthInsurance ? { salaryMonthly: value } : {}),
+          ...basePatch,
+        })
+      case 'otherPension':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          otherPensionMonthly: value,
+          ...(selectedIncomeCategories.length === 1 && selectedIncomeCategories[0] === key
+            ? { otherIncomeMonthly: value, otherIncomeStartAge: formData.otherPensionStartAge }
+            : {}),
+        })
+      case 'freelance':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          freelanceIncomeMonthly: value,
+          ...basePatch,
+        })
+      case 'business':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          businessIncomeMonthly: value,
+          ...basePatch,
+        })
+      case 'rental':
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          rentalIncomeMonthly: value,
+          ...basePatch,
+        })
+      case 'misc':
+      default:
+        return buildStructuredIncomePatch(selectedIncomeCategories, {
+          miscIncomeMonthly: value,
+          ...basePatch,
+        })
+    }
+  }
 
   const totalIncomePieces = [
     result.totalDividendAnnualNet > 0
-      ? `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당`
+      ? `${formatCompactCurrency(result.totalDividendAnnualNet)} ??`
       : null,
-    shouldShowOtherIncomeRow
-      ? `${formatCompactCurrency(result.otherIncomeMonthlyApplied)} ${otherIncomeTypeLabel}`
-      : null,
+    ...visibleIncomeBreakdown.map(
+      (item) => `${formatCompactCurrency(item.appliedMonthly)} ${item.label}`,
+    ),
     shouldShowPensionRow
-      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
+      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} ????`
       : null,
   ].filter((value): value is string => Boolean(value))
 
@@ -483,35 +527,32 @@ export function buildResultRows({
     })
   }
 
-  if (shouldShowOtherIncomeRow) {
+  visibleIncomeBreakdown.forEach((incomeItem) => {
+    const startsLater = typeof incomeItem.startAge === 'number' && formData.currentAge < incomeItem.startAge
+
     rows.push({
-      category: '소득',
-      item: otherIncomeTypeLabel,
+      category: '??',
+      item: incomeItem.label,
       input: (
         <InlineAmountInput
-          label={`${otherIncomeTypeLabel} 월 금액`}
-          value={otherIncomeInputMonthly}
-          onChange={(value) =>
-            onPatchFormData({
-              otherIncomeMonthly: value,
-              ...(formData.otherIncomeType === 'earned' ? { salaryMonthly: value } : {}),
-            })
-          }
+          label={`${incomeItem.label} ? ??`}
+          value={incomeItem.inputMonthly}
+          onChange={(value) => onPatchFormData(buildIncomeRowPatch(incomeItem.key, value))}
         />
       ),
-      monthly: formatCompactCurrency(result.otherIncomeMonthlyApplied),
-      annual: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12),
-      tenYear: formatCompactCurrency(result.projectionOtherIncomeTotal),
+      monthly: formatCompactCurrency(incomeItem.appliedMonthly),
+      annual: formatCompactCurrency(incomeItem.appliedMonthly * 12),
+      tenYear: formatCompactCurrency(incomeItem.projectionTotal),
       note:
-        otherPensionStartsLater
-          ? `${formData.otherIncomeStartAge}세부터 반영`
-          : `${otherIncomeTypeLabel} 월 유입`,
+        startsLater
+          ? `${incomeItem.startAge}??? ??`
+          : `${incomeItem.label} ? ??`,
       noteDetail:
-        otherPensionStartsLater
-          ? `현재 ${formData.currentAge}세 기준이며 기타연금은 ${formData.otherIncomeStartAge}세부터 반영합니다.`
+        startsLater
+          ? `?? ${formData.currentAge}? ???? ${incomeItem.label}? ${incomeItem.startAge}??? ?????.`
           : undefined,
     })
-  }
+  })
 
   rows.push(
     {
@@ -549,7 +590,9 @@ export function buildResultRows({
     rows.push({
       category: '세금',
       item: '임대소득세',
-      input: `월세소득 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}`,
+      input: rentalIncomeBreakdown
+        ? `${rentalIncomeBreakdown.label} ${formatCompactCurrency(rentalIncomeBreakdown.appliedMonthly)}`
+        : EMPTY_CELL,
       monthly: formatCompactCurrency(result.rentalIncomeTaxMonthly),
       annual: formatCompactCurrency(result.rentalIncomeTaxAnnual),
       tenYear: formatCompactCurrency(result.projectionRentalIncomeTaxTotal),
