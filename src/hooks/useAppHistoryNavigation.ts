@@ -5,7 +5,7 @@ import type { AppRoute } from '../app/routes'
 export type SaveSlotMode = 'load' | 'save' | 'manage'
 
 interface AppHistoryState {
-  __retireCalcNav: true
+  __alphaNav: true
   route: AppRoute
   questionIndex: number
   saveSlotMode: SaveSlotMode | null
@@ -27,7 +27,7 @@ const buildHistoryState = (
   questionIndex: number,
   saveSlotMode: SaveSlotMode | null,
 ): AppHistoryState => ({
-  __retireCalcNav: true,
+  __alphaNav: true,
   route,
   questionIndex,
   saveSlotMode,
@@ -43,7 +43,7 @@ const isAppHistoryState = (value: unknown): value is AppHistoryState => {
   const candidate = value as Partial<AppHistoryState>
 
   return (
-    candidate.__retireCalcNav === true &&
+    candidate.__alphaNav === true &&
     typeof candidate.questionIndex === 'number' &&
     (candidate.route === appRoutes.start ||
       candidate.route === appRoutes.question ||

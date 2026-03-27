@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
-import { calculateRetireScenario } from '../src/engine/calculator'
+import { calculateAlphaScenario } from '../src/engine/calculator'
 import {
   createSaveSlotRecord,
   getSaveSlotStorageKey,
@@ -40,7 +40,7 @@ class MemoryStorage implements Storage {
 }
 
 const makeRecord = (slotId: number, name?: string) =>
-  createSaveSlotRecord(slotId, defaultFormData, calculateRetireScenario(defaultFormData), name)
+  createSaveSlotRecord(slotId, defaultFormData, calculateAlphaScenario(defaultFormData), name)
 
 test('저장 슬롯 이름은 공백을 정리하고 기본 이름은 비운다', () => {
   assert.equal(normalizeSaveSlotName('  나의   은퇴  플랜  '), '나의 은퇴 플랜')

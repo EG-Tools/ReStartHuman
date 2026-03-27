@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { RetireCalcFormData, RetireCalcResult, SaveSlotRecord } from '../types/retireCalc'
+import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
 import {
   SAVE_SLOT_COUNT,
   createSaveSlotRecord,
@@ -35,8 +35,8 @@ export const useSaveSlots = () => {
 
   const saveSlot = useCallback((
     slotId: number,
-    formData: RetireCalcFormData,
-    result: RetireCalcResult,
+    formData: AlphaFormData,
+    result: AlphaResult,
     slotName?: string,
   ) => {
     const storage = getBrowserStorage()

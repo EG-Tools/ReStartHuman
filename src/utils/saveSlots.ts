@@ -1,12 +1,12 @@
 import type {
-  RetireCalcFormData,
-  RetireCalcResult,
+  AlphaFormData,
+  AlphaResult,
   SaveSlotRecord,
-} from '../types/retireCalc'
+} from '../types/alpha'
 
 export const SAVE_SLOT_COUNT = 5
 export const SAVE_SLOT_STORAGE_VERSION = 1 as const
-const STORAGE_KEY_PREFIX = 'kr-retire-calc-slot-'
+const STORAGE_KEY_PREFIX = 'restarthuman-alpha-slot-'
 
 interface PersistedSaveSlotRecordV1 extends SaveSlotRecord {
   version: typeof SAVE_SLOT_STORAGE_VERSION
@@ -73,8 +73,8 @@ const migrateParsedSaveSlotRecord = (value: unknown): SaveSlotRecord | null => {
     slotId: parsedRecord.slotId,
     name: parsedRecord.name,
     savedAt: parsedRecord.savedAt,
-    formData: parsedRecord.formData as RetireCalcFormData,
-    result: parsedRecord.result as RetireCalcResult,
+    formData: parsedRecord.formData as AlphaFormData,
+    result: parsedRecord.result as AlphaResult,
   })
 }
 
@@ -110,8 +110,8 @@ export const readSaveSlotRecords = (storage?: Storage): SaveSlotRecord[] => {
 
 export const createSaveSlotRecord = (
   slotId: number,
-  formData: RetireCalcFormData,
-  result: RetireCalcResult,
+  formData: AlphaFormData,
+  result: AlphaResult,
   slotName?: string,
 ): SaveSlotRecord => ({
   slotId,

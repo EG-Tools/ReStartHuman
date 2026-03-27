@@ -1,4 +1,4 @@
-import type { QuestionStep } from '../types/retireCalc'
+import type { QuestionStep } from '../types/alpha'
 
 export const questionFlow: QuestionStep[] = [
   {

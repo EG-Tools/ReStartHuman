@@ -119,7 +119,7 @@ Start in:
 ## 6) Related logic owners that affect UI behavior
 ### Conditional question flow
 - Step list and visibility: `src/data/questionFlow.ts`
-- Next/previous navigation across visible steps: `src/hooks/useRetireCalcFlow.ts`
+- Next/previous navigation across visible steps: `src/hooks/useAlphaFlow.ts`
 - In-step conditional rendering: `src/components/question/questionScreen.sections.tsx`
 
 ### Earned-income and employee-health-insurance link

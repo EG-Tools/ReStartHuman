@@ -2,13 +2,13 @@ import { Suspense, lazy, startTransition, useCallback, useDeferredValue, useMemo
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
-import { calculateRetireScenario } from '../engine/calculator'
-import { useRetireCalcFlow } from '../hooks/useRetireCalcFlow'
+import { calculateAlphaScenario } from '../engine/calculator'
+import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
 import { useViewportCssVars } from '../hooks/useViewportCssVars'
 import { useSaveSlots } from '../hooks/useSaveSlots'
 import { appRoutes } from './routes'
-import type { RetireCalcFormData, SaveSlotRecord } from '../types/retireCalc'
+import type { AlphaFormData, SaveSlotRecord } from '../types/alpha'
 
 const QuestionScreen = lazy(async () => {
   const module = await import('../components/question/QuestionScreen')
@@ -25,29 +25,29 @@ const SaveSlotModal = lazy(async () => {
   return { default: module.SaveSlotModal }
 })
 
-const createCalculatorInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
+const createCalculatorInput = (formData: AlphaFormData): AlphaFormData => ({
   ...defaultFormData,
   ...formData,
 })
 
 const hasPatchChanges = (
-  currentValue: RetireCalcFormData,
-  patch: Partial<RetireCalcFormData>,
-) => Object.entries(patch).some(([key, value]) => currentValue[key as keyof RetireCalcFormData] !== value)
+  currentValue: AlphaFormData,
+  patch: Partial<AlphaFormData>,
+) => Object.entries(patch).some(([key, value]) => currentValue[key as keyof AlphaFormData] !== value)
 
 export default function App() {
-  const [formData, setFormData] = useState<RetireCalcFormData>(defaultFormData)
+  const [formData, setFormData] = useState<AlphaFormData>(defaultFormData)
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
-  const flow = useRetireCalcFlow(formData)
+  const flow = useAlphaFlow(formData)
   const saveSlots = useSaveSlots()
   const calculationInput = useMemo(() => createCalculatorInput(formData), [formData])
   const deferredCalculationInput = useDeferredValue(calculationInput)
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
   const result = useMemo(
-    () => (shouldRenderResult ? calculateRetireScenario(deferredCalculationInput) : null),
+    () => (shouldRenderResult ? calculateAlphaScenario(deferredCalculationInput) : null),
     [deferredCalculationInput, shouldRenderResult],
   )
   const optionsButton = useMemo(
@@ -67,7 +67,7 @@ export default function App() {
     },
   })
 
-  const patchFormData = useCallback((patch: Partial<RetireCalcFormData>) => {
+  const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
     startTransition(() => {
       setFormData((currentValue) => {
         if (!hasPatchChanges(currentValue, patch)) {
@@ -105,7 +105,7 @@ export default function App() {
       saveSlots.saveSlot(
         slotId,
         formData,
-        result ?? calculateRetireScenario(calculationInput),
+        result ?? calculateAlphaScenario(calculationInput),
         slotName,
       )
     },

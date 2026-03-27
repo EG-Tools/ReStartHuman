@@ -1,6 +1,6 @@
-import type { RetireCalcFormData } from '../types/retireCalc'
+import type { AlphaFormData } from '../types/alpha'
 
-export const defaultFormData: RetireCalcFormData = {
+export const defaultFormData: AlphaFormData = {
   householdType: 'single',
   simulationYears: 30,
 

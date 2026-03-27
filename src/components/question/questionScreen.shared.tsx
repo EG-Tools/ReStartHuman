@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { InlineNumericField, PrimaryButton, ProgressBar } from '../common/Ui'
 import { formatCompactCurrency } from '../../utils/format'
 import { type QuestionNumberFieldConfig } from './questionScreen.config'
-import type { QuestionStep } from '../../types/retireCalc'
+import type { QuestionStep } from '../../types/alpha'
 
 export function QuestionLayout({
   question,

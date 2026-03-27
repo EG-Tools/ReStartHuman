@@ -1,12 +1,12 @@
 import { policyConfig } from '../../config/policyConfig'
-import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
+import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { InlineNumericField } from '../common/Ui'
 
 import { memo } from 'react'
 
 interface ProjectionInlineControlsProps {
-  formData: RetireCalcFormData
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  formData: AlphaFormData
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
 
 export const ProjectionInlineControls = memo(function ProjectionInlineControls({
@@ -85,7 +85,7 @@ export const ProjectionInlineControls = memo(function ProjectionInlineControls({
 })
 
 interface ResultHelpDrawerProps {
-  policyStatus: RetireCalcResult['policyStatus']
+  policyStatus: AlphaResult['policyStatus']
 }
 
 export const ResultHelpDrawer = memo(function ResultHelpDrawer({ policyStatus }: ResultHelpDrawerProps) {

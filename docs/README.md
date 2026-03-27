@@ -27,9 +27,9 @@ It is meant to answer three questions fast:
 - `PRODUCT_OVERVIEW.md`
   - product goal, screen flow, and current design philosophy
 - `QUESTION_FORM_MAP.md`
-  - question step to `RetireCalcFormData` mapping and conditional input notes
+  - question step to `AlphaFormData` mapping and conditional input notes
 - `CALCULATION_LOGIC.md`
-  - how `calculateRetireScenario` works and which engine files own each calculation group
+  - how `calculateAlphaScenario` works and which engine files own each calculation group
 - `RESULT_SCREEN_RULES.md`
   - result-table row rules, visibility rules, and quick-edit behavior
 - `SAVE_LOAD_SHARE_RULES.md`
@@ -40,7 +40,7 @@ It is meant to answer three questions fast:
   - non-final or legacy fields, known simplifications, and caution points
 
 ## Ground truth files
-- Type source of truth: `src/types/retireCalc.ts`
+- Type source of truth: `src/types/alpha.ts`
 - Default state: `src/data/defaultFormData.ts`
 - Question step list: `src/data/questionFlow.ts`
 - Main calculation entry: `src/engine/calculator.ts`

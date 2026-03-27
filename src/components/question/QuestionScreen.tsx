@@ -1,7 +1,7 @@
 import { renderQuestionContent } from './questionScreen.sections'
 import { QuestionLayout } from './questionScreen.shared'
 import type { QuestionScreenProps } from './questionScreen.config'
-import type { RetireCalcFormData } from '../../types/retireCalc'
+import type { AlphaFormData } from '../../types/alpha'
 
 export function QuestionScreen({
   question,
@@ -14,11 +14,11 @@ export function QuestionScreen({
   onPatchFormData,
   headerAction,
 }: QuestionScreenProps) {
-  const update = <K extends keyof RetireCalcFormData>(
+  const update = <K extends keyof AlphaFormData>(
     key: K,
-    value: RetireCalcFormData[K],
+    value: AlphaFormData[K],
   ) => {
-    onPatchFormData({ [key]: value } as Pick<RetireCalcFormData, K>)
+    onPatchFormData({ [key]: value } as Pick<AlphaFormData, K>)
   }
 
   return (

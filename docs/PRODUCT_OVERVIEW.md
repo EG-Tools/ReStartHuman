@@ -35,7 +35,7 @@ Role:
 ### Question flow
 File owners:
 - `src/data/questionFlow.ts`
-- `src/hooks/useRetireCalcFlow.ts`
+- `src/hooks/useAlphaFlow.ts`
 - `src/components/question/QuestionScreen.tsx`
 - `src/components/question/questionScreen.sections.tsx`
 
@@ -59,7 +59,7 @@ Role:
 1. Start from default form state in `src/data/defaultFormData.ts`.
 2. Move through visible question steps from `src/data/questionFlow.ts`.
 3. Patch `formData` incrementally in `src/app/App.tsx`.
-4. Compute `result` with `calculateRetireScenario()` in `src/engine/calculator.ts`.
+4. Compute `result` with `calculateAlphaScenario()` in `src/engine/calculator.ts`.
 5. Build result rows with `buildResultRows()` in `src/components/result/resultScreen.editors.tsx`.
 6. Let the user tweak projection years, age, and inflation directly in the result screen.
 
@@ -94,7 +94,7 @@ As of the current project state, the app is not trying to be:
 - a backend-synced account system
 
 ## 7) Key source files to read next
-- Input shape: `src/types/retireCalc.ts`
+- Input shape: `src/types/alpha.ts`
 - Default values: `src/data/defaultFormData.ts`
 - Calculation logic: `CALCULATION_LOGIC.md`
 - Result presentation rules: `RESULT_SCREEN_RULES.md`

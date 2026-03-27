@@ -1,5 +1,5 @@
 import { policyConfig } from '../config/policyConfig'
-import type { HoldingTaxBreakdownItem, RetireCalcFormData } from '../types/retireCalc'
+import type { HoldingTaxBreakdownItem, AlphaFormData } from '../types/alpha'
 import {
   type CashProjection,
   type HoldingTaxEstimate,
@@ -9,7 +9,7 @@ import {
   toMonthly,
 } from './calculator.shared'
 
-export const calculateExpenses = (formData: RetireCalcFormData) => {
+export const calculateExpenses = (formData: AlphaFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
   const loanInterestMonthly = formData.loanInterestMonthly
 
@@ -49,7 +49,7 @@ export const calculateExpenses = (formData: RetireCalcFormData) => {
   }
 }
 
-const getAdditionalPropertyBase = (formData: RetireCalcFormData) => {
+const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   const landTotal = formData.landValue
   const otherPropertyTotal = formData.otherPropertyOfficialValue
 
@@ -81,7 +81,7 @@ const getAdditionalPropertyBase = (formData: RetireCalcFormData) => {
   )
 }
 
-const getRegionalPropertyBase = (formData: RetireCalcFormData) => {
+const getRegionalPropertyBase = (formData: AlphaFormData) => {
   const housingBase =
     formData.housingType === 'own'
       ? formData.homeOfficialValue
@@ -93,7 +93,7 @@ const getRegionalPropertyBase = (formData: RetireCalcFormData) => {
 }
 
 export const estimateHealthInsurance = (
-  formData: RetireCalcFormData,
+  formData: AlphaFormData,
   totalDividendAnnualGross: number,
   otherIncomeMonthly: number,
   pensionMonthly: number,
@@ -156,7 +156,7 @@ export const estimateHealthInsurance = (
   }
 }
 
-const getHoldingTaxFairMarketRatio = (formData: RetireCalcFormData) => {
+const getHoldingTaxFairMarketRatio = (formData: AlphaFormData) => {
   if (
     formData.isSingleHomeOwner &&
     formData.homeOfficialValue <= policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
@@ -242,7 +242,7 @@ const calculateHoldingTaxFromOwnerValues = ({
   }
 }
 
-export const estimateHoldingTax = (formData: RetireCalcFormData): HoldingTaxEstimate => {
+export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate => {
   const breakdown: HoldingTaxBreakdownItem[] = []
 
   if (formData.housingType === 'own' && formData.homeOfficialValue > 0) {
@@ -327,7 +327,7 @@ export const estimateHoldingTax = (formData: RetireCalcFormData): HoldingTaxEsti
 }
 
 export const calculateCashProjection = (
-  formData: RetireCalcFormData,
+  formData: AlphaFormData,
   totalIncomeMonthly: number,
   totalExpenseMonthly: number,
   healthInsuranceMonthly: number,

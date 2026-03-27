@@ -4,7 +4,7 @@ This file lists known simplifications, legacy remnants, and fields that can misl
 Read this before assuming that every typed field is fully active.
 
 ## 1) Question-flow legacy remnants
-In `src/types/retireCalc.ts`, `QuestionStepId` still includes:
+In `src/types/alpha.ts`, `QuestionStepId` still includes:
 - `housingType`
 - `isa`
 - `pension`
@@ -26,7 +26,7 @@ Interpretation:
 - Do not assume there is already meaningful conditional step filtering.
 
 ## 3) Fields that exist but are not central in the live current UX
-These fields are in `RetireCalcFormData`, but are not currently first-class active question-flow drivers or are only weakly connected.
+These fields are in `AlphaFormData`, but are not currently first-class active question-flow drivers or are only weakly connected.
 
 Examples:
 - `maintenanceIncludedInRent`

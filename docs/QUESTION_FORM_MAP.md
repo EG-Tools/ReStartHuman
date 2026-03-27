@@ -1,10 +1,10 @@
 # QUESTION_FORM_MAP.md
 
-This file maps question steps to `RetireCalcFormData` and points out the important conditional behavior.
+This file maps question steps to `AlphaFormData` and points out the important conditional behavior.
 The source files are:
 - `src/data/questionFlow.ts`
 - `src/components/question/questionScreen.sections.tsx`
-- `src/types/retireCalc.ts`
+- `src/types/alpha.ts`
 - `src/data/defaultFormData.ts`
 
 ## 1) Current visible step order
@@ -172,7 +172,7 @@ These are not the main question-flow entry points, but they affect final outputs
 - `inflationEnabled`
 
 ## 4) Type fields that are not part of the active visible step list
-These fields exist in `RetireCalcFormData`, but the active question flow does not expose them as standalone steps right now.
+These fields exist in `AlphaFormData`, but the active question flow does not expose them as standalone steps right now.
 - `isaType`
 - `isaYearsSinceOpen`
 - `isaMaturityExtended`

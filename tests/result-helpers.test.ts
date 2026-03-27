@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
-import { calculateRetireScenario } from '../src/engine/calculator'
+import { calculateAlphaScenario } from '../src/engine/calculator'
 import { buildResultRows } from '../src/components/result/resultScreen.editors'
 import { getLivingCostSnapshot } from '../src/components/result/resultScreen.helpers'
 
@@ -26,7 +26,7 @@ test('결과표는 학원비가 있을 때만 학원비 행을 보여준다', ()
     livingCostInputMode: 'detailed' as const,
     academyMonthly: 300_000,
   }
-  const result = calculateRetireScenario(formData)
+  const result = calculateAlphaScenario(formData)
   const rows = buildResultRows({
     dividendBasisLabel: '세전 입력',
     fixedExpenseAnnualBase: result.fixedExpenseMonthly * 12,
@@ -49,7 +49,7 @@ test('결과표는 자녀가 없으면 학원비 행을 숨긴다', () => {
     livingCostInputMode: 'detailed' as const,
     academyMonthly: 300_000,
   }
-  const result = calculateRetireScenario(formData)
+  const result = calculateAlphaScenario(formData)
   const rows = buildResultRows({
     dividendBasisLabel: '세전 입력',
     fixedExpenseAnnualBase: result.fixedExpenseMonthly * 12,

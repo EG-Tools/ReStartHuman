@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
-  RetireCalcFormData,
-  RetireCalcResult,
-} from '../../types/retireCalc'
+  AlphaFormData,
+  AlphaResult,
+} from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
 
 export interface ResultRow {
@@ -25,7 +25,7 @@ const ageAssetBenchmarks = [
   { min: 60, max: Number.POSITIVE_INFINITY, label: '60세 이상', averageAsset: 600_950_000 },
 ] as const
 
-export const getLivingCostSnapshot = (formData: RetireCalcFormData) => {
+export const getLivingCostSnapshot = (formData: AlphaFormData) => {
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
 
   return formData.livingCostInputMode === 'total'
@@ -38,7 +38,7 @@ export const getLivingCostSnapshot = (formData: RetireCalcFormData) => {
         formData.otherLivingMonthly
 }
 
-export const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
+export const getRiskLabel = (riskLevel: AlphaResult['riskLevel']) => {
   switch (riskLevel) {
     case 'surplus':
       return '흑자'
@@ -49,7 +49,7 @@ export const getRiskLabel = (riskLevel: RetireCalcResult['riskLevel']) => {
   }
 }
 
-export const getOtherIncomeTypeLabel = (incomeType: RetireCalcFormData['otherIncomeType']) => {
+export const getOtherIncomeTypeLabel = (incomeType: AlphaFormData['otherIncomeType']) => {
   switch (incomeType) {
     case 'earned':
       return '근로소득'
@@ -65,14 +65,14 @@ export const getOtherIncomeTypeLabel = (incomeType: RetireCalcFormData['otherInc
 }
 
 export const getIsaTypeLabel = (
-  isaType: RetireCalcResult['isaTaxBreakdown'][number]['isaType'],
+  isaType: AlphaResult['isaTaxBreakdown'][number]['isaType'],
 ) => (isaType === 'workingClass' ? '서민형' : '일반형')
 
 export const getAgeAssetBenchmark = (age: number) =>
   ageAssetBenchmarks.find((benchmark) => age >= benchmark.min && age <= benchmark.max) ??
   ageAssetBenchmarks[ageAssetBenchmarks.length - 1]
 
-export const getHouseholdAssetEstimate = (formData: RetireCalcFormData) => {
+export const getHouseholdAssetEstimate = (formData: AlphaFormData) => {
   const housingAsset =
     formData.housingType === 'own'
       ? formData.homeMarketValue
@@ -138,7 +138,7 @@ export const getAssetInterpretationMessage = ({
 }
 
 export const getHealthInsuranceTypeSummary = (
-  healthInsuranceType: RetireCalcFormData['healthInsuranceType'],
+  healthInsuranceType: AlphaFormData['healthInsuranceType'],
 ) => {
   switch (healthInsuranceType) {
     case 'employee':
@@ -163,8 +163,8 @@ export const buildInterpretationItems = ({
 }: {
   assetInterpretation: string
   effectiveComprehensiveRate: number
-  formData: RetireCalcFormData
-  result: RetireCalcResult
+  formData: AlphaFormData
+  result: AlphaResult
 }) => [
   result.holdingTaxAnnual >= 10_000_000
     ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
@@ -201,7 +201,7 @@ export const getPropertyOwnershipLabel = (ownershipType: string) => {
 const formatOwnershipSummary = (breakdown: AccountOwnershipBreakdown[]) =>
   breakdown.map((item) => `${item.label} ${formatCompactCurrency(item.attributedAnnual)}`).join(', ')
 
-const formatIsaOwnershipSummary = (breakdown: RetireCalcResult['isaTaxBreakdown']) => {
+const formatIsaOwnershipSummary = (breakdown: AlphaResult['isaTaxBreakdown']) => {
   const activeBreakdown = breakdown.filter((item) => item.attributedAnnual > 0)
 
   if (activeBreakdown.length === 0) {
@@ -216,7 +216,7 @@ const formatIsaOwnershipSummary = (breakdown: RetireCalcResult['isaTaxBreakdown'
     .join(', ')
 }
 
-const formatIsaLimitSummary = (breakdown: RetireCalcResult['isaTaxBreakdown']) => {
+const formatIsaLimitSummary = (breakdown: AlphaResult['isaTaxBreakdown']) => {
   const activeBreakdown = breakdown.filter((item) => item.attributedAnnual > 0)
 
   if (activeBreakdown.length === 0) {
@@ -231,7 +231,7 @@ const formatIsaLimitSummary = (breakdown: RetireCalcResult['isaTaxBreakdown']) =
     .join(', ')
 }
 
-export const getHoldingTaxBreakdownSummary = (result: RetireCalcResult) => {
+export const getHoldingTaxBreakdownSummary = (result: AlphaResult) => {
   const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.annual > 0)
 
   if (activeBreakdown.length === 0) {
@@ -243,7 +243,7 @@ export const getHoldingTaxBreakdownSummary = (result: RetireCalcResult) => {
     .join(', ')
 }
 
-export const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
+export const getHoldingTaxInputSummary = (result: AlphaResult) => {
   const activeLabels = result.holdingTaxBreakdown
     .filter((item) => item.annual > 0)
     .map((item) => item.label)
@@ -263,7 +263,7 @@ export const getHoldingTaxInputSummary = (result: RetireCalcResult) => {
   return `${activeLabels.slice(0, otherPropertyIndex).join(' · ')}\n${activeLabels.slice(otherPropertyIndex).join(' · ')}`
 }
 
-export const getHoldingTaxBaseSummary = (result: RetireCalcResult) => {
+export const getHoldingTaxBaseSummary = (result: AlphaResult) => {
   const activeBreakdown = result.holdingTaxBreakdown.filter((item) => item.baseValue > 0)
 
   if (activeBreakdown.length === 0) {
@@ -275,7 +275,7 @@ export const getHoldingTaxBaseSummary = (result: RetireCalcResult) => {
     .join(', ')
 }
 
-export const getTaxableDividendNote = (result: RetireCalcResult) => {
+export const getTaxableDividendNote = (result: AlphaResult) => {
   const baseNote = `${policyConfig.dividendWithholding.note} 반영`
   const ownershipSummary = formatOwnershipSummary(result.taxableDividendOwnershipBreakdown)
 
@@ -286,7 +286,7 @@ export const getTaxableDividendNote = (result: RetireCalcResult) => {
   return `${baseNote}, 귀속: ${ownershipSummary}, 세후 입력값에서 세전 배당을 역산해 종합과세 여부를 판단`
 }
 
-export const getIsaDividendNote = (result: RetireCalcResult) => {
+export const getIsaDividendNote = (result: AlphaResult) => {
   const ownershipSummary = formatIsaOwnershipSummary(result.isaTaxBreakdown)
   const limitSummary = formatIsaLimitSummary(result.isaTaxBreakdown)
   const baseNote = `${policyConfig.isa.note} 반영`
@@ -298,7 +298,7 @@ export const getIsaDividendNote = (result: RetireCalcResult) => {
   return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 초과분에 연 ${formatCompactCurrency(result.isaTaxAnnual)} 부과`
 }
 
-export const getComprehensiveTaxInput = (result: RetireCalcResult) => {
+export const getComprehensiveTaxInput = (result: AlphaResult) => {
   if (!result.comprehensiveTaxIncluded) {
     return '금융소득 2,000만원 이하'
   }
@@ -309,12 +309,12 @@ export const getComprehensiveTaxInput = (result: RetireCalcResult) => {
     .join(', ')
 }
 
-const formatComprehensiveTaxAllocationSummary = (result: RetireCalcResult) =>
+const formatComprehensiveTaxAllocationSummary = (result: AlphaResult) =>
   result.comprehensiveTaxBreakdown
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
     .join(', ')
 
-export const getComprehensiveTaxZeroReason = (result: RetireCalcResult) => {
+export const getComprehensiveTaxZeroReason = (result: AlphaResult) => {
   const exceededSummary = result.comprehensiveTaxBreakdown
     .filter((item) => item.exceedsThreshold)
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
@@ -323,7 +323,7 @@ export const getComprehensiveTaxZeroReason = (result: RetireCalcResult) => {
   return `${exceededSummary} 기준으로 인별 판정했고, 원천징수세액이 비교세액보다 크거나 같아`
 }
 
-export const getComprehensiveTaxNote = (result: RetireCalcResult) => {
+export const getComprehensiveTaxNote = (result: AlphaResult) => {
   const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
   const additionalSummary = result.comprehensiveTaxBreakdown
     .filter((item) => item.additionalTaxAnnual > 0)

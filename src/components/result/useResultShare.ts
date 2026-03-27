@@ -12,7 +12,7 @@ const getExportFileName = () => {
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
 
-  return `retire-cashflow-${year}${month}${day}.png`
+  return `restarthuman-alpha-cashflow-${year}${month}${day}.png`
 }
 
 const createResultImage = async (node: HTMLDivElement) => {

@@ -39,7 +39,7 @@ If you need product context, logic notes, or testing details, start in `docs/REA
 
 ### Question flow and question rendering
 - Step order and visibility owner: `src/data/questionFlow.ts`
-- Navigation through visible steps: `src/hooks/useRetireCalcFlow.ts`
+- Navigation through visible steps: `src/hooks/useAlphaFlow.ts`
 - Question content structure: `src/components/question/questionScreen.sections.tsx`
 - Question screen frame/wrapper: `src/components/question/QuestionScreen.tsx`
 - Shared question layout shell: `src/components/question/questionScreen.shared.tsx`
@@ -64,7 +64,7 @@ If you need product context, logic notes, or testing details, start in `docs/REA
 
 ### Calculation and persistence
 - Default input state: `src/data/defaultFormData.ts`
-- Source-of-truth types: `src/types/retireCalc.ts`
+- Source-of-truth types: `src/types/alpha.ts`
 - Main orchestration: `src/engine/calculator.ts`
 - Expense / holding tax / health insurance / cash projection: `src/engine/calculator.costs.ts`
 - Dividend / ISA / comprehensive tax: `src/engine/calculator.income.ts`

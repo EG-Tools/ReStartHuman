@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
-import { calculateRetireScenario } from '../src/engine/calculator'
+import { calculateAlphaScenario } from '../src/engine/calculator'
 import { buildResultRows } from '../src/components/result/resultScreen.editors'
 
 const buildRows = (formData = defaultFormData) => {
-  const result = calculateRetireScenario(formData)
+  const result = calculateAlphaScenario(formData)
 
   return buildResultRows({
     dividendBasisLabel: '세전 입력',

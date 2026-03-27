@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
-import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
+import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { formatCompactCurrency, formatCurrency, formatSignedCompactCurrency } from '../../utils/format'
 import { InlineNumericField } from '../common/Ui'
 import {
@@ -102,8 +102,8 @@ function HousingAmountEditor({
   formData,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  formData: AlphaFormData
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
   if (formData.housingType === 'own') {
     return (
@@ -170,8 +170,8 @@ function HealthInsuranceEditor({
   result,
   onPatchFormData,
 }: {
-  result: RetireCalcResult
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  result: AlphaResult
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
   return (
     <InlineAmountInput
@@ -201,8 +201,8 @@ function FixedExpenseEditor({
   formData,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  formData: AlphaFormData
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
   const fixedMaintenanceMonthly = formData.maintenanceMonthly
   const lockedBase =
@@ -228,8 +228,8 @@ function LivingExpenseEditor({
   formData,
   onPatchFormData,
 }: {
-  formData: RetireCalcFormData
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  formData: AlphaFormData
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
   const totalValue = getLivingCostSnapshot(formData)
 
@@ -269,12 +269,12 @@ interface BuildResultRowsOptions {
   dividendBasisLabel: string
   fixedExpenseAnnualBase: number
   fixedExpenseMonthlyBase: number
-  formData: RetireCalcFormData
+  formData: AlphaFormData
   householdSummary: string
   housingRowLabel: string
   housingRowNote: string
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
-  result: RetireCalcResult
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
+  result: AlphaResult
 }
 
 export function buildResultRows({

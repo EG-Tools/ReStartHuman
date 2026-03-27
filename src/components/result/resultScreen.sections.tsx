@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { RetireCalcResult } from '../../types/retireCalc'
+import type { AlphaResult } from '../../types/alpha'
 import {
   formatCompactCurrency,
   formatSignedCompactCurrency,
@@ -75,7 +75,7 @@ export const SummaryCards = memo(function SummaryCards({
   result,
   projectionYears,
 }: {
-  result: RetireCalcResult
+  result: AlphaResult
   projectionYears: number
 }) {
   const cards = [
@@ -140,7 +140,7 @@ export const CashFlowChart = memo(function CashFlowChart({
   projectionYears,
   currentAge,
 }: {
-  result: RetireCalcResult
+  result: AlphaResult
   inflationEnabled: boolean
   inflationRateAnnual: number
   projectionYears: number

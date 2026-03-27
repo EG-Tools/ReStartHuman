@@ -4,7 +4,7 @@ import type {
   ComprehensiveTaxPersonBreakdown,
   HoldingTaxBreakdownItem,
   IsaTaxBreakdown,
-} from '../types/retireCalc'
+} from '../types/alpha'
 
 export interface DividendStream {
   annualGross: number

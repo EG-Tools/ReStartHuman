@@ -1,6 +1,6 @@
 import { formatDateTime } from '../../utils/format'
 import { normalizeSaveSlotName } from '../../utils/saveSlots'
-import type { SaveSlotRecord } from '../../types/retireCalc'
+import type { SaveSlotRecord } from '../../types/alpha'
 
 export type SaveSlotMode = 'load' | 'save' | 'manage'
 export type SwitchableSaveSlotMode = 'load' | 'save'

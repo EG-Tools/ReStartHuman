@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields } from '../common/Ui'
-import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
+import type { QuestionStep, AlphaFormData } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
 import { QuestionNumberFields } from './questionScreen.shared'
 import {
@@ -19,9 +19,9 @@ import {
 
 export interface RenderQuestionContentArgs {
   question: QuestionStep
-  formData: RetireCalcFormData
-  update: <K extends keyof RetireCalcFormData>(key: K, value: RetireCalcFormData[K]) => void
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  formData: AlphaFormData
+  update: <K extends keyof AlphaFormData>(key: K, value: AlphaFormData[K]) => void
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
 
 export function renderQuestionContent({
@@ -850,7 +850,7 @@ export function renderQuestionContent({
                 onChange={(value) =>
                   update(
                     'simulationYears',
-                    Number(value) as RetireCalcFormData['simulationYears'],
+                    Number(value) as AlphaFormData['simulationYears'],
                   )
                 }
               />

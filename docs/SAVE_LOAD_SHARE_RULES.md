@@ -15,7 +15,7 @@ This file describes save-slot persistence, loading behavior, and image sharing o
 
 ## 2) Save-slot model
 Current type:
-- `SaveSlotRecord` in `src/types/retireCalc.ts`
+- `SaveSlotRecord` in `src/types/alpha.ts`
 
 Current fields:
 - `slotId`
@@ -25,7 +25,7 @@ Current fields:
 - `result`
 
 Current storage key pattern:
-- `kr-retire-calc-slot-{slotId}`
+- `restarthuman-alpha-slot-{slotId}`
 
 Current slot count:
 - 5
@@ -70,7 +70,7 @@ If storage structure changes, update the migration path and tests in the same ta
 ## 6) What to be careful about
 - The current save record includes both `formData` and `result`.
 - The app currently reloads based on `formData`, so stored `result` should not be treated as stronger than the current calculation engine.
-- If you change `RetireCalcFormData`, check whether old save data needs migration help.
+- If you change `AlphaFormData`, check whether old save data needs migration help.
 - If you change slot-name rules, update modal behavior and tests together.
 
 ## 7) Share image notes

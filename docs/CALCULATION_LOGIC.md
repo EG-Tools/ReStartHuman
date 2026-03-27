@@ -1,7 +1,7 @@
 # CALCULATION_LOGIC.md
 
 This file summarizes how the current calculation pipeline works.
-The main entry is `calculateRetireScenario()` in `src/engine/calculator.ts`.
+The main entry is `calculateAlphaScenario()` in `src/engine/calculator.ts`.
 
 ## 1) Source files by responsibility
 - Main orchestration: `src/engine/calculator.ts`
@@ -22,7 +22,7 @@ The main entry is `calculateRetireScenario()` in `src/engine/calculator.ts`.
 9. Estimate holding tax.
 10. Compute monthly usable cash and surplus/deficit.
 11. Build cash timeline for the chosen projection period.
-12. Return a `RetireCalcResult` object.
+12. Return a `AlphaResult` object.
 
 ## 3) Sanitization rules to remember
 Defined in `sanitizeInput()` inside `src/engine/calculator.ts`.
@@ -66,7 +66,7 @@ Behavior:
 
 ### Pension and other income
 Owner:
-- `calculateRetireScenario()` in `src/engine/calculator.ts`
+- `calculateAlphaScenario()` in `src/engine/calculator.ts`
 
 Behavior:
 - `pensionMonthlyAmount` is applied directly as monthly inflow.

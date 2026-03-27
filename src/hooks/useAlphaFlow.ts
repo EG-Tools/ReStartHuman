@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { appRoutes } from '../app/routes'
 import { questionFlow } from '../data/questionFlow'
 import type { AppRoute } from '../app/routes'
-import type { RetireCalcFormData } from '../types/retireCalc'
+import type { AlphaFormData } from '../types/alpha'
 
-export const useRetireCalcFlow = (formData: RetireCalcFormData) => {
+export const useAlphaFlow = (formData: AlphaFormData) => {
   const [route, setRoute] = useState<AppRoute>(appRoutes.start)
   const [questionIndex, setQuestionIndex] = useState(0)
 

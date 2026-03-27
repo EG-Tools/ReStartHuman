@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react'
-import type { QuestionStep, RetireCalcFormData } from '../../types/retireCalc'
+import type { QuestionStep, AlphaFormData } from '../../types/alpha'
 
 export interface QuestionScreenProps {
   question: QuestionStep
   questionIndex: number
   totalQuestions: number
-  formData: RetireCalcFormData
+  formData: AlphaFormData
   onBack: () => void
   onNext: () => void
   onSeekQuestion: (index: number) => void
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
   headerAction?: ReactNode
 }
 

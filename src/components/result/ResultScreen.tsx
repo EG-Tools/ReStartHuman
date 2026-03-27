@@ -1,6 +1,6 @@
 import { memo, useMemo, useRef, type ReactNode, type RefObject } from 'react'
 import { PrimaryButton } from '../common/Ui'
-import type { RetireCalcFormData, RetireCalcResult } from '../../types/retireCalc'
+import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { CashFlowChart, ResultInterpretation, ResultTable, SummaryCards } from './resultScreen.sections'
 import { useResultShare } from './useResultShare'
 import { buildResultRows } from './resultScreen.editors'
@@ -16,11 +16,11 @@ import {
 
 interface ResultCaptureContentProps {
   captureRef: RefObject<HTMLDivElement | null>
-  formData: RetireCalcFormData
-  result: RetireCalcResult
+  formData: AlphaFormData
+  result: AlphaResult
   interpretationItems: string[]
   rows: ResultRow[]
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
 
 const ResultCaptureContent = memo(function ResultCaptureContent({
@@ -61,12 +61,12 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
 })
 
 interface ResultScreenProps {
-  formData: RetireCalcFormData
-  result: RetireCalcResult
+  formData: AlphaFormData
+  result: AlphaResult
   onEditAnswers: () => void
   onStartOver: () => void
   onOpenSaveSlots: () => void
-  onPatchFormData: (patch: Partial<RetireCalcFormData>) => void
+  onPatchFormData: (patch: Partial<AlphaFormData>) => void
   headerAction?: ReactNode
 }
 
@@ -119,7 +119,7 @@ export const ResultScreen = memo(function ResultScreen({
   const highestComprehensiveTaxBreakdown = useMemo(
     () =>
       result.comprehensiveTaxBreakdown.reduce<
-        RetireCalcResult['comprehensiveTaxBreakdown'][number] | null
+        AlphaResult['comprehensiveTaxBreakdown'][number] | null
       >((highest, item) => {
         if (!highest || item.finalTaxAnnual > highest.finalTaxAnnual) {
           return item

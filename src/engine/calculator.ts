@@ -1,5 +1,5 @@
 import { policyConfig } from '../config/policyConfig'
-import type { RetireCalcFormData, RetireCalcResult } from '../types/retireCalc'
+import type { AlphaFormData, AlphaResult } from '../types/alpha'
 import { calculateCashProjection, calculateExpenses, estimateHealthInsurance, estimateHoldingTax } from './calculator.costs'
 import { calculateComprehensiveTax, calculateIsaTax, calculateTaxableStream } from './calculator.income'
 import {
@@ -11,7 +11,7 @@ import {
   sanitizeOptionalMoney,
 } from './calculator.shared'
 
-const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
+const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   ...formData,
   isaType: formData.isaType === 'workingClass' ? 'workingClass' : 'general',
   myIsaType:
@@ -77,7 +77,7 @@ const sanitizeInput = (formData: RetireCalcFormData): RetireCalcFormData => ({
   currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 50),
 })
 
-export const calculateRetireScenario = (rawFormData: RetireCalcFormData): RetireCalcResult => {
+export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult => {
   const formData = sanitizeInput(rawFormData)
   const taxableDividend = calculateTaxableStream(
     formData.taxableAccountDividendAnnual,

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { normalizeSaveSlotName } from '../../utils/saveSlots'
-import type { SaveSlotRecord } from '../../types/retireCalc'
+import type { SaveSlotRecord } from '../../types/alpha'
 import {
   createSaveSlotDraftNames,
   getResolvedSaveSlotMode,

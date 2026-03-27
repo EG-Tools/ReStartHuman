@@ -1,4 +1,4 @@
-﻿export type HouseholdType = 'single' | 'couple'
+export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
@@ -29,7 +29,7 @@ export type QuestionStepId =
   | 'livingCosts'
   | 'cashReserve'
 
-export interface RetireCalcFormData {
+export interface AlphaFormData {
   householdType: HouseholdType
   simulationYears: number
 
@@ -164,7 +164,7 @@ export interface HoldingTaxBreakdownItem {
   baseValue: number
 }
 
-export interface RetireCalcResult {
+export interface AlphaResult {
   policyBaseDate: string
   policyStatus: string
 
@@ -238,13 +238,13 @@ export interface SaveSlotRecord {
   slotId: number
   name: string
   savedAt: string
-  formData: RetireCalcFormData
-  result: RetireCalcResult
+  formData: AlphaFormData
+  result: AlphaResult
 }
 
 export interface QuestionStep {
   id: QuestionStepId
   title: string
   description: string
-  visibility: (formData: RetireCalcFormData) => boolean
+  visibility: (formData: AlphaFormData) => boolean
 }

@@ -3,8 +3,8 @@ import type {
   AccountOwnershipBreakdown,
   IsaTaxBreakdown,
   IsaType,
-  RetireCalcFormData,
-} from '../types/retireCalc'
+  AlphaFormData,
+} from '../types/alpha'
 import {
   createDividendStream,
   type ComprehensiveTaxCalculation,
@@ -21,7 +21,7 @@ const getIsaTaxFreeLimitAnnual = (isaType: 'general' | 'workingClass') =>
     : policyConfig.isa.generalTaxFreeLimit
 
 const getIsaTypeForPerson = (
-  formData: RetireCalcFormData,
+  formData: AlphaFormData,
   personKey: IsaTaxBreakdown['personKey'],
 ): 'general' | 'workingClass' => {
   if (formData.householdType !== 'couple') {
@@ -55,7 +55,7 @@ const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
 
 export const calculateTaxableStream = (
   annualInput: number,
-  inputMode: RetireCalcFormData['dividendInputMode'],
+  inputMode: AlphaFormData['dividendInputMode'],
   grossUpFromNet: boolean,
 ) => {
   if (inputMode === 'net') {
@@ -76,7 +76,7 @@ export const calculateIsaTax = ({
   formData,
   ownershipBreakdown,
 }: {
-  formData: RetireCalcFormData
+  formData: AlphaFormData
   ownershipBreakdown: AccountOwnershipBreakdown[]
 }): IsaTaxCalculation => {
   const breakdown = ownershipBreakdown.map<IsaTaxBreakdown>((allocation) => {
