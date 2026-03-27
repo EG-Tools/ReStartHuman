@@ -6,6 +6,7 @@ import { useResultShare } from './useResultShare'
 import { buildResultRows } from './resultScreen.editors'
 import { ProjectionInlineControls, ResultHelpDrawer } from './resultScreen.notices'
 import {
+  buildDeficitAdviceItems,
   buildInterpretationItems,
   getAgeAssetBenchmark,
   getAssetInterpretationMessage,
@@ -19,6 +20,7 @@ interface ResultCaptureContentProps {
   formData: AlphaFormData
   result: AlphaResult
   interpretationItems: string[]
+  adviceItems: string[]
   rows: ResultRow[]
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
@@ -28,6 +30,7 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
   formData,
   result,
   interpretationItems,
+  adviceItems,
   rows,
   onPatchFormData,
 }: ResultCaptureContentProps) {
@@ -46,6 +49,9 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
       <SummaryCards result={result} projectionYears={formData.simulationYears} />
 
       <ResultInterpretation items={interpretationItems} />
+      {adviceItems.length > 0 ? (
+        <ResultInterpretation title="적자 해결 참고" items={adviceItems} />
+      ) : null}
 
       <section className="result-panel">
         <div className="panel-header">
@@ -151,7 +157,10 @@ export const ResultScreen = memo(function ResultScreen({
       }),
     [assetInterpretation, effectiveComprehensiveRate, formData, result],
   )
-
+  const adviceItems = useMemo(
+    () => buildDeficitAdviceItems(formData, result),
+    [formData, result],
+  )
   const householdSummary = `${formData.householdType === 'couple' ? '부부 합산' : '1인 가구'}, ${
     formData.housingType === 'own'
       ? '자가'
@@ -211,6 +220,7 @@ export const ResultScreen = memo(function ResultScreen({
         formData={formData}
         result={result}
         interpretationItems={interpretationItems}
+        adviceItems={adviceItems}
         rows={rows}
         onPatchFormData={onPatchFormData}
       />

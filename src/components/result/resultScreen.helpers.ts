@@ -445,6 +445,9 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult) =>
   ]
 }
 
+export const buildDeficitAdviceItems = (formData: AlphaFormData, result: AlphaResult) =>
+  buildActionAdviceItems(formData, result)
+
 export const buildInterpretationItems = ({
   assetInterpretation,
   effectiveComprehensiveRate,
@@ -456,10 +459,7 @@ export const buildInterpretationItems = ({
   formData: AlphaFormData
   result: AlphaResult
 }) => {
-  const adviceItems = buildActionAdviceItems(formData, result)
-
   return [
-    ...adviceItems,
     result.holdingTaxAnnual >= 10_000_000
       ? `보유세는 연 ${formatCompactCurrency(result.holdingTaxAnnual)} 수준입니다. ${getHoldingTaxBreakdownSummary(result)}이 반영됐고, ${getHoldingTaxBaseSummary(result)} 기준으로 부담이 큰 구간에 들어갈 수 있습니다.`
       : result.holdingTaxAnnual > 0

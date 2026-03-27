@@ -452,14 +452,16 @@ export const ResultTable = memo(function ResultTable({
 
 export const ResultInterpretation = memo(function ResultInterpretation({
   items,
+  title = '결과표 해석',
 }: {
   items: string[]
+  title?: string
 }) {
   return (
     <section className="result-panel interpretation-panel">
       <div className="panel-header">
         <div>
-          <h2>결과표 해석</h2>
+          <h2>{title}</h2>
         </div>
       </div>
       <ul className="interpretation-list">
