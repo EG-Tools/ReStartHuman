@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
 import type { QuestionStep, AlphaFormData, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
@@ -24,6 +24,7 @@ import {
   getSelectedIncomeCategories,
   incomeCategoryOptionRows,
 } from '../../utils/incomeStreams'
+import { rebalanceSplitAmounts, splitAmountEvenly } from '../../utils/splitAllocations'
 export interface RenderQuestionContentArgs {
   question: QuestionStep
   formData: AlphaFormData
@@ -105,6 +106,42 @@ export function renderQuestionContent({
     patch: Partial<AlphaFormData> = {},
   ) => {
     onPatchFormData(buildStructuredIncomePatch(categories, patch))
+  }
+
+  const patchDividendSplitAmounts = (
+    nextTotalAmount: number,
+    previousTotalAmount: number,
+    currentMineAmount: number,
+  ) => {
+    const nextSplitAmounts = rebalanceSplitAmounts({
+      nextTotalAmount,
+      previousTotalAmount,
+      currentMineAmount,
+    })
+
+    onPatchFormData({
+      taxableAccountDividendAnnual: Math.max(Math.round(nextTotalAmount), 0),
+      myAnnualDividendAttributed: nextSplitAmounts.mineAmount,
+      spouseAnnualDividendAttributed: nextSplitAmounts.spouseAmount,
+    })
+  }
+
+  const patchIsaSplitAmounts = (
+    nextTotalAmount: number,
+    previousTotalAmount: number,
+    currentMineAmount: number,
+  ) => {
+    const nextSplitAmounts = rebalanceSplitAmounts({
+      nextTotalAmount,
+      previousTotalAmount,
+      currentMineAmount,
+    })
+
+    onPatchFormData({
+      isaDividendAnnual: Math.max(Math.round(nextTotalAmount), 0),
+      myAnnualIsaDividendAttributed: nextSplitAmounts.mineAmount,
+      spouseAnnualIsaDividendAttributed: nextSplitAmounts.spouseAmount,
+    })
   }
 
   const handleToggleIncomeCategory = (category: IncomeCategory) => {
@@ -902,13 +939,41 @@ export function renderQuestionContent({
                   key: 'taxableAccountDividendAnnual',
                   label: '일반 주식계좌 연간 배당금',
                   value: formData.taxableAccountDividendAnnual,
-                  onChange: (value) => update('taxableAccountDividendAnnual', value),
+                  onChange: (value) => {
+                    if (
+                      formData.householdType === 'couple' &&
+                      formData.dividendOwnershipType === 'split'
+                    ) {
+                      patchDividendSplitAmounts(
+                        value,
+                        formData.taxableAccountDividendAnnual,
+                        formData.myAnnualDividendAttributed,
+                      )
+                      return
+                    }
+
+                    update('taxableAccountDividendAnnual', value)
+                  },
                 },
                 {
                   key: 'isaDividendAnnual',
                   label: 'ISA 연간배당금',
                   value: formData.isaDividendAnnual,
-                  onChange: (value) => update('isaDividendAnnual', value),
+                  onChange: (value) => {
+                    if (
+                      formData.householdType === 'couple' &&
+                      formData.isaOwnershipType === 'split'
+                    ) {
+                      patchIsaSplitAmounts(
+                        value,
+                        formData.isaDividendAnnual,
+                        formData.myAnnualIsaDividendAttributed,
+                      )
+                      return
+                    }
+
+                    update('isaDividendAnnual', value)
+                  },
                 },
                                 {
                   key: 'pensionMonthlyAmount',
@@ -940,11 +1005,17 @@ export function renderQuestionContent({
                   onChange={(value) =>
                     onPatchFormData(
                       value === 'split'
-                        ? {
-                            dividendOwnershipType: value,
-                            myAnnualDividendAttributed: Math.round(formData.taxableAccountDividendAnnual / 2),
-                            spouseAnnualDividendAttributed: formData.taxableAccountDividendAnnual - Math.round(formData.taxableAccountDividendAnnual / 2),
-                          }
+                        ? (() => {
+                            const splitAmounts = splitAmountEvenly(
+                              formData.taxableAccountDividendAnnual,
+                            )
+
+                            return {
+                              dividendOwnershipType: value,
+                              myAnnualDividendAttributed: splitAmounts.mineAmount,
+                              spouseAnnualDividendAttributed: splitAmounts.spouseAmount,
+                            }
+                          })()
                         : { dividendOwnershipType: value },
                     )
                   }
@@ -1007,12 +1078,18 @@ export function renderQuestionContent({
                       onChange={(value) =>
                         onPatchFormData(
                           value === 'split'
-                            ? {
-                                isaOwnershipType: value,
-                                myAnnualIsaDividendAttributed: Math.round(formData.isaDividendAnnual / 2),
-                                spouseAnnualIsaDividendAttributed: formData.isaDividendAnnual - Math.round(formData.isaDividendAnnual / 2),
-                              }
-                            : { isaOwnershipType: value },
+                              ? (() => {
+                                  const splitAmounts = splitAmountEvenly(
+                                    formData.isaDividendAnnual,
+                                  )
+
+                                  return {
+                                    isaOwnershipType: value,
+                                    myAnnualIsaDividendAttributed: splitAmounts.mineAmount,
+                                    spouseAnnualIsaDividendAttributed: splitAmounts.spouseAmount,
+                                  }
+                                })()
+                              : { isaOwnershipType: value },
                         )
                       }
                     />
@@ -1404,3 +1481,6 @@ export function renderQuestionContent({
 
   return renderContent()
 }
+
+
+
