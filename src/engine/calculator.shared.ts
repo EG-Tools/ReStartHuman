@@ -36,6 +36,7 @@ export interface CashProjection {
   cumulativeOtherIncome: number
   cumulativeTotalIncome: number
   cumulativeUsableCash: number
+  cumulativeRentalIncomeTax: number
 }
 
 export interface HoldingTaxEstimate {

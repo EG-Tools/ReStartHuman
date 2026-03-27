@@ -1,5 +1,6 @@
 import { policyConfig } from '../config/policyConfig'
-import type { HoldingTaxBreakdownItem, AlphaFormData } from '../types/alpha'
+import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome } from '../types/alpha'
+import { calculateRentalIncomeTax } from './calculator.income'
 import {
   type CashProjection,
   type HoldingTaxEstimate,
@@ -9,10 +10,26 @@ import {
   toMonthly,
 } from './calculator.shared'
 
+const hasAdditionalHomeValue = (home: AdditionalHome) => home.marketValue > 0 || home.officialValue > 0
+
+export const getActiveAdditionalHomes = (formData: AlphaFormData) =>
+  formData.additionalHomes.filter(hasAdditionalHomeValue)
+
+export const getOwnedHomeCount = (formData: AlphaFormData) => {
+  const currentOwnedHomeCount =
+    formData.housingType === 'own' && formData.homeOfficialValue > 0 ? 1 : 0
+
+  return currentOwnedHomeCount + getActiveAdditionalHomes(formData).length
+}
+
+export const getAdditionalHomeOfficialValueTotal = (formData: AlphaFormData) =>
+  roundCurrency(
+    getActiveAdditionalHomes(formData).reduce((sum, home) => sum + Math.max(home.officialValue, 0), 0),
+  )
+
 export const calculateExpenses = (formData: AlphaFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
   const loanInterestMonthly = formData.loanInterestMonthly
-
   const fixedMaintenanceMonthly = formData.maintenanceMonthly
 
   const fixedExpenseMonthly =
@@ -70,8 +87,10 @@ export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: 
 }
 
 const getAdditionalPropertyBase = (formData: AlphaFormData) => {
-  const landTotal = formData.landValue
-  const otherPropertyTotal = formData.otherPropertyOfficialValue
+  const landTotal = formData.hasLandOrOtherProperty ? formData.landValue : 0
+  const otherPropertyTotal = formData.hasLandOrOtherProperty
+    ? formData.otherPropertyOfficialValue
+    : 0
 
   if (formData.householdType !== 'couple') {
     return landTotal + otherPropertyTotal
@@ -109,7 +128,7 @@ const getRegionalPropertyBase = (formData: AlphaFormData) => {
         ? formData.jeonseDeposit * policyConfig.healthInsurance.leaseValueRatio
         : formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
 
-  return housingBase + getAdditionalPropertyBase(formData)
+  return housingBase + getAdditionalHomeOfficialValueTotal(formData) + getAdditionalPropertyBase(formData)
 }
 
 export const estimateHealthInsurance = (
@@ -176,14 +195,20 @@ export const estimateHealthInsurance = (
   }
 }
 
-const getHoldingTaxFairMarketRatio = (formData: AlphaFormData) => {
+const getHoldingTaxFairMarketRatio = ({
+  homeOfficialValue,
+  ownedHomeCount,
+}: {
+  homeOfficialValue: number
+  ownedHomeCount: number
+}) => {
   if (
-    formData.isSingleHomeOwner &&
-    formData.homeOfficialValue <= policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
+    ownedHomeCount === 1 &&
+    homeOfficialValue <= policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
   ) {
     return (
       policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers.find(
-        (tier) => formData.homeOfficialValue <= tier.upperBound,
+        (tier) => homeOfficialValue <= tier.upperBound,
       ) ??
       policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers[
         policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers.length - 1
@@ -264,14 +289,18 @@ const calculateHoldingTaxFromOwnerValues = ({
 
 export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate => {
   const breakdown: HoldingTaxBreakdownItem[] = []
+  const ownedHomeCount = getOwnedHomeCount(formData)
 
   if (formData.housingType === 'own' && formData.homeOfficialValue > 0) {
     const ownerCount = formData.isJointOwnership
       ? policyConfig.holdingTax.jointOwnershipShareCount
       : 1
-    const fairMarketRatio = getHoldingTaxFairMarketRatio(formData)
+    const fairMarketRatio = getHoldingTaxFairMarketRatio({
+      homeOfficialValue: formData.homeOfficialValue,
+      ownedHomeCount,
+    })
     const useSingleHomeSpecialRate =
-      formData.isSingleHomeOwner &&
+      ownedHomeCount === 1 &&
       formData.homeOfficialValue <= policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
     const ownerValues = Array.from({ length: ownerCount }, () => formData.homeOfficialValue / ownerCount)
     const homeHoldingTax = calculateHoldingTaxFromOwnerValues({
@@ -290,7 +319,28 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     )
   }
 
-  if (formData.landValue > 0) {
+  getActiveAdditionalHomes(formData).forEach((home, index) => {
+    if (home.officialValue <= 0) {
+      return
+    }
+
+    const additionalHomeHoldingTax = calculateHoldingTaxFromOwnerValues({
+      ownerValues: [home.officialValue],
+      fairMarketRatio: policyConfig.holdingTax.defaultFairMarketRatio,
+      useSingleHomeSpecialRate: false,
+    })
+
+    breakdown.push(
+      createHoldingTaxItem({
+        key: 'additionalHome',
+        label: `추가주택 ${index + 1}`,
+        annual: additionalHomeHoldingTax.annual,
+        baseValue: home.officialValue,
+      }),
+    )
+  })
+
+  if (formData.hasLandOrOtherProperty && formData.landValue > 0) {
     const landAssessedValue = roundCurrency(
       formData.landValue * policyConfig.holdingTax.landAssessedValueRatioApprox,
     )
@@ -315,7 +365,7 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
     )
   }
 
-  if (formData.otherPropertyOfficialValue > 0) {
+  if (formData.hasLandOrOtherProperty && formData.otherPropertyOfficialValue > 0) {
     const otherPropertyHoldingTax = calculateHoldingTaxFromOwnerValues({
       ownerValues: getOwnerAllocatedValues({
         householdType: formData.householdType,
@@ -360,6 +410,7 @@ export const calculateCashProjection = (
   let cumulativeOtherIncome = 0
   let cumulativeTotalIncome = 0
   let cumulativeUsableCash = 0
+  let cumulativeRentalIncomeTax = 0
   let balance = formData.startingCashReserve
   const timeline = [
     {
@@ -383,13 +434,18 @@ export const calculateCashProjection = (
         projectedOtherIncomeMonthly,
         projectedPensionMonthly,
       )
+    const projectedRentalIncomeTaxAnnual =
+      formData.otherIncomeType === 'monthlyRent'
+        ? calculateRentalIncomeTax(projectedOtherIncomeMonthly * 12).annualTax
+        : 0
     const projectedTotalIncomeMonthly =
       totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
     const projectedMonthlyUsableCash =
       projectedTotalIncomeMonthly -
       projectedHealthInsuranceMonthly -
       holdingTaxMonthly -
-      comprehensiveTaxImpactAnnual / 12
+      comprehensiveTaxImpactAnnual / 12 -
+      projectedRentalIncomeTaxAnnual / 12
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
@@ -406,6 +462,7 @@ export const calculateCashProjection = (
     cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
     cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
     cumulativeUsableCash += roundCurrency(projectedMonthlyUsableCash * 12)
+    cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -422,5 +479,6 @@ export const calculateCashProjection = (
     cumulativeOtherIncome: roundCurrency(cumulativeOtherIncome),
     cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),
     cumulativeUsableCash: roundCurrency(cumulativeUsableCash),
+    cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
   }
 }

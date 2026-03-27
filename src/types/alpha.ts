@@ -13,6 +13,12 @@ export type HealthInsuranceType =
 
 export type OwnershipType = 'mineOnly' | 'spouseOnly' | 'split'
 
+export interface AdditionalHome {
+  housingType: HousingType
+  marketValue: number
+  officialValue: number
+}
+
 export type QuestionStepId =
   | 'household'
   | 'housingDetails'
@@ -38,12 +44,14 @@ export interface AlphaFormData {
   isJointOwnership: boolean
   isSingleHomeOwner: boolean
   hasLoan: boolean
+  additionalHomes: AdditionalHome[]
 
   jeonseDeposit: number
 
   monthlyRentDeposit: number
   monthlyRentAmount: number
 
+  hasLandOrOtherProperty: boolean
   landValue: number
   landOwnershipType: OwnershipType
   myLandShare: number
@@ -75,7 +83,7 @@ export interface AlphaFormData {
   myAnnualIsaDividendAttributed: number
   spouseAnnualIsaDividendAttributed: number
 
-  otherIncomeType: 'earned' | 'business' | 'pension' | 'other' | 'none'
+  otherIncomeType: 'earned' | 'business' | 'pension' | 'monthlyRent' | 'other' | 'none'
   otherIncomeMonthly: number
   otherIncomeStartAge: number
 
@@ -146,7 +154,7 @@ export interface CashBalancePoint {
 }
 
 export interface HoldingTaxBreakdownItem {
-  key: 'home' | 'land' | 'otherProperty'
+  key: 'home' | 'additionalHome' | 'land' | 'otherProperty'
   label: string
   annual: number
   monthly: number
@@ -192,6 +200,8 @@ export interface AlphaResult {
   comprehensiveTaxThresholdAnnual: number
   comprehensiveTaxBaseAnnual: number
   comprehensiveTaxBreakdown: ComprehensiveTaxPersonBreakdown[]
+  rentalIncomeTaxAnnual: number
+  rentalIncomeTaxMonthly: number
 
   healthInsuranceMonthly: number
   healthInsuranceSource: 'estimated' | 'manual'
@@ -203,6 +213,7 @@ export interface AlphaResult {
   otherIncomeMonthlyApplied: number
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
+  projectionRentalIncomeTaxTotal: number
 
   carMonthlyConverted: number
   housingMonthlyCost: number

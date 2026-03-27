@@ -13,12 +13,14 @@ export const defaultFormData: AlphaFormData = {
   isJointOwnership: false,
   isSingleHomeOwner: true,
   hasLoan: false,
+  additionalHomes: [],
 
   jeonseDeposit: 0,
 
   monthlyRentDeposit: 0,
   monthlyRentAmount: 0,
 
+  hasLandOrOtherProperty: false,
   landValue: 0,
   landOwnershipType: 'mineOnly',
   myLandShare: 100,

@@ -1,7 +1,7 @@
 export const policyConfig = {
   policyBaseDate: '2026-03-20',
   policyStatus:
-    '정책 기준일은 2026년 3월 20일입니다. 일반계좌 배당 원천징수, ISA 특례, 금융소득 종합과세는 정부 공개 기준 구조를 반영했습니다. 보유세는 지방세법상 재산세 구조를 참고해 주택·토지·상가 및 기타부동산까지 단순화 추정했고, 건강보험료는 NHIS 공개 구조를 참고한 단순화 추정치이므로 실제 고지액과 다를 수 있습니다.',
+    '정책 기준일은 2026년 3월 20일입니다. 일반계좌 배당 원천징수, ISA 절세, 금융소득 종합과세 공개 기준을 반영했고, 보유세와 건강보험료는 공개 구조를 참고한 단순 추정치입니다.',
   dividendTaxRate: 0.154,
   dividendWithholding: {
     referenceDate: '2026-03-20',
@@ -18,7 +18,7 @@ export const policyConfig = {
     excessLocalIncomeTaxRate: 0.009,
     excessTaxRate: 0.099,
     note:
-      '일반형 500만원, 서민형 1,000만원 비과세 후 초과분은 9%(지방소득세 포함 9.9%) 분리과세 구조를 반영했습니다.',
+      '일반형 500만원, 서민형 1,000만원 비과세로 보고 초과분은 9.9% 분리과세 구조를 반영했습니다.',
   },
   healthInsurance: {
     referenceDate: '2026-03-20',
@@ -30,7 +30,7 @@ export const policyConfig = {
     leaseValueRatio: 0.3,
     regionalPropertyValuePerPointApprox: 250_000,
     approximationNotice:
-      '직장가입자 7.19% 보험료율, 직장 보수 외 소득 2,000만원 초과 기준, 지역가입자 재산 5,000만원 공제 구조를 참고한 단순화 모델입니다.',
+      '직장가입자 7.19% 보험료율, 직장 보수 외 소득 2,000만원 초과 기준, 지역가입자 재산 5,000만원 공제 구조를 참고한 단순 추정 모델입니다.',
   },
   holdingTax: {
     referenceDate: '2026-03-20',
@@ -55,7 +55,7 @@ export const policyConfig = {
     landAssessedValueRatioApprox: 0.7,
     singleHomeSpecialOfficialValueThreshold: 900_000_000,
     note:
-      '재산세는 지방세법상 본세, 도시지역분, 지방교육세 구조를 참고한 단순화 추정입니다. 자가 주택은 공시가격을 그대로 사용하고, 토지는 입력 금액의 70%를 과세표준 산정을 위한 공시가격 유사값으로 근사했습니다. 상가 및 기타부동산은 입력한 공시가격을 사용합니다. 종합부동산세와 세부담상한은 아직 제외했습니다.',
+      '주택, 토지, 기타 부동산은 지방세법상 구조를 참고한 단순 추정입니다. 주택은 공시가격, 토지는 입력 금액의 70%를 기준가로 보고 계산합니다.',
     standardRates: [
       {
         upperBound: 60_000_000,
@@ -108,7 +108,7 @@ export const policyConfig = {
     financialIncomeThresholdAnnual: 20_000_000,
     localIncomeTaxMultiplier: 0.1,
     note:
-      '금융소득은 인별로 연 2,000만원 초과 여부를 판정하고, 소득세법 제62조 비교세액 구조를 단순화해 계산합니다.',
+      '금융소득은 인별로 연 2,000만원 초과 여부를 판정하고, 비교세액 구조를 단순화해 계산합니다.',
     brackets: [
       {
         upperBound: 14_000_000,
@@ -152,8 +152,16 @@ export const policyConfig = {
       },
     ],
   },
+  rentalIncomeTax: {
+    referenceDate: '2026-03-20',
+    estimatedExpenseRate: 0.5,
+    basicDeductionAnnual: 4_000_000,
+    localIncomeTaxMultiplier: 0.1,
+    note:
+      '월세소득은 필요경비 50%와 기본공제 400만원을 적용한 단순 추정이며, 다주택 보유 여부에 따른 실제 신고 방식과는 차이가 있을 수 있습니다.',
+  },
   privacyStorageNotice:
-    '입력한 모든 정보와 계산 결과는 사용자의 휴대폰(기기) 내에만 저장되며, 당사를 포함한 외부 서버로 전송되거나 별도로 저장되지 않습니다.',
+    '입력한 모든 정보와 계산 결과는 사용자의 현재 기기에만 저장되며 서버로 전송되지 않습니다.',
   inflation: {
     defaultAnnualRate: 0.02,
   },

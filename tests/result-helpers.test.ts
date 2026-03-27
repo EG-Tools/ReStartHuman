@@ -9,7 +9,7 @@ import {
   getLivingCostSnapshot,
 } from '../src/components/result/resultScreen.helpers'
 
-test('생활비 스냅샷은 자녀가 있을 때 학원비를 포함한다', () => {
+test('living cost snapshot includes academy cost when children exist', () => {
   const total = getLivingCostSnapshot({
     ...defaultFormData,
     hasChildren: true,
@@ -23,7 +23,7 @@ test('생활비 스냅샷은 자녀가 있을 때 학원비를 포함한다', ()
   assert.equal(total, 1_000_000)
 })
 
-test('결과표는 학원비가 있을 때만 학원비 행을 보여준다', () => {
+test('result rows show academy cost only when children exist', () => {
   const formData = {
     ...defaultFormData,
     hasChildren: true,
@@ -46,7 +46,7 @@ test('결과표는 학원비가 있을 때만 학원비 행을 보여준다', ()
   assert.ok(rows.some((row) => row.item === '학원비'))
 })
 
-test('결과표는 자녀가 없으면 학원비 행을 숨긴다', () => {
+test('result rows hide academy cost when children do not exist', () => {
   const formData = {
     ...defaultFormData,
     hasChildren: false,
@@ -69,7 +69,7 @@ test('결과표는 자녀가 없으면 학원비 행을 숨긴다', () => {
   assert.ok(!rows.some((row) => row.item === '학원비'))
 })
 
-test('결과 해석은 적자일 때 행동 조언을 추가한다', () => {
+test('deficit advice is added when the scenario is deficit-like', () => {
   const formData = {
     ...defaultFormData,
     currentAge: 50,
@@ -126,7 +126,8 @@ test('jeonse advice moves released housing cash into starting reserve', () => {
   assert.equal(jeonseAdvice.patch?.jeonseDeposit, 600_000_000)
   assert.equal(jeonseAdvice.patch?.startingCashReserve, 500_000_000)
 })
-test('결과 해석은 흑자일 때 기본 해석만 유지한다', () => {
+
+test('non-deficit scenarios keep only the base interpretation items', () => {
   const formData = {
     ...defaultFormData,
     currentAge: 50,
@@ -151,4 +152,40 @@ test('결과 해석은 흑자일 때 기본 해석만 유지한다', () => {
 
   assert.equal(adviceItems.length, 0)
   assert.equal(interpretationItems.length, 5)
+})
+
+test('result rows include additional homes and rental income tax rows', () => {
+  const formData = {
+    ...defaultFormData,
+    housingType: 'own' as const,
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    additionalHomes: [
+      {
+        housingType: 'monthlyRent' as const,
+        marketValue: 400_000_000,
+        officialValue: 300_000_000,
+      },
+    ],
+    otherIncomeType: 'monthlyRent' as const,
+    otherIncomeMonthly: 1_500_000,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 0,
+    healthInsuranceType: 'regional' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+  const rows = buildResultRows({
+    dividendBasisLabel: '세전 입력',
+    fixedExpenseAnnualBase: result.fixedExpenseMonthly * 12,
+    fixedExpenseMonthlyBase: result.fixedExpenseMonthly,
+    formData,
+    householdSummary: '본인',
+    housingRowLabel: '자가',
+    housingRowNote: '테스트',
+    onPatchFormData: () => {},
+    result,
+  })
+
+  assert.ok(rows.some((row) => row.item === '추가주택 1'))
+  assert.ok(rows.some((row) => row.item === '임대소득세'))
 })

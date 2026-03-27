@@ -3,7 +3,7 @@ import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
 
-test('상세 생활비는 자녀가 있을 때 학원비를 포함한다', () => {
+test('detailed living costs include academy cost when children exist', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     hasChildren: true,
@@ -16,7 +16,7 @@ test('상세 생활비는 자녀가 있을 때 학원비를 포함한다', () =>
   assert.equal(result.livingExpenseMonthly, 1_750_000)
 })
 
-test('상세 생활비는 자녀가 없으면 남아 있던 학원비를 무시한다', () => {
+test('detailed living costs ignore academy cost when children do not exist', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     hasChildren: false,
@@ -29,7 +29,7 @@ test('상세 생활비는 자녀가 없으면 남아 있던 학원비를 무시�
   assert.equal(result.livingExpenseMonthly, 1_250_000)
 })
 
-test('현금흐름 기간은 1년 입력을 그대로 유지한다', () => {
+test('projection years supports a one-year timeline', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     simulationYears: 1,
@@ -38,7 +38,7 @@ test('현금흐름 기간은 1년 입력을 그대로 유지한다', () => {
   assert.equal(result.cashBalanceTimeline.at(-1)?.year, 1)
 })
 
-test('현금흐름 기간은 80년 입력을 그대로 유지한다', () => {
+test('projection years clamps to long timelines', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     simulationYears: 80,
@@ -47,7 +47,7 @@ test('현금흐름 기간은 80년 입력을 그대로 유지한다', () => {
   assert.equal(result.cashBalanceTimeline.at(-1)?.year, 80)
 })
 
-test('국민연금은 수령 시작 나이 전에는 현재 월 유입에 반영하지 않고 이후 기간만 누적 반영한다', () => {
+test('national pension starts only from the configured age', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     currentAge: 50,
@@ -72,7 +72,7 @@ test('국민연금은 수령 시작 나이 전에는 현재 월 유입에 반영
   assert.equal(result.cashBalanceTimeline[30]?.balance, 180_000_000)
 })
 
-test('기타연금도 수령 시작 나이 전에는 현재 월 유입에서 제외하고 시작 후부터 누적 반영한다', () => {
+test('other pension income starts only from the configured age', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     currentAge: 63,
@@ -95,4 +95,94 @@ test('기타연금도 수령 시작 나이 전에는 현재 월 유입에서 제
   assert.equal(result.projectionOtherIncomeTotal, 18_000_000)
   assert.equal(result.cashBalanceTimeline[2]?.balance, 0)
   assert.equal(result.cashBalanceTimeline[5]?.balance, 18_000_000)
+})
+
+test('additional homes increase holding tax and health insurance property base', () => {
+  const baseScenario = calculateAlphaScenario({
+    ...defaultFormData,
+    housingType: 'own',
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    healthInsuranceType: 'regional',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+  const multiHomeScenario = calculateAlphaScenario({
+    ...defaultFormData,
+    housingType: 'own',
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    additionalHomes: [
+      {
+        housingType: 'monthlyRent',
+        marketValue: 400_000_000,
+        officialValue: 300_000_000,
+      },
+    ],
+    healthInsuranceType: 'regional',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+
+  assert.ok(multiHomeScenario.holdingTaxAnnual > baseScenario.holdingTaxAnnual)
+  assert.ok(multiHomeScenario.healthInsuranceMonthly > baseScenario.healthInsuranceMonthly)
+})
+
+test('monthly rent income applies rental income tax to the final result', () => {
+  const businessIncomeScenario = calculateAlphaScenario({
+    ...defaultFormData,
+    housingType: 'own',
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    additionalHomes: [
+      {
+        housingType: 'monthlyRent',
+        marketValue: 500_000_000,
+        officialValue: 350_000_000,
+      },
+    ],
+    healthInsuranceType: 'regional',
+    otherIncomeType: 'business',
+    otherIncomeMonthly: 1_500_000,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+  const rentalIncomeScenario = calculateAlphaScenario({
+    ...defaultFormData,
+    housingType: 'own',
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    additionalHomes: [
+      {
+        housingType: 'monthlyRent',
+        marketValue: 500_000_000,
+        officialValue: 350_000_000,
+      },
+    ],
+    healthInsuranceType: 'regional',
+    otherIncomeType: 'monthlyRent',
+    otherIncomeMonthly: 1_500_000,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+
+  assert.equal(businessIncomeScenario.rentalIncomeTaxAnnual, 0)
+  assert.ok(rentalIncomeScenario.rentalIncomeTaxAnnual > 0)
+  assert.ok(rentalIncomeScenario.monthlyUsableCash < businessIncomeScenario.monthlyUsableCash)
 })

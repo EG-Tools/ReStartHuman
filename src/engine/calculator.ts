@@ -1,7 +1,19 @@
 import { policyConfig } from '../config/policyConfig'
-import type { AlphaFormData, AlphaResult } from '../types/alpha'
-import { calculateCashProjection, calculateExpenses, estimateHealthInsurance, estimateHoldingTax, getAgeQualifiedOtherIncomeMonthly, getAgeQualifiedPensionMonthly } from './calculator.costs'
-import { calculateComprehensiveTax, calculateIsaTax, calculateTaxableStream } from './calculator.income'
+import type { AlphaFormData, AlphaResult, AdditionalHome } from '../types/alpha'
+import {
+  calculateCashProjection,
+  calculateExpenses,
+  estimateHealthInsurance,
+  estimateHoldingTax,
+  getAgeQualifiedOtherIncomeMonthly,
+  getAgeQualifiedPensionMonthly,
+} from './calculator.costs'
+import {
+  calculateComprehensiveTax,
+  calculateIsaTax,
+  calculateRentalIncomeTax,
+  calculateTaxableStream,
+} from './calculator.income'
 import {
   clampRate,
   createDividendStream,
@@ -10,6 +22,13 @@ import {
   sanitizeMoney,
   sanitizeOptionalMoney,
 } from './calculator.shared'
+
+const sanitizeAdditionalHome = (home: AdditionalHome): AdditionalHome => ({
+  housingType:
+    home.housingType === 'jeonse' || home.housingType === 'monthlyRent' ? home.housingType : 'own',
+  marketValue: sanitizeMoney(home.marketValue),
+  officialValue: sanitizeMoney(home.officialValue),
+})
 
 const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   ...formData,
@@ -29,13 +48,17 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
   simulationYears: Math.min(80, Math.max(1, sanitizeMoney(formData.simulationYears) || 30)),
   homeMarketValue: sanitizeMoney(formData.homeMarketValue),
   homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
+  additionalHomes: formData.additionalHomes.slice(0, 4).map(sanitizeAdditionalHome),
   jeonseDeposit: sanitizeMoney(formData.jeonseDeposit),
   monthlyRentDeposit: sanitizeMoney(formData.monthlyRentDeposit),
   monthlyRentAmount: sanitizeMoney(formData.monthlyRentAmount),
-  landValue: sanitizeMoney(formData.landValue),
+  hasLandOrOtherProperty: formData.hasLandOrOtherProperty,
+  landValue: formData.hasLandOrOtherProperty ? sanitizeMoney(formData.landValue) : 0,
   myLandShare: sanitizeMoney(formData.myLandShare),
   spouseLandShare: sanitizeMoney(formData.spouseLandShare),
-  otherPropertyOfficialValue: sanitizeMoney(formData.otherPropertyOfficialValue),
+  otherPropertyOfficialValue: formData.hasLandOrOtherProperty
+    ? sanitizeMoney(formData.otherPropertyOfficialValue)
+    : 0,
   myOtherPropertyShare: sanitizeMoney(formData.myOtherPropertyShare),
   spouseOtherPropertyShare: sanitizeMoney(formData.spouseOtherPropertyShare),
   taxableAccountAssets: sanitizeMoney(formData.taxableAccountAssets),
@@ -122,10 +145,18 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   const healthInsuranceMonthly =
     formData.healthInsuranceOverrideMonthly ?? estimatedHealthInsurance
   const holdingTax = estimateHoldingTax(formData)
+  const rentalIncomeTax =
+    formData.otherIncomeType === 'monthlyRent'
+      ? calculateRentalIncomeTax(otherIncomeMonthlyApplied * 12)
+      : calculateRentalIncomeTax(0)
   const totalIncomeMonthly =
     totalDividend.monthlyNet + otherIncomeMonthlyApplied + pensionMonthlyApplied
   const monthlyUsableCash = roundCurrency(
-    totalIncomeMonthly - healthInsuranceMonthly - holdingTax.monthly - comprehensiveTax.impactAnnual / 12,
+    totalIncomeMonthly -
+      healthInsuranceMonthly -
+      holdingTax.monthly -
+      comprehensiveTax.impactAnnual / 12 -
+      rentalIncomeTax.monthlyTax,
   )
   const monthlySurplusOrDeficit = roundCurrency(monthlyUsableCash - expenses.totalExpenseMonthly)
   const yearlySurplusOrDeficit = roundCurrency(monthlySurplusOrDeficit * 12)
@@ -175,6 +206,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     comprehensiveTaxThresholdAnnual: comprehensiveTax.thresholdAnnual,
     comprehensiveTaxBaseAnnual: comprehensiveTax.baseAnnual,
     comprehensiveTaxBreakdown: comprehensiveTax.breakdown,
+    rentalIncomeTaxAnnual: rentalIncomeTax.annualTax,
+    rentalIncomeTaxMonthly: rentalIncomeTax.monthlyTax,
     healthInsuranceMonthly,
     healthInsuranceSource: formData.healthInsuranceOverrideMonthly === null ? 'estimated' : 'manual',
     holdingTaxAnnual: holdingTax.annual,
@@ -184,6 +217,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     otherIncomeMonthlyApplied,
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
+    projectionRentalIncomeTaxTotal: cashProjection.cumulativeRentalIncomeTax,
     carMonthlyConverted: expenses.carMonthlyConverted,
     housingMonthlyCost: expenses.housingMonthlyCost,
     fixedExpenseMonthly: expenses.fixedExpenseMonthly,

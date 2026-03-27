@@ -10,6 +10,7 @@ import {
   type ComprehensiveTaxCalculation,
   type IsaTaxCalculation,
   roundCurrency,
+  toMonthly,
 } from './calculator.shared'
 
 const normalizeIsaType = (isaType: IsaType | undefined): 'general' | 'workingClass' =>
@@ -35,7 +36,7 @@ const getIsaTypeForPerson = (
   )
 }
 
-const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
+export const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
   const normalizedTaxBase = Math.max(annualTaxBase, 0)
 
   if (normalizedTaxBase <= 0) {
@@ -51,6 +52,37 @@ const calculateProgressiveIncomeTax = (annualTaxBase: number) => {
     ]
 
   return roundCurrency(normalizedTaxBase * matchedBracket.rate - matchedBracket.deduction)
+}
+
+export const calculateRentalIncomeTax = (annualRentalIncome: number) => {
+  const normalizedAnnualIncome = Math.max(annualRentalIncome, 0)
+
+  if (normalizedAnnualIncome <= 0) {
+    return {
+      annualIncome: 0,
+      taxableBaseAnnual: 0,
+      annualTax: 0,
+      monthlyTax: 0,
+    }
+  }
+
+  const taxableBaseAnnual = Math.max(
+    normalizedAnnualIncome * (1 - policyConfig.rentalIncomeTax.estimatedExpenseRate) -
+      policyConfig.rentalIncomeTax.basicDeductionAnnual,
+    0,
+  )
+  const incomeTaxAnnual = calculateProgressiveIncomeTax(taxableBaseAnnual)
+  const localIncomeTaxAnnual = roundCurrency(
+    incomeTaxAnnual * policyConfig.rentalIncomeTax.localIncomeTaxMultiplier,
+  )
+  const annualTax = roundCurrency(incomeTaxAnnual + localIncomeTaxAnnual)
+
+  return {
+    annualIncome: normalizedAnnualIncome,
+    taxableBaseAnnual: roundCurrency(taxableBaseAnnual),
+    annualTax,
+    monthlyTax: toMonthly(annualTax),
+  }
 }
 
 export const calculateTaxableStream = (

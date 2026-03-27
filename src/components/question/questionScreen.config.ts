@@ -27,16 +27,21 @@ export interface QuestionNumberFieldConfig {
   max?: number
 }
 
-
 export const householdOptions = [
   { value: 'single', label: '본인' },
   { value: 'couple', label: '공동명의' },
 ] as const
 
 export const housingOptions = [
-  { value: 'own', label: '자가', description: '재산세 추정을 포함합니다.' },
+  { value: 'own', label: '자가', description: '자산과 보유세 추정에 포함합니다.' },
   { value: 'jeonse', label: '전세', description: '전세 보증금 기준으로 입력합니다.' },
   { value: 'monthlyRent', label: '월세', description: '보증금과 월세를 함께 입력합니다.' },
+] as const
+
+export const additionalHomeHousingOptions = [
+  { value: 'own', label: '자가', description: '추가 주택 보유세 계산에 반영합니다.' },
+  { value: 'jeonse', label: '전세', description: '전세를 준 주택으로 보고 보유세와 건보료에 반영합니다.' },
+  { value: 'monthlyRent', label: '월세', description: '월세를 받는 주택으로 보고 보유세와 건보료에 반영합니다.' },
 ] as const
 
 export const dividendModeOptions = [
@@ -74,20 +79,21 @@ export const propertyOwnershipOptions = [
 
 export const otherIncomeTypeOptions = [
   { value: 'none', label: '없음', description: '추가 월소득이 없습니다.' },
-  { value: 'earned', label: '근로소득', description: '월 급여성 소득입니다.' },
-  { value: 'business', label: '사업소득', description: '월 사업소득입니다.' },
-  { value: 'pension', label: '기타연금', description: '기타 연금성 소득입니다.' },
-  { value: 'other', label: '기타', description: '그 외 월 현금유입입니다.' },
+  { value: 'earned', label: '근로소득', description: '급여 형태의 소득입니다.' },
+  { value: 'business', label: '사업소득', description: '사업에서 들어오는 소득입니다.' },
+  { value: 'pension', label: '기타연금', description: '기타 연금형 월소득입니다.' },
+  { value: 'monthlyRent', label: '월세소득', description: '주택 임대 등 월세 수입입니다.' },
+  { value: 'other', label: '기타', description: '그 외 정기적인 월 유입입니다.' },
 ] as const
 
 export const otherIncomeTypeOptionRows = [
-  [otherIncomeTypeOptions[0]],
-  [otherIncomeTypeOptions[1], otherIncomeTypeOptions[2]],
-  [otherIncomeTypeOptions[3], otherIncomeTypeOptions[4]],
+  [otherIncomeTypeOptions[0], otherIncomeTypeOptions[1]],
+  [otherIncomeTypeOptions[2], otherIncomeTypeOptions[3]],
+  [otherIncomeTypeOptions[4], otherIncomeTypeOptions[5]],
 ] as const
 
 export const healthInsuranceOptions = [
-  { value: 'regional', label: '지역가입자', description: '소득·재산 구조를 반영한 지역 추정입니다.' },
+  { value: 'regional', label: '지역가입자', description: '소득과 재산 구조를 함께 반영해 추정합니다.' },
   {
     value: 'employee',
     label: '직장가입자',
@@ -96,17 +102,17 @@ export const healthInsuranceOptions = [
   {
     value: 'dependent',
     label: '피부양자',
-    description: '조건 유지 시 0원, 초과 시 지역 기준으로 전환합니다.',
+    description: '조건 유지 시 0원, 초과 시 지역가입자로 전환합니다.',
   },
   {
     value: 'bothRegional',
-    label: '부부모두지역',
-    description: '지역가입자 구조와 같은 방식으로 추정합니다.',
+    label: '부부 모두 지역',
+    description: '지역가입자 구조에 가깝게 추정합니다.',
   },
   {
     value: 'employeeWithDependentSpouse',
     label: '직장+피부양 배우자',
-    description: '직장가입자 구조 중심으로 계산합니다.',
+    description: '직장가입자 구조를 중심으로 계산합니다.',
   },
   { value: 'other', label: '기타', description: '지역가입자 구조에 가깝게 추정합니다.' },
 ] as const
@@ -119,6 +125,5 @@ export const healthInsuranceOptionRows = [
 
 export const livingCostModeOptions = [
   { value: 'total', label: '총 금액' },
-  { value: 'detailed', label: '세부입력' },
+  { value: 'detailed', label: '상세입력' },
 ] as const
-

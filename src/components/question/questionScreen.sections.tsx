@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { ChoiceQuestion, NumberFields } from '../common/Ui'
+import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
 import type { QuestionStep, AlphaFormData } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
 import { QuestionNumberFields } from './questionScreen.shared'
 import {
+  additionalHomeHousingOptions,
   dividendModeOptions,
   dividendOwnershipOptions,
   healthInsuranceOptionRows,
@@ -84,6 +85,49 @@ export function renderQuestionContent({
       ))}
     </div>
   )
+  const createAdditionalHome = (): AlphaFormData['additionalHomes'][number] => ({
+    housingType: 'own',
+    marketValue: 0,
+    officialValue: 0,
+  })
+
+  const handleToggleAdditionalHomes = (enabled: boolean) => {
+    onPatchFormData({
+      additionalHomes: enabled ? formData.additionalHomes.length > 0 ? formData.additionalHomes : [createAdditionalHome()] : [],
+      isSingleHomeOwner: enabled ? false : formData.housingType === 'own',
+    })
+  }
+
+  const handleAddAdditionalHome = () => {
+    if (formData.additionalHomes.length >= 4) {
+      return
+    }
+
+    onPatchFormData({
+      additionalHomes: [...formData.additionalHomes, createAdditionalHome()],
+      isSingleHomeOwner: false,
+    })
+  }
+
+  const handleRemoveAdditionalHome = (index: number) => {
+    const nextAdditionalHomes = formData.additionalHomes.filter((_, homeIndex) => homeIndex !== index)
+
+    onPatchFormData({
+      additionalHomes: nextAdditionalHomes,
+      isSingleHomeOwner: nextAdditionalHomes.length === 0 && formData.housingType === 'own',
+    })
+  }
+
+  const handlePatchAdditionalHome = (
+    index: number,
+    patch: Partial<AlphaFormData['additionalHomes'][number]>,
+  ) => {
+    const nextAdditionalHomes = formData.additionalHomes.map((home, homeIndex) =>
+      homeIndex === index ? { ...home, ...patch } : home,
+    )
+
+    onPatchFormData({ additionalHomes: nextAdditionalHomes })
+  }
 
   const renderContent = () => {
     switch (question.id) {
@@ -161,7 +205,7 @@ export function renderQuestionContent({
           </div>
         )
 
-      case 'housingDetails':
+            case 'housingDetails':
         return (
           <div className="question-stack">
             <section className="question-block housing-choice-block">
@@ -174,7 +218,7 @@ export function renderQuestionContent({
                 onChange={(value) =>
                   onPatchFormData({
                     housingType: value,
-                    isSingleHomeOwner: value === 'own',
+                    isSingleHomeOwner: value === 'own' && formData.additionalHomes.length === 0,
                   })
                 }
               />
@@ -214,125 +258,187 @@ export function renderQuestionContent({
             ) : null}
 
             {formData.housingType === 'monthlyRent' ? (
-              <>
-                <QuestionNumberFields
-                  columns={2}
-                  fields={[
-                    {
-                      key: 'monthlyRentDeposit',
-                      label: '월세 보증금',
-                      value: formData.monthlyRentDeposit,
-                      onChange: (value) => update('monthlyRentDeposit', value),
-                    },
-                    {
-                      key: 'monthlyRentAmount',
-                      label: '월세',
-                      value: formData.monthlyRentAmount,
-                      onChange: (value) => update('monthlyRentAmount', value),
-                    },
-                  ]}
-                />
-              </>
+              <QuestionNumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'monthlyRentDeposit',
+                    label: '월세 보증금',
+                    value: formData.monthlyRentDeposit,
+                    onChange: (value) => update('monthlyRentDeposit', value),
+                  },
+                  {
+                    key: 'monthlyRentAmount',
+                    label: '월세',
+                    value: formData.monthlyRentAmount,
+                    onChange: (value) => update('monthlyRentAmount', value),
+                  },
+                ]}
+              />
+            ) : null}
+
+            {renderBooleanChoice(
+              '집이 한채 더 있습니까?',
+              formData.additionalHomes.length > 0,
+              handleToggleAdditionalHomes,
+              '현재 거주 주택을 포함해 최대 5채까지 입력할 수 있습니다.',
+            )}
+
+            {formData.additionalHomes.length > 0 ? (
+              <div className="question-stack">
+                {formData.additionalHomes.map((home, index) => (
+                  <section key={`additional-home-${index}`} className="question-block">
+                    <div className="question-block-header">
+                      <h2>{`추가 주택 ${index + 1}`}</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={home.housingType}
+                      options={additionalHomeHousingOptions}
+                      onChange={(value) => handlePatchAdditionalHome(index, { housingType: value })}
+                    />
+                    <QuestionNumberFields
+                      columns={2}
+                      fields={[
+                        {
+                          key: `additional-home-market-${index}`,
+                          label: '시가',
+                          value: home.marketValue,
+                          onChange: (value) => handlePatchAdditionalHome(index, { marketValue: value }),
+                        },
+                        {
+                          key: `additional-home-official-${index}`,
+                          label: '공시가격',
+                          value: home.officialValue,
+                          onChange: (value) => handlePatchAdditionalHome(index, { officialValue: value }),
+                        },
+                      ]}
+                    />
+                    <PrimaryButton variant="ghost" onClick={() => handleRemoveAdditionalHome(index)}>
+                      이 주택 삭제
+                    </PrimaryButton>
+                  </section>
+                ))}
+                {formData.additionalHomes.length < 4 ? (
+                  <PrimaryButton variant="secondary" onClick={handleAddAdditionalHome}>
+                    주택 한 채 더 추가
+                  </PrimaryButton>
+                ) : (
+                  <p className="screen-copy question-copy-note">
+                    현재 거주 주택 포함 최대 5채까지 입력할 수 있습니다.
+                  </p>
+                )}
+              </div>
             ) : null}
           </div>
         )
-      case 'propertyAssets':
+            case 'propertyAssets':
         return (
           <div className="question-stack">
-            <QuestionNumberFields
-              fields={[
-                {
-                  key: 'landValue',
-                  label: '토지 금액',
-                  value: formData.landValue,
-                  onChange: (value) => update('landValue', value),
-                },
-              ]}
-            />
-            {formData.householdType === 'couple' ? (
-              <section className="question-block">
-                <div className="question-block-header">
-                  <h2>토지 소유형태</h2>
-                </div>
-                <ChoiceQuestion
-                  value={formData.landOwnershipType}
-                  options={propertyOwnershipOptions}
-                  onChange={(value) =>
-                    onPatchFormData(
-                      value === 'split'
-                        ? {
-                            landOwnershipType: value,
-                            myLandShare: 50,
-                            spouseLandShare: 50,
-                          }
-                        : value === 'spouseOnly'
-                          ? {
-                              landOwnershipType: value,
-                              myLandShare: 0,
-                              spouseLandShare: 100,
-                            }
-                          : {
-                              landOwnershipType: value,
-                              myLandShare: 100,
-                              spouseLandShare: 0,
-                            },
-                    )
-                  }
-                />
-                {formData.landOwnershipType === 'split' ? (
-                  <p className="screen-copy question-copy-note">
-                    본인 50%, 배우자 50% 자동 적용됩니다.
-                  </p>
-                ) : null}
-              </section>
-            ) : null}
+            {renderBooleanChoice(
+              '토지나 상가, 기타부동산이 있습니까?',
+              formData.hasLandOrOtherProperty,
+              (value) =>
+                onPatchFormData({
+                  hasLandOrOtherProperty: value,
+                  landValue: value ? formData.landValue : 0,
+                  otherPropertyOfficialValue: value ? formData.otherPropertyOfficialValue : 0,
+                }),
+            )}
 
-            <QuestionNumberFields
-              fields={[
-                {
-                  key: 'otherPropertyOfficialValue',
-                  label: '기타 부동산 공시가격',
-                  value: formData.otherPropertyOfficialValue,
-                  onChange: (value) => update('otherPropertyOfficialValue', value),
-                },
-              ]}
-            />
-            {formData.householdType === 'couple' ? (
-              <section className="question-block">
-                <div className="question-block-header">
-                  <h2>기타 부동산 소유형태</h2>
-                </div>
-                <ChoiceQuestion
-                  value={formData.otherPropertyOwnershipType}
-                  options={propertyOwnershipOptions}
-                  onChange={(value) =>
-                    onPatchFormData(
-                      value === 'split'
-                        ? {
-                            otherPropertyOwnershipType: value,
-                            myOtherPropertyShare: 50,
-                            spouseOtherPropertyShare: 50,
-                          }
-                        : value === 'spouseOnly'
-                          ? {
-                              otherPropertyOwnershipType: value,
-                              myOtherPropertyShare: 0,
-                              spouseOtherPropertyShare: 100,
-                            }
-                          : {
-                              otherPropertyOwnershipType: value,
-                              myOtherPropertyShare: 100,
-                              spouseOtherPropertyShare: 0,
-                            },
-                    )
-                  }
+            {formData.hasLandOrOtherProperty ? (
+              <>
+                <QuestionNumberFields
+                  fields={[
+                    {
+                      key: 'landValue',
+                      label: '현재 토지 금액',
+                      value: formData.landValue,
+                      onChange: (value) => update('landValue', value),
+                    },
+                  ]}
                 />
-                {formData.otherPropertyOwnershipType === 'split' ? (
-                  <p className="screen-copy question-copy-note">
-                    본인 50%, 배우자 50% 자동 적용됩니다.
-                  </p>
+                {formData.householdType === 'couple' ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>토지 소유형태</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.landOwnershipType}
+                      options={propertyOwnershipOptions}
+                      onChange={(value) =>
+                        onPatchFormData(
+                          value === 'split'
+                            ? {
+                                landOwnershipType: value,
+                                myLandShare: 50,
+                                spouseLandShare: 50,
+                              }
+                            : value === 'spouseOnly'
+                              ? {
+                                  landOwnershipType: value,
+                                  myLandShare: 0,
+                                  spouseLandShare: 100,
+                                }
+                              : {
+                                  landOwnershipType: value,
+                                  myLandShare: 100,
+                                  spouseLandShare: 0,
+                                },
+                        )
+                      }
+                    />
+                    {formData.landOwnershipType === 'split' ? (
+                      <p className="screen-copy question-copy-note">본인 50%, 배우자 50%로 자동 반영합니다.</p>
+                    ) : null}
+                  </section>
                 ) : null}
-              </section>
+
+                <QuestionNumberFields
+                  fields={[
+                    {
+                      key: 'otherPropertyOfficialValue',
+                      label: '기타 부동산 공시가격',
+                      value: formData.otherPropertyOfficialValue,
+                      onChange: (value) => update('otherPropertyOfficialValue', value),
+                    },
+                  ]}
+                />
+                {formData.householdType === 'couple' ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>기타 부동산 소유형태</h2>
+                    </div>
+                    <ChoiceQuestion
+                      value={formData.otherPropertyOwnershipType}
+                      options={propertyOwnershipOptions}
+                      onChange={(value) =>
+                        onPatchFormData(
+                          value === 'split'
+                            ? {
+                                otherPropertyOwnershipType: value,
+                                myOtherPropertyShare: 50,
+                                spouseOtherPropertyShare: 50,
+                              }
+                            : value === 'spouseOnly'
+                              ? {
+                                  otherPropertyOwnershipType: value,
+                                  myOtherPropertyShare: 0,
+                                  spouseOtherPropertyShare: 100,
+                                }
+                              : {
+                                  otherPropertyOwnershipType: value,
+                                  myOtherPropertyShare: 100,
+                                  spouseOtherPropertyShare: 0,
+                                },
+                        )
+                      }
+                    />
+                    {formData.otherPropertyOwnershipType === 'split' ? (
+                      <p className="screen-copy question-copy-note">본인 50%, 배우자 50%로 자동 반영합니다.</p>
+                    ) : null}
+                  </section>
+                ) : null}
+              </>
             ) : null}
           </div>
         )
@@ -591,7 +697,7 @@ export function renderQuestionContent({
             ) : null}
           </div>
         )
-      case 'income':
+            case 'income':
         return (
           <div className="question-stack">
             {renderChoiceRows(formData.otherIncomeType, otherIncomeTypeOptionRows, (value) =>
@@ -602,7 +708,7 @@ export function renderQuestionContent({
                   : {}),
               }),
             )}
-                        {formData.otherIncomeType !== 'none' ? (
+            {formData.otherIncomeType !== 'none' ? (
               <QuestionNumberFields
                 columns={formData.otherIncomeType === 'pension' ? 2 : 1}
                 fields={[
@@ -615,9 +721,9 @@ export function renderQuestionContent({
                           ? '월 사업소득'
                           : formData.otherIncomeType === 'pension'
                             ? '월 기타연금'
-                            : formData.otherIncomeType === 'other'
-                              ? '월 기타소득'
-                              : '기타 월소득',
+                            : formData.otherIncomeType === 'monthlyRent'
+                              ? '월 월세소득'
+                              : '월 기타소득',
                     value: formData.otherIncomeMonthly,
                     onChange: (value) =>
                       onPatchFormData({
@@ -625,9 +731,11 @@ export function renderQuestionContent({
                         ...(usesEarnedIncomeAsSalary ? { salaryMonthly: value } : {}),
                       }),
                     helperText:
-                      usesEarnedIncomeAsSalary
-                        ? '근로소득을 선택한 상태라 건강보험 직장가입 월 급여에 같은 금액을 자동 반영합니다.'
-                        : undefined,
+                      formData.otherIncomeType === 'monthlyRent'
+                        ? '월세소득은 결과표에서 임대소득세를 별도로 추정해 반영합니다.'
+                        : usesEarnedIncomeAsSalary
+                          ? '근로소득을 선택한 상태에서 직장가입자를 고르면 급여에도 같은 금액을 자동 반영합니다.'
+                          : undefined,
                   },
                   ...(formData.otherIncomeType === 'pension'
                     ? [
