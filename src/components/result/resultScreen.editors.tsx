@@ -602,7 +602,7 @@ export function buildResultRows({
       ? [
           {
             category: '세금',
-            item: '종합소득세(추정)',
+            item: '종합소득세',
             input:
               result.estimatedComprehensiveTaxBaseAnnual > 0
                 ? `과세표준 연 ${formatCompactCurrency(result.estimatedComprehensiveTaxBaseAnnual)}`
@@ -610,17 +610,17 @@ export function buildResultRows({
             monthly: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual / 12),
             annual: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual),
             tenYear: formatCompactCurrency(result.projectionEstimatedComprehensiveIncomeTaxTotal),
-            note: estimatedComprehensiveTaxStartsLater ? '향후 시작 소득 반영' : '국민연금·근로 등 단순 추정',
+            note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 시작 소득 반영' : '추정 · 국민연금·근로 등 반영',
             noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다. 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',
-            item: '지방소득세(추정)',
+            item: '지방소득세',
             input: '종합소득세의 10%',
             monthly: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual / 12),
             annual: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual),
             tenYear: formatCompactCurrency(result.projectionEstimatedLocalIncomeTaxTotal),
-            note: estimatedComprehensiveTaxStartsLater ? '향후 시작 소득 반영' : '종합소득세 연동',
+            note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 시작 소득 반영' : '추정 · 종합소득세 연동',
             noteDetail: '종합소득세 추정액의 10%를 지방소득세로 반영했습니다.',
           },
         ]
@@ -684,7 +684,7 @@ export function buildResultRows({
       input: (
         <span>
           총 유입에서 건강보험료, 보유세
-          {shouldShowEstimatedComprehensiveTaxRows ? ', 종합소득세(추정), 지방소득세(추정)' : ''},
+          {shouldShowEstimatedComprehensiveTaxRows ? ', 종합소득세, 지방소득세' : ''},
           금융종합과세
           {shouldShowRentalIncomeTaxRow ? ', 임대소득세' : ''} 반영
         </span>

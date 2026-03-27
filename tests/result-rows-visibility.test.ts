@@ -132,6 +132,6 @@ test('estimated comprehensive and local tax rows appear for taxable structured i
     healthInsuranceType: 'dependent',
   })
 
-  assert.ok(rows.some((row) => row.item === '종합소득세(추정)'))
-  assert.ok(rows.some((row) => row.item === '지방소득세(추정)'))
+  assert.ok(rows.some((row) => row.item === '종합소득세'))
+  assert.ok(rows.some((row) => row.item === '지방소득세'))
 })

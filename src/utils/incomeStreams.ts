@@ -237,15 +237,15 @@ export const getIncomeCategoryDurationYears = (
 ) => {
   switch (category) {
     case 'earned':
-      return toSafeDurationYears(formData.earnedIncomeDurationYears, formData.simulationYears)
+      return toSafeDurationYears(formData.earnedIncomeDurationYears, 10)
     case 'freelance':
-      return toSafeDurationYears(formData.freelanceIncomeDurationYears, formData.simulationYears)
+      return toSafeDurationYears(formData.freelanceIncomeDurationYears, 10)
     case 'business':
-      return toSafeDurationYears(formData.businessIncomeDurationYears, formData.simulationYears)
+      return toSafeDurationYears(formData.businessIncomeDurationYears, 10)
     case 'rental':
-      return toSafeDurationYears(formData.rentalIncomeDurationYears, formData.simulationYears)
+      return toSafeDurationYears(formData.rentalIncomeDurationYears, 10)
     case 'misc':
-      return toSafeDurationYears(formData.miscIncomeDurationYears, formData.simulationYears)
+      return toSafeDurationYears(formData.miscIncomeDurationYears, 10)
     case 'otherPension':
     default:
       return null

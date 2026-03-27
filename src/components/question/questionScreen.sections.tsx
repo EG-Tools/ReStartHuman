@@ -45,7 +45,7 @@ export function renderQuestionContent({
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
   const usesEarnedIncomeAsSalary =
     usesEmployeeHealthInsurance && selectedIncomeCategories.includes('earned')
-  const defaultIncomeDurationYears = Math.max(formData.simulationYears, 1)
+  const defaultIncomeDurationYears = 10
 
   const renderBooleanChoice = (
     label: string,

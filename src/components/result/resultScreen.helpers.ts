@@ -208,10 +208,10 @@ const getIncomeInterpretationMessage = (result: AlphaResult, formData: AlphaForm
       : ''
   const estimatedTaxMessage =
     result.estimatedComprehensiveIncomeTaxAnnual > 0 || result.estimatedLocalIncomeTaxAnnual > 0
-      ? `종합소득세(추정)는 연 ${formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual)}, 지방소득세(추정)는 연 ${formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual)} 반영했습니다.`
+      ? `종합소득세는 연 ${formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual)}, 지방소득세는 연 ${formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual)} 반영했습니다.`
       : result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
           result.projectionEstimatedLocalIncomeTaxTotal > 0
-        ? '종합소득세와 지방소득세는 연금 시작 나이와 소득 반영 기간에 따라 이후 구간부터 반영합니다.'
+        ? '종합소득세와 지방소득세는 추정값이며 연금 시작 나이와 소득 반영 기간에 따라 이후 구간부터 반영합니다.'
         : ''
 
   const messages = [
@@ -990,12 +990,12 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세(추정) 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세(추정) 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
   }
 
-  return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세(추정) 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+  return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타연금·기타소득은 종합소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
 }
