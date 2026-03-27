@@ -182,7 +182,7 @@ const getIncomeInterpretationMessage = (result: AlphaResult) => {
   )
 
   if (visibleIncomeItems.length === 0) {
-    return '?? ???? ?? ??? ?? ???? ?????.'
+    return '추가 소득은 현재 따로 반영하지 않았습니다.'
   }
 
   const currentIncomeItems = visibleIncomeItems.filter((item) => item.appliedMonthly > 0)
@@ -193,20 +193,20 @@ const getIncomeInterpretationMessage = (result: AlphaResult) => {
     .map((item) => `${item.label} ${formatCompactCurrency(item.appliedMonthly)}`)
     .join(', ')
   const deferredIncomeSummary = deferredIncomeItems
-    .map((item) => `${item.label} ${formatCompactCurrency(item.inputMonthly)}? ${item.startAge}??? ?????.`)
+    .map((item) => `${item.label} ${formatCompactCurrency(item.inputMonthly)}은 ${item.startAge}세부터 반영됩니다.`)
     .join(' ')
   const rentalIncomeItem = visibleIncomeItems.find((item) => item.key === 'rental')
   const rentalTaxMessage =
     rentalIncomeItem && result.rentalIncomeTaxAnnual > 0
-      ? ` ????? ? ${formatCompactCurrency(result.rentalIncomeTaxAnnual)}? ??? ??????.`
+      ? ` 임대소득세는 연 ${formatCompactCurrency(result.rentalIncomeTaxAnnual)} 별도로 반영했습니다.`
       : ''
 
   if (currentIncomeSummary && deferredIncomeSummary) {
-    return `${currentIncomeSummary}? ??? ?? ? ???? ??????.${rentalTaxMessage} ${deferredIncomeSummary}`.trim()
+    return `${currentIncomeSummary}이 현재 월 유입에 반영됩니다.${rentalTaxMessage} ${deferredIncomeSummary}`.trim()
   }
 
   if (currentIncomeSummary) {
-    return `${currentIncomeSummary}? ??? ?? ? ???? ??????.${rentalTaxMessage}`.trim()
+    return `${currentIncomeSummary}이 현재 월 유입에 반영됩니다.${rentalTaxMessage}`.trim()
   }
 
   return deferredIncomeSummary
@@ -820,12 +820,12 @@ export const buildInterpretationItems = ({
         : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
     result.comprehensiveTaxIncluded
       ? result.comprehensiveTaxImpactAnnual > 0
-        ? `종합소득세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-        : `종합소득세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
-      : '금융소득 2,000만원 이하로 보고 종합소득세 추가 부담은 제외했습니다.',
+        ? `배당 추가 종합과세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
+        : `배당 추가 종합과세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
+      : '금융소득 2,000만원 이하로 보고 배당 추가 종합과세는 제외했습니다.',
     result.healthInsuranceMonthly >= 1_000_000
-      ? `?????? ? ${formatCompactCurrency(result.healthInsuranceMonthly)} ?????. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}?? ?? ? ??? ?? ???? ?? ??? ?????.`
-      : `?????? ? ${formatCompactCurrency(result.healthInsuranceMonthly)} ?????. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}?? ??????.`,
+      ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보고 월 유입 대비 부담이 큰 편으로 추정했습니다.`
+      : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
     getIncomeInterpretationMessage(result),
     assetInterpretation,
   ]
@@ -946,7 +946,7 @@ export const getIsaDividendNote = (result: AlphaResult) => {
 
 export const getComprehensiveTaxInput = (result: AlphaResult) => {
   if (!result.comprehensiveTaxIncluded) {
-    return '금융소득 2,000만원 이하'
+    return '일반계좌 배당 2,000만원 이하'
   }
 
   return result.comprehensiveTaxBreakdown
@@ -977,12 +977,12 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}`
+    return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원`
+    return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
   }
 
-  return `종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}`
+  return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
 }

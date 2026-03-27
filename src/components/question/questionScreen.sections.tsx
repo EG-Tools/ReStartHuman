@@ -143,20 +143,6 @@ export function renderQuestionContent({
     patchStructuredIncomeSelection(nextCategories, patch)
   }
 
-  const handleClearIncomeSelection = () => {
-    patchStructuredIncomeSelection([], {
-      earnedIncomeMonthly: 0,
-      otherPensionMonthly: 0,
-      otherPensionStartAge: 65,
-      freelanceIncomeMonthly: 0,
-      businessIncomeMonthly: 0,
-      rentalIncomeMonthly: 0,
-      miscIncomeMonthly: 0,
-      otherIncomeMonthly: 0,
-      otherIncomeStartAge: 65,
-      ...(usesEmployeeHealthInsurance ? { salaryMonthly: 0 } : {}),
-    })
-  }
 
   const buildIncomeFieldPatch = (
     category: IncomeCategory,
@@ -854,15 +840,6 @@ export function renderQuestionContent({
               <p className="screen-copy question-copy-note">
                 배당·이자소득은 앞 질문에서 따로 입력합니다. 해당하는 소득을 모두 선택하세요.
               </p>
-              {selectedIncomeCategories.length > 0 ? (
-                <PrimaryButton variant="ghost" onClick={handleClearIncomeSelection}>
-                  소득 선택 해제
-                </PrimaryButton>
-              ) : (
-                <p className="screen-copy question-copy-note">
-                  선택이 없으면 추가 소득 없음으로 계산합니다.
-                </p>
-              )}
             </section>
             {selectedIncomeCategories.length > 0 ? (
               <QuestionNumberFields

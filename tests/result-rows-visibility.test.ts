@@ -107,5 +107,5 @@ test('multiple selected income categories create separate rows', () => {
     rentalIncomeMonthly: 700_000,
   })
 
-  assert.equal(rows.filter((row) => row.category === '??').length, 2)
+  assert.equal(rows.filter((row) => row.category === '소득').length, 2)
 })

@@ -365,14 +365,14 @@ export function buildResultRows({
   }
 
   const totalIncomePieces = [
-    result.totalDividendAnnualNet > 0
-      ? `${formatCompactCurrency(result.totalDividendAnnualNet)} ??`
+    result.totalDividendMonthlyNet > 0
+      ? `${formatCompactCurrency(result.totalDividendMonthlyNet)} 세후 배당`
       : null,
     ...visibleIncomeBreakdown.map(
       (item) => `${formatCompactCurrency(item.appliedMonthly)} ${item.label}`,
     ),
     shouldShowPensionRow
-      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} ????`
+      ? `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
       : null,
   ].filter((value): value is string => Boolean(value))
 
@@ -531,11 +531,11 @@ export function buildResultRows({
     const startsLater = typeof incomeItem.startAge === 'number' && formData.currentAge < incomeItem.startAge
 
     rows.push({
-      category: '??',
+      category: '소득',
       item: incomeItem.label,
       input: (
         <InlineAmountInput
-          label={`${incomeItem.label} ? ??`}
+          label={`${incomeItem.label} 월 입력`}
           value={incomeItem.inputMonthly}
           onChange={(value) => onPatchFormData(buildIncomeRowPatch(incomeItem.key, value))}
         />
@@ -545,11 +545,11 @@ export function buildResultRows({
       tenYear: formatCompactCurrency(incomeItem.projectionTotal),
       note:
         startsLater
-          ? `${incomeItem.startAge}??? ??`
-          : `${incomeItem.label} ? ??`,
+          ? `${incomeItem.startAge}세부터 반영`
+          : `${incomeItem.label} 현재 반영`,
       noteDetail:
         startsLater
-          ? `?? ${formData.currentAge}? ???? ${incomeItem.label}? ${incomeItem.startAge}??? ?????.`
+          ? `현재 ${formData.currentAge}세 기준이라 ${incomeItem.label}은 ${incomeItem.startAge}세부터 반영됩니다.`
           : undefined,
     })
   })
@@ -576,12 +576,12 @@ export function buildResultRows({
     },
     {
       category: '세금',
-      item: '종합소득세',
+      item: '배당 추가 종합과세',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
       tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
-      note: '일반계좌 배당 기준',
+      note: '일반계좌 배당만 반영',
       noteDetail: getComprehensiveTaxNote(result),
     },
   )
@@ -632,7 +632,7 @@ export function buildResultRows({
       item: '실수령 가용액',
       input: (
         <span>
-          총 유입에서 건강보험료, 보유세, 종합소득세
+          총 유입에서 건강보험료, 보유세, 배당 추가 종합과세
           {shouldShowRentalIncomeTaxRow ? ', 임대소득세' : ''} 반영
         </span>
       ),
