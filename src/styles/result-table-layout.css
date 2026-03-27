@@ -1,6 +1,6 @@
-/* Result table layout and note-cell refinements */
+﻿/* Result table layout and note-cell refinements */
 
-/* 결과표 색상은 행별 변수만 지정하고 공통 규칙 한 번만 적용 */
+/* 寃곌낵???됱긽? ?됰퀎 蹂?섎쭔 吏?뺥븯怨?怨듯넻 洹쒖튃 ??踰덈쭔 ?곸슜 */
 .result-table {
   --result-row-divider-shadow: inset 0 -1px 0 rgba(82, 90, 98, 0.42);
   --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(82, 90, 98, 0.34);
@@ -30,7 +30,7 @@
 }
 
 /* ------------------------------------------------------------------
-   1열 고정 잔재 제거
+   1??怨좎젙 ?붿옱 ?쒓굅
 ------------------------------------------------------------------- */
 .result-table tbody tr.result-category-tax td:first-child,
 .result-table tbody tr.result-category-expense td:first-child,
@@ -42,8 +42,8 @@
 }
 
 /* ------------------------------------------------------------------
-   결과표 단일 레이아웃
-   조절은 이 블록 숫자만 바꾸면 됩니다.
+   寃곌낵???⑥씪 ?덉씠?꾩썐
+   議곗젅? ??釉붾줉 ?レ옄留?諛붽씀硫??⑸땲??
 ------------------------------------------------------------------- */
 .table-shell .result-table {
   --result-table-font-size: 0.86rem;
@@ -78,10 +78,10 @@
     var(--result-note-gap)
   );
 
-  /* 최적화:
-     아이콘이 없는 비고 행은 아이콘 칸을 예약하지 않음.
-     그래서 '생활비·고정지출 차감 전' 같은 문구가 괜히 한 글자만
-     아래 줄로 떨어지지 않게 합니다. */
+  /* 理쒖쟻??
+     ?꾩씠肄섏씠 ?녿뒗 鍮꾧퀬 ?됱? ?꾩씠肄?移몄쓣 ?덉빟?섏? ?딆쓬.
+     洹몃옒??'?앺솢鍮꽷룰퀬?뺤?異?李④컧 ?? 媛숈? 臾멸뎄媛 愿쒗엳 ??湲?먮쭔
+     ?꾨옒 以꾨줈 ?⑥뼱吏吏 ?딄쾶 ?⑸땲?? */
   --result-note-overflow-wrap: normal;
   --result-note-word-break: keep-all;
 
@@ -117,7 +117,7 @@
   padding-bottom: 0;
 }
 
-/* colgroup 기반 열 고정 */
+/* colgroup 湲곕컲 ??怨좎젙 */
 .table-shell .result-table col.result-col-item {
   width: var(--result-col-1);
 }
@@ -161,7 +161,7 @@
   border-right: 1px solid rgba(82, 90, 98, 0.34);
 }
 
-/* 1열 */
+/* 1??*/
 .table-shell .result-table .result-item-cell {
   text-align: center;
   padding-left: 0;
@@ -187,7 +187,7 @@
   white-space: nowrap;
 }
 
-/* 2열 단일 정렬 규칙 */
+/* 2???⑥씪 ?뺣젹 洹쒖튃 */
 .table-shell .result-table .result-input-cell {
   text-align: right;
 }
@@ -274,9 +274,9 @@
 }
 
 /* ------------------------------------------------------------------
-   비고열 단일 규칙
-   기본은 1칸.
-   설명 아이콘이 실제로 있는 행만 2칸 그리드로 바꿉니다.
+   鍮꾧퀬???⑥씪 洹쒖튃
+   湲곕낯? 1移?
+   ?ㅻ챸 ?꾩씠肄섏씠 ?ㅼ젣濡??덈뒗 ?됰쭔 2移?洹몃━?쒕줈 諛붽퓠?덈떎.
 ------------------------------------------------------------------- */
 .table-shell .result-table .result-note-cell {
   white-space: normal;
@@ -325,7 +325,8 @@
 
 .interpretation-list {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;
+  list-style: none;
   display: grid;
   gap: 10px;
   color: var(--ink);
@@ -388,8 +389,8 @@
 }
 
 /* ------------------------------------------------------------------
-   집값행 최종 디자인 전용 보정
-   이 구간만 보면 시가/공시가격 정렬과 간격을 이해할 수 있습니다.
+   吏묎컪??理쒖쥌 ?붿옄???꾩슜 蹂댁젙
+   ??援ш컙留?蹂대㈃ ?쒓?/怨듭떆媛寃??뺣젹怨?媛꾧꺽???댄빐?????덉뒿?덈떎.
 ------------------------------------------------------------------- */
 .table-shell .result-table .result-input-cell .table-edit-cluster-housing {
   gap: var(--result-housing-cluster-gap);
@@ -432,7 +433,7 @@
   min-width: 0;
 }
 
-/* 공시가격 위쪽 여백은 첫 번째 블록 하단 여백 하나로만 관리 */
+/* 怨듭떆媛寃??꾩そ ?щ갚? 泥?踰덉㎏ 釉붾줉 ?섎떒 ?щ갚 ?섎굹濡쒕쭔 愿由?*/
 .table-shell .result-table .result-input-cell .table-edit-group-housing-market,
 .table-shell .result-table .result-input-cell .table-edit-group-market {
   margin-bottom: var(--result-housing-market-bottom-gap);
