@@ -576,7 +576,7 @@ export function buildResultRows({
     },
     {
       category: '세금',
-      item: '배당 추가 종합과세',
+      item: '금융소득 종합과세 추가세액',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
@@ -632,7 +632,7 @@ export function buildResultRows({
       item: '실수령 가용액',
       input: (
         <span>
-          총 유입에서 건강보험료, 보유세, 배당 추가 종합과세
+          총 유입에서 건강보험료, 보유세, 금융소득 종합과세 추가세액
           {shouldShowRentalIncomeTaxRow ? ', 임대소득세' : ''} 반영
         </span>
       ),

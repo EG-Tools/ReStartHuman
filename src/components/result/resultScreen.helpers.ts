@@ -820,9 +820,9 @@ export const buildInterpretationItems = ({
         : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
     result.comprehensiveTaxIncluded
       ? result.comprehensiveTaxImpactAnnual > 0
-        ? `배당 추가 종합과세는 금융소득 2,000만원 초과 구간입니다. 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 반영했습니다.`
-        : `배당 추가 종합과세는 금융소득 2,000만원 초과 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
-      : '금융소득 2,000만원 이하로 보고 배당 추가 종합과세는 제외했습니다.',
+        ? `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘을 때 반영합니다. 현재 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 추정했습니다.`
+        : `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘는 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
+      : '일반계좌 배당이 인별 연 2,000만원 이하라 금융소득 종합과세 추가세액은 제외했습니다.',
     result.healthInsuranceMonthly >= 1_000_000
       ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보고 월 유입 대비 부담이 큰 편으로 추정했습니다.`
       : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`,
@@ -977,12 +977,12 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
+    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
+    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
   }
 
-  return `배당 종합과세는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
+  return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·임대·기타소득은 이 행에 아직 합산하지 않습니다.`
 }
