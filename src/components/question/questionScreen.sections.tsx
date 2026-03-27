@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
 import type { QuestionStep, AlphaFormData, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
-import { QuestionNumberFields } from './questionScreen.shared'
+import { QuestionNumberFieldPairs, QuestionNumberFields, type QuestionNumberFieldPairConfig } from './questionScreen.shared'
 import {
   additionalHomeHousingOptions,
   dividendModeOptions,
@@ -194,6 +194,228 @@ export function renderQuestionContent({
     }
   }
 
+  const incomeFieldPairs: QuestionNumberFieldPairConfig[] = [
+    ...(selectedIncomeCategories.includes('earned')
+      ? [
+          {
+            key: 'earned-income-pair',
+            helperText: usesEmployeeHealthInsurance
+              ? '직장가입자 선택 시 급여에도 같은 금액을 반영합니다.'
+              : undefined,
+            fields: [
+              {
+                key: 'earnedIncomeMonthly',
+                label: '월 근로소득',
+                value: formData.earnedIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('earned', {
+                      earnedIncomeMonthly: value,
+                      ...(usesEmployeeHealthInsurance ? { salaryMonthly: value } : {}),
+                    }),
+                  ),
+              },
+              {
+                key: 'earnedIncomeDurationYears',
+                label: '반영기간',
+                value: formData.earnedIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('earned', {
+                      earnedIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(selectedIncomeCategories.includes('otherPension')
+      ? [
+          {
+            key: 'other-pension-pair',
+            helperText: '국민연금과 별도로 받는 연금만 입력합니다.',
+            fields: [
+              {
+                key: 'otherPensionMonthly',
+                label: '월 기타연금',
+                value: formData.otherPensionMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('otherPension', {
+                      otherPensionMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'otherPensionStartAge',
+                label: '시작나이',
+                value: formData.otherPensionStartAge,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('otherPension', {
+                      otherPensionStartAge: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '세',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(selectedIncomeCategories.includes('freelance')
+      ? [
+          {
+            key: 'freelance-income-pair',
+            helperText: '등록 없이 받는 자문·외주·인적용역 수입 기준입니다.',
+            fields: [
+              {
+                key: 'freelanceIncomeMonthly',
+                label: '월 프리랜서 소득',
+                value: formData.freelanceIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('freelance', {
+                      freelanceIncomeMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'freelanceIncomeDurationYears',
+                label: '반영기간',
+                value: formData.freelanceIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('freelance', {
+                      freelanceIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(selectedIncomeCategories.includes('business')
+      ? [
+          {
+            key: 'business-income-pair',
+            helperText: '사업자등록이 있는 사업 소득 기준입니다.',
+            fields: [
+              {
+                key: 'businessIncomeMonthly',
+                label: '월 사업소득',
+                value: formData.businessIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('business', {
+                      businessIncomeMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'businessIncomeDurationYears',
+                label: '반영기간',
+                value: formData.businessIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('business', {
+                      businessIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(selectedIncomeCategories.includes('rental')
+      ? [
+          {
+            key: 'rental-income-pair',
+            helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
+            fields: [
+              {
+                key: 'rentalIncomeMonthly',
+                label: '월 임대소득',
+                value: formData.rentalIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('rental', {
+                      rentalIncomeMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'rentalIncomeDurationYears',
+                label: '반영기간',
+                value: formData.rentalIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('rental', {
+                      rentalIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(selectedIncomeCategories.includes('misc')
+      ? [
+          {
+            key: 'misc-income-pair',
+            helperText: '위 분류 외에 별도로 들어오는 월 유입을 적습니다.',
+            fields: [
+              {
+                key: 'miscIncomeMonthly',
+                label: '월 기타소득',
+                value: formData.miscIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('misc', {
+                      miscIncomeMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'miscIncomeDurationYears',
+                label: '반영기간',
+                value: formData.miscIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('misc', {
+                      miscIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
+  ]
+
   const renderIncomeCategoryRows = () => (
     <div className="question-stack question-stack-compact">
       {incomeCategoryOptionRows.map((row, rowIndex) => (
@@ -279,7 +501,7 @@ export function renderQuestionContent({
                   label: '현재 나이',
                   value: formData.currentAge,
                   onChange: (value) => update('currentAge', value),
-                  display: 'number',
+                  display: 'number' as const,
                   suffix: '세',
                   min: 1,
                   step: 1,
@@ -332,7 +554,7 @@ export function renderQuestionContent({
                     label: '자녀 수',
                     value: Math.max(formData.childCount ?? 1, 1),
                     onChange: (value) => update('childCount', Math.max(value, 1)),
-                    display: 'number',
+                    display: 'number' as const,
                     suffix: '명',
                     min: 1,
                     step: 1,
@@ -692,7 +914,7 @@ export function renderQuestionContent({
                   label: '국민연금 수령 시작 나이',
                   value: formData.pensionStartAge,
                   onChange: (value) => update('pensionStartAge', Math.max(value, 1)),
-                  display: 'number',
+                  display: 'number' as const,
                   suffix: '세',
                   min: 1,
                   step: 1,
@@ -848,200 +1070,7 @@ export function renderQuestionContent({
               </p>
             </section>
             {selectedIncomeCategories.length > 0 ? (
-              <QuestionNumberFields
-                columns={2}
-                fields={[
-                  ...(selectedIncomeCategories.includes('earned')
-                    ? [
-                        {
-                          key: 'earnedIncomeMonthly',
-                          label: '월 근로소득',
-                          value: formData.earnedIncomeMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('earned', {
-                                earnedIncomeMonthly: value,
-                                ...(usesEmployeeHealthInsurance ? { salaryMonthly: value } : {}),
-                              }),
-                            ),
-                          helperText: usesEmployeeHealthInsurance
-                            ? '직장가입자 선택 시 급여에도 같은 금액을 반영합니다.'
-                            : undefined,
-                        },
-                        {
-                          key: 'earnedIncomeDurationYears',
-                          label: '근로소득 반영 기간',
-                          value: formData.earnedIncomeDurationYears,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('earned', {
-                                earnedIncomeDurationYears: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '년',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                  ...(selectedIncomeCategories.includes('otherPension')
-                    ? [
-                        {
-                          key: 'otherPensionMonthly',
-                          label: '월 기타연금',
-                          value: formData.otherPensionMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('otherPension', {
-                                otherPensionMonthly: value,
-                              }),
-                            ),
-                          helperText: '국민연금과 별도로 받는 연금만 입력합니다.',
-                        },
-                        {
-                          key: 'otherPensionStartAge',
-                          label: '기타연금 시작 나이',
-                          value: formData.otherPensionStartAge,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('otherPension', {
-                                otherPensionStartAge: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '세',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                  ...(selectedIncomeCategories.includes('freelance')
-                    ? [
-                        {
-                          key: 'freelanceIncomeMonthly',
-                          label: '월 프리랜서 소득',
-                          value: formData.freelanceIncomeMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('freelance', {
-                                freelanceIncomeMonthly: value,
-                              }),
-                            ),
-                          helperText: '등록 없이 받는 자문·외주·인적용역 수입 기준입니다.',
-                        },
-                        {
-                          key: 'freelanceIncomeDurationYears',
-                          label: '프리랜서 소득 반영 기간',
-                          value: formData.freelanceIncomeDurationYears,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('freelance', {
-                                freelanceIncomeDurationYears: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '년',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                  ...(selectedIncomeCategories.includes('business')
-                    ? [
-                        {
-                          key: 'businessIncomeMonthly',
-                          label: '월 사업소득',
-                          value: formData.businessIncomeMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('business', {
-                                businessIncomeMonthly: value,
-                              }),
-                            ),
-                          helperText: '사업자등록이 있는 사업 소득 기준입니다.',
-                        },
-                        {
-                          key: 'businessIncomeDurationYears',
-                          label: '사업소득 반영 기간',
-                          value: formData.businessIncomeDurationYears,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('business', {
-                                businessIncomeDurationYears: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '년',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                  ...(selectedIncomeCategories.includes('rental')
-                    ? [
-                        {
-                          key: 'rentalIncomeMonthly',
-                          label: '월 임대소득',
-                          value: formData.rentalIncomeMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('rental', {
-                                rentalIncomeMonthly: value,
-                              }),
-                            ),
-                          helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
-                        },
-                        {
-                          key: 'rentalIncomeDurationYears',
-                          label: '임대소득 반영 기간',
-                          value: formData.rentalIncomeDurationYears,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('rental', {
-                                rentalIncomeDurationYears: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '년',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                  ...(selectedIncomeCategories.includes('misc')
-                    ? [
-                        {
-                          key: 'miscIncomeMonthly',
-                          label: '월 기타소득',
-                          value: formData.miscIncomeMonthly,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('misc', {
-                                miscIncomeMonthly: value,
-                              }),
-                            ),
-                          helperText: '위 분류 외에 별도로 들어오는 월 유입을 적습니다.',
-                        },
-                        {
-                          key: 'miscIncomeDurationYears',
-                          label: '기타소득 반영 기간',
-                          value: formData.miscIncomeDurationYears,
-                          onChange: (value: number) =>
-                            onPatchFormData(
-                              buildIncomeFieldPatch('misc', {
-                                miscIncomeDurationYears: Math.max(value, 1),
-                              }),
-                            ),
-                          display: 'number' as const,
-                          suffix: '년',
-                          min: 1,
-                          step: 1,
-                        },
-                      ]
-                    : []),
-                ]}
-              />
+              <QuestionNumberFieldPairs pairs={incomeFieldPairs} />
             ) : null}
           </div>
         )
@@ -1138,7 +1167,7 @@ export function renderQuestionContent({
                     label: '반영 년수',
                     value: formData.loanInterestYears,
                     onChange: (value) => update('loanInterestYears', Math.max(value, 0)),
-                    display: 'number',
+                    display: 'number' as const,
                     suffix: '년',
                     min: 0,
                     step: 1,

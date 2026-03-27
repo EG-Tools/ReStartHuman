@@ -364,6 +364,34 @@ p {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.question-number-pair-list {
+  display: grid;
+  gap: 12px;
+}
+
+.question-number-pair-block {
+  display: grid;
+  gap: 10px;
+}
+
+.question-number-pair-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(120px, 0.85fr);
+  gap: 12px;
+}
+
+.question-number-pair-field {
+  min-width: 0;
+}
+
+.question-number-pair-field h2 {
+  font-size: 15px;
+}
+
+.question-number-pair-helper {
+  margin-top: 0;
+}
+
 .question-number-header {
   display: flex;
   align-items: baseline;

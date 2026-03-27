@@ -627,12 +627,12 @@ export function buildResultRows({
       : []),
     {
       category: '세금',
-      item: '금융소득 종합과세 추가세액',
+      item: '금융종합과세',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
       tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
-      note: '일반계좌 배당만 반영',
+      note: '금융소득 종합과세 추가세액',
       noteDetail: getComprehensiveTaxNote(result),
     },
   )
@@ -685,7 +685,7 @@ export function buildResultRows({
         <span>
           총 유입에서 건강보험료, 보유세
           {shouldShowEstimatedComprehensiveTaxRows ? ', 종합소득세(추정), 지방소득세(추정)' : ''},
-          금융소득 종합과세 추가세액
+          금융종합과세
           {shouldShowRentalIncomeTaxRow ? ', 임대소득세' : ''} 반영
         </span>
       ),

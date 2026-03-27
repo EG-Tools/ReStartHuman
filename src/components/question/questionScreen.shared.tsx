@@ -4,6 +4,64 @@ import { formatCompactCurrency } from '../../utils/format'
 import { type QuestionNumberFieldConfig } from './questionScreen.config'
 import type { QuestionStep } from '../../types/alpha'
 
+interface RenderQuestionNumberFieldOptions {
+  showHelperText?: boolean
+  wrapperClassName?: string
+}
+
+export interface QuestionNumberFieldPairConfig {
+  key: string
+  fields: QuestionNumberFieldConfig[]
+  helperText?: string
+}
+
+function renderQuestionNumberField(
+  field: QuestionNumberFieldConfig,
+  { showHelperText = true, wrapperClassName }: RenderQuestionNumberFieldOptions = {},
+) {
+  const isCurrency = field.display !== 'number'
+  const suffix = field.suffix ?? (isCurrency ? '만원' : '')
+  const conversionText = isCurrency
+    ? `환산 ${field.value > 0 ? formatCompactCurrency(field.value) : '0원'}`
+    : field.helperText
+
+  return (
+    <div className={wrapperClassName}>
+      <div className="question-block-header question-number-header">
+        <h2>{field.label}</h2>
+        {isCurrency ? (
+          <span className="question-number-conversion">
+            {conversionText}
+          </span>
+        ) : null}
+      </div>
+
+      <InlineNumericField
+        value={field.value}
+        onChange={field.onChange}
+        suffix={suffix || undefined}
+        min={field.min ?? 0}
+        step={field.step ?? 1}
+        max={field.max}
+        disabled={field.disabled}
+        display={isCurrency ? 'currency' : 'number'}
+        commitMode="change"
+        inlineClassName="input-inline question-number-inline"
+        shellClassName="input-shell question-number-shell"
+        inputClassName="input-control question-number-input"
+        suffixClassName="input-suffix question-number-suffix"
+        inputAriaLabel={field.label}
+      />
+
+      {field.helperText && showHelperText && isCurrency ? (
+        <p className="screen-copy question-number-helper">
+          {field.helperText}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 export function QuestionLayout({
   question,
   questionIndex,
@@ -82,50 +140,42 @@ export function QuestionNumberFields({
 
   return (
     <div className={gridClassName}>
-      {fields.map((field) => {
-        const isCurrency = field.display !== 'number'
-        const suffix = field.suffix ?? (isCurrency ? '만원' : '')
-        const conversionText = isCurrency
-          ? `환산 ${field.value > 0 ? formatCompactCurrency(field.value) : '0원'}`
-          : field.helperText
-
-        return (
-          <section key={field.key} className="question-block">
-            <div className="question-block-header question-number-header">
-              <h2>{field.label}</h2>
-              {isCurrency ? (
-                <span className="question-number-conversion">
-                  {conversionText}
-                </span>
-              ) : null}
-            </div>
-
-            <InlineNumericField
-              value={field.value}
-              onChange={field.onChange}
-              suffix={suffix || undefined}
-              min={field.min ?? 0}
-              step={field.step ?? 1}
-              max={field.max}
-              disabled={field.disabled}
-              display={isCurrency ? 'currency' : 'number'}
-              commitMode="change"
-              inlineClassName="input-inline question-number-inline"
-              shellClassName="input-shell question-number-shell"
-              inputClassName="input-control question-number-input"
-              suffixClassName="input-suffix question-number-suffix"
-              inputAriaLabel={field.label}
-            />
-
-            {field.helperText && isCurrency ? (
-              <p className="screen-copy question-number-helper">
-                {field.helperText}
-              </p>
-            ) : null}
-          </section>
-        )
-      })}
+      {fields.map((field) => (
+        <section key={field.key} className="question-block">
+          {renderQuestionNumberField(field)}
+        </section>
+      ))}
     </div>
   )
 }
 
+export function QuestionNumberFieldPairs({
+  pairs,
+}: {
+  pairs: QuestionNumberFieldPairConfig[]
+}) {
+  return (
+    <div className="question-number-pair-list">
+      {pairs.map((pair) => (
+        <section key={pair.key} className="question-block question-number-pair-block">
+          <div className="question-number-pair-grid">
+            {renderQuestionNumberField(pair.fields[0], {
+              showHelperText: false,
+              wrapperClassName: 'question-number-pair-field',
+            })}
+            {renderQuestionNumberField(pair.fields[1], {
+              showHelperText: false,
+              wrapperClassName: 'question-number-pair-field',
+            })}
+          </div>
+
+          {pair.helperText ? (
+            <p className="screen-copy question-number-helper question-number-pair-helper">
+              {pair.helperText}
+            </p>
+          ) : null}
+        </section>
+      ))}
+    </div>
+  )
+}
