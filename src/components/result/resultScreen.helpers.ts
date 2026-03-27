@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
@@ -400,6 +400,104 @@ const buildCarCostCutFormData = (formData: AlphaFormData): AlphaFormData => ({
   carYearlyCost: 0,
 })
 
+const ADVICE_FINE_STEP = 100_000
+const ADVICE_COARSE_STEP = 500_000
+
+const pickBetterAdviceCandidate = (
+  current: AdviceCandidate | null,
+  next: AdviceCandidate | null,
+) =>
+  pickBestAdviceCandidate(
+    [current, next].filter((candidate): candidate is AdviceCandidate => candidate !== null),
+  )
+
+const normalizeAdviceCeiling = (maxAmount: number) =>
+  Math.floor(maxAmount / ADVICE_FINE_STEP) * ADVICE_FINE_STEP
+
+// Probe the heavy advice scenarios in coarse chunks first, then refine only the best window.
+const buildSteppedAdviceCandidate = ({
+  maxAmount,
+  evaluateCandidate,
+}: {
+  maxAmount: number
+  evaluateCandidate: (amount: number) => AdviceCandidate | null
+}) => {
+  const normalizedMaxAmount = normalizeAdviceCeiling(maxAmount)
+
+  if (normalizedMaxAmount < ADVICE_FINE_STEP) {
+    return null
+  }
+
+  const coarseAmounts = new Set<number>([ADVICE_FINE_STEP, normalizedMaxAmount])
+
+  for (
+    let amount = ADVICE_COARSE_STEP;
+    amount <= normalizedMaxAmount;
+    amount += ADVICE_COARSE_STEP
+  ) {
+    coarseAmounts.add(amount)
+  }
+
+  const sortedAmounts = [...coarseAmounts].sort((left, right) => left - right)
+  const probeCache = new Map<number, AdviceCandidate | null>()
+  const getCandidate = (amount: number) => {
+    if (probeCache.has(amount)) {
+      return probeCache.get(amount) ?? null
+    }
+
+    const candidate = evaluateCandidate(amount)
+    probeCache.set(amount, candidate)
+    return candidate
+  }
+  let bestCoarseCandidate: AdviceCandidate | null = null
+  let bestCoarseFloor = 0
+  let bestCoarseAmount = 0
+  let previousCoarseAmount = 0
+
+  for (const amount of sortedAmounts) {
+    const candidate = getCandidate(amount)
+
+    if (
+      candidate &&
+      (!bestCoarseCandidate ||
+        rankAdviceCandidate(candidate) > rankAdviceCandidate(bestCoarseCandidate))
+    ) {
+      bestCoarseCandidate = candidate
+      bestCoarseFloor = previousCoarseAmount
+      bestCoarseAmount = amount
+    }
+
+    if (candidate?.resolvesDeficit) {
+      const fineStart = Math.max(ADVICE_FINE_STEP, previousCoarseAmount + ADVICE_FINE_STEP)
+
+      for (let fineAmount = fineStart; fineAmount <= amount; fineAmount += ADVICE_FINE_STEP) {
+        const fineCandidate = getCandidate(fineAmount)
+
+        if (fineCandidate?.resolvesDeficit) {
+          return fineCandidate
+        }
+      }
+
+      return candidate
+    }
+
+    previousCoarseAmount = amount
+  }
+
+  if (!bestCoarseCandidate) {
+    return null
+  }
+
+  let bestFineCandidate = bestCoarseCandidate
+  const fineStart = Math.max(ADVICE_FINE_STEP, bestCoarseFloor + ADVICE_FINE_STEP)
+
+  for (let amount = fineStart; amount <= bestCoarseAmount; amount += ADVICE_FINE_STEP) {
+    bestFineCandidate = pickBetterAdviceCandidate(bestFineCandidate, getCandidate(amount))
+  }
+
+  return bestFineCandidate
+}
+
 const findLivingCostAdvice = (
   formData: AlphaFormData,
   result: AlphaResult,
@@ -412,83 +510,68 @@ const findLivingCostAdvice = (
 
   const benchmark = statsKoreaLivingCostBenchmarks[formData.householdType]
   const maxReduction = Math.min(currentLivingCost, 2_000_000)
-  const candidates: AdviceCandidate[] = []
 
-  for (let reductionMonthly = 100_000; reductionMonthly <= maxReduction; reductionMonthly += 100_000) {
-    const nextFormData = buildReducedLivingCostFormData(formData, reductionMonthly)
-    const nextResult = calculateAlphaScenario(nextFormData)
+  return buildSteppedAdviceCandidate({
+    maxAmount: maxReduction,
+    evaluateCandidate: (reductionMonthly) => {
+      const nextFormData = buildReducedLivingCostFormData(formData, reductionMonthly)
+      const nextResult = calculateAlphaScenario(nextFormData)
 
-    if (!improvesEnough(result, nextResult)) {
-      continue
-    }
+      if (!improvesEnough(result, nextResult)) {
+        return null
+      }
 
-    const nextLivingCost = getLivingCostSnapshot(nextFormData)
-    const statsNote =
-      currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
-        ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD30E\uC785\uB2C8\uB2E4.`
-        : ''
-    const message = resolvesDeficit(nextResult)
-      ? `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.${statsNote}`
-      : `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.${statsNote}`
-    const candidate = createAdviceCandidate({
-      id: `living-cost-${reductionMonthly}`,
-      message,
-      actionLabel: '\uC0DD\uD65C\uBE44 \uC801\uC6A9',
-      beforeResult: result,
-      currentFormData: formData,
-      afterFormData: nextFormData,
-      afterResult: nextResult,
-    })
+      const nextLivingCost = getLivingCostSnapshot(nextFormData)
+      const statsNote =
+        currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
+          ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD30E\uC785\uB2C8\uB2E4.`
+          : ''
+      const message = resolvesDeficit(nextResult)
+        ? `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.${statsNote}`
+        : `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.${statsNote}`
 
-    if (candidate) {
-      candidates.push(candidate)
-    }
-
-    if (resolvesDeficit(nextResult)) {
-      break
-    }
-  }
-
-  return pickBestAdviceCandidate(candidates)
+      return createAdviceCandidate({
+        id: `living-cost-${reductionMonthly}`,
+        message,
+        actionLabel: '\uC0DD\uD65C\uBE44 \uC801\uC6A9',
+        beforeResult: result,
+        currentFormData: formData,
+        afterFormData: nextFormData,
+        afterResult: nextResult,
+      })
+    },
+  })
 }
 
 const findDividendAdvice = (
   formData: AlphaFormData,
   result: AlphaResult,
 ): AdviceCandidate | null => {
-  const candidates: AdviceCandidate[] = []
+  return buildSteppedAdviceCandidate({
+    maxAmount: 3_000_000,
+    evaluateCandidate: (additionalDividendMonthly) => {
+      const nextFormData = buildDividendBoostFormData(formData, additionalDividendMonthly)
+      const nextResult = calculateAlphaScenario(nextFormData)
 
-  for (let additionalDividendMonthly = 100_000; additionalDividendMonthly <= 3_000_000; additionalDividendMonthly += 100_000) {
-    const nextFormData = buildDividendBoostFormData(formData, additionalDividendMonthly)
-    const nextResult = calculateAlphaScenario(nextFormData)
+      if (!improvesEnough(result, nextResult)) {
+        return null
+      }
 
-    if (!improvesEnough(result, nextResult)) {
-      continue
-    }
+      const message = resolvesDeficit(nextResult)
+        ? `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+        : `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`
 
-    const message = resolvesDeficit(nextResult)
-      ? `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
-      : `\uC6D4 \uBC30\uB2F9\uAE08 \uAE30\uC900\uC73C\uB85C ${formatCompactCurrency(additionalDividendMonthly)}\uB97C \uB354 \uD655\uBCF4\uD558\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`
-    const candidate = createAdviceCandidate({
-      id: `dividend-${additionalDividendMonthly}`,
-      message,
-      actionLabel: '\uBC30\uB2F9 \uC801\uC6A9',
-      beforeResult: result,
-      currentFormData: formData,
-      afterFormData: nextFormData,
-      afterResult: nextResult,
-    })
-
-    if (candidate) {
-      candidates.push(candidate)
-    }
-
-    if (resolvesDeficit(nextResult)) {
-      break
-    }
-  }
-
-  return pickBestAdviceCandidate(candidates)
+      return createAdviceCandidate({
+        id: `dividend-${additionalDividendMonthly}`,
+        message,
+        actionLabel: '\uBC30\uB2F9 \uC801\uC6A9',
+        beforeResult: result,
+        currentFormData: formData,
+        afterFormData: nextFormData,
+        afterResult: nextResult,
+      })
+    },
+  })
 }
 
 const findJeonseAdvice = (

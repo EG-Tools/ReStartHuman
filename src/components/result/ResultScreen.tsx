@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+﻿import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
@@ -70,16 +70,6 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
         <ResultInterpretation title={'\uC801\uC790 \uD574\uACB0 \uCC38\uACE0'} items={adviceItems} />
       ) : null}
 
-      <section className="result-panel">
-        <div className="panel-header">
-          <div>
-            <h2>{'\uACB0\uACFC\uD45C'}</h2>
-          </div>
-        </div>
-        <p className="table-scroll-hint">{'\uACB0\uACFC\uD45C\uB294 \uC88C\uC6B0\uB85C \uBC00\uC5B4\uC11C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694.'}</p>
-        <ResultTable rows={rows} projectionYears={formData.simulationYears} />
-      </section>
-
       {recentAdviceText && onUndoAdvice ? (
         <section className="result-panel recent-advice-panel" data-capture-exclude="true">
           <div className="panel-header">
@@ -95,6 +85,16 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
           </div>
         </section>
       ) : null}
+
+      <section className="result-panel">
+        <div className="panel-header">
+          <div>
+            <h2>{'\uACB0\uACFC\uD45C'}</h2>
+          </div>
+        </div>
+        <p className="table-scroll-hint">{'\uACB0\uACFC\uD45C\uB294 \uC88C\uC6B0\uB85C \uBC00\uC5B4\uC11C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694.'}</p>
+        <ResultTable rows={rows} projectionYears={formData.simulationYears} />
+      </section>
     </div>
   )
 })
