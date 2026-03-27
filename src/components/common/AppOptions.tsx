@@ -100,8 +100,8 @@ export function AppOptionsModal({
 
           <p className="support-copy">
             {isAdFreeEnabled
-              ? '이 기기에서는 결과 전 광고를 건너뜁니다. 임시 구현이라 브라우저 저장소를 지우면 다시 광고가 보일 수 있습니다.'
-              : '후원 기능을 임시로 연결했습니다. 한 번 활성화하면 이 기기에서는 결과 전 광고를 건너뜁니다.'}
+              ? '이 기기에서는 결과 전 광고를 건너뜁니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 임시 구현이라 브라우저 저장소를 지우면 다시 광고가 보일 수 있습니다.'
+              : '후원 기능을 임시로 연결했습니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 한 번 활성화하면 이 기기에서는 결과 전 광고를 건너뜁니다.'}
           </p>
 
           <div className="support-actions">
@@ -145,7 +145,7 @@ export function AppOptionsModal({
               <p className="eyebrow">후원 확인</p>
               <h2>후원하겠습니까?</h2>
               <p className="support-note">
-                예를 누르면 이 기기에서는 결과 전 광고를 임시로 숨깁니다.
+                예를 누르면 이 기기에서는 결과 전 광고를 임시로 숨깁니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.
               </p>
               <div className="support-confirm-actions">
                 <PrimaryButton onClick={handleConfirmSupport}>예</PrimaryButton>
