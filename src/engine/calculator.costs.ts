@@ -1,4 +1,4 @@
-import { policyConfig } from '../config/policyConfig'
+﻿import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome, ReviewLevel } from '../types/alpha'
 import {
   calculateEstimatedComprehensiveIncomeTax,
@@ -166,6 +166,8 @@ export const getDependentHealthInsuranceAssessment = ({
   )
   const passiveAnnualIncome =
     totalDividendAnnualGross + pensionMonthly * 12 + (otherPensionMonthly + miscMonthly) * 12
+  const passiveIncomeThresholdAnnual =
+    policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual
   const highReasons: string[] = []
   const reviewReasons: string[] = []
 
@@ -202,14 +204,17 @@ export const getDependentHealthInsuranceAssessment = ({
     }
   }
 
-  if (
-    passiveAnnualIncome >=
-    policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual
-  ) {
+  if (passiveAnnualIncome > passiveIncomeThresholdAnnual) {
     highReasons.push(
       '배당·연금·기타소득 합산이 연 ' +
         formatCompactCurrency(passiveAnnualIncome) +
         '로 2,000만원 기준을 넘습니다.',
+    )
+  } else if (passiveAnnualIncome === passiveIncomeThresholdAnnual) {
+    reviewReasons.push(
+      '배당·연금·기타소득 합산이 연 ' +
+        formatCompactCurrency(passiveAnnualIncome) +
+        '로 2,000만원 기준과 같은 수준입니다.',
     )
   } else if (passiveAnnualIncome > 0) {
     reviewReasons.push(
@@ -609,4 +614,5 @@ export const calculateCashProjection = (
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
   }
 }
+
 

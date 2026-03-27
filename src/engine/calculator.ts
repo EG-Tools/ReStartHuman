@@ -1,4 +1,4 @@
-import { policyConfig } from '../config/policyConfig'
+﻿import { policyConfig } from '../config/policyConfig'
 import type { AlphaFormData, AlphaResult, AdditionalHome } from '../types/alpha'
 import {
   calculateCashProjection,
@@ -202,7 +202,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     formData,
     age: formData.currentAge,
     nationalPensionMonthly: pensionMonthlyApplied,
-    totalFinancialIncomeAnnual: totalDividend.annualGross,
+    totalFinancialIncomeAnnual: taxableDividend.annualGross,
   })
   const totalIncomeMonthly =
     totalDividend.monthlyNet + otherIncomeMonthlyApplied + pensionMonthlyApplied
@@ -311,3 +311,4 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     loanNotice: formData.loanInterestMonthly > 0,
   }
 }
+

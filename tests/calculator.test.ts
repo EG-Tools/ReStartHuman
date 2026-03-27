@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+﻿import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
@@ -278,4 +278,22 @@ test('estimated comprehensive and local income tax reflect structured income bas
     result.estimatedLocalIncomeTaxAnnual,
     Math.round(result.estimatedComprehensiveIncomeTaxAnnual * 0.1),
   )
+})
+test('ISA 배당만으로는 금융소득 종합과세 검토를 띄우지 않는다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    householdType: 'couple',
+    dividendInputMode: 'gross',
+    taxableAccountDividendAnnual: 0,
+    isaDividendAnnual: 100_000_000,
+    isaOwnershipType: 'split',
+    myAnnualIsaDividendAttributed: 50_000_000,
+    spouseAnnualIsaDividendAttributed: 50_000_000,
+    healthInsuranceType: 'dependent',
+    pensionMonthlyAmount: 0,
+  })
+
+  assert.equal(result.comprehensiveTaxImpactAnnual, 0)
+  assert.equal(result.estimatedComprehensiveTaxReviewLevel, 'none')
+  assert.deepEqual(result.estimatedComprehensiveTaxReviewReasons, [])
 })
