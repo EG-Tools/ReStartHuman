@@ -1,9 +1,8 @@
-import {
+﻿import {
   Suspense,
   lazy,
   startTransition,
   useCallback,
-  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -65,15 +64,14 @@ export default function App() {
   const flow = useAlphaFlow(formData, adSupport.isAdFreeEnabled)
   const saveSlots = useSaveSlots()
   const calculationInput = useMemo(() => createCalculatorInput(formData), [formData])
-  const deferredCalculationInput = useDeferredValue(calculationInput)
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
   const liveResult = useMemo(
     () =>
       shouldRenderResult && loadedSlotResult === null
-        ? calculateAlphaScenario(deferredCalculationInput)
+        ? calculateAlphaScenario(calculationInput)
         : null,
-    [deferredCalculationInput, loadedSlotResult, shouldRenderResult],
+    [calculationInput, loadedSlotResult, shouldRenderResult],
   )
   const result = loadedSlotResult ?? liveResult
   const optionsButton = useMemo(
@@ -129,19 +127,17 @@ export default function App() {
   }, [calculationInput, needsLoadedSlotRefresh])
 
   const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
-    startTransition(() => {
-      setFormData((currentValue) => {
-        if (!hasPatchChanges(currentValue, patch)) {
-          return currentValue
-        }
+    setLoadedSlotResult(null)
+    setNeedsLoadedSlotRefresh(false)
+    setFormData((currentValue) => {
+      if (!hasPatchChanges(currentValue, patch)) {
+        return currentValue
+      }
 
-        return {
-          ...currentValue,
-          ...patch,
-        }
-      })
-      setLoadedSlotResult(null)
-      setNeedsLoadedSlotRefresh(false)
+      return {
+        ...currentValue,
+        ...patch,
+      }
     })
   }, [])
 
@@ -281,3 +277,5 @@ export default function App() {
     </div>
   )
 }
+
+
