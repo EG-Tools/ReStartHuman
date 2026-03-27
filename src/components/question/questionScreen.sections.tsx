@@ -848,19 +848,19 @@ export function renderQuestionContent({
           <div className="question-stack">
             <section className="question-block">
               <div className="question-block-header">
-                <h2>?? ?? ??</h2>
+                <h2>추가 소득 선택</h2>
               </div>
               {renderIncomeCategoryRows()}
               <p className="screen-copy question-copy-note">
-                ???????? ? ???? ?? ?????. ???? ??? ?? ?????.
+                배당·이자소득은 앞 질문에서 따로 입력합니다. 해당하는 소득을 모두 선택하세요.
               </p>
               {selectedIncomeCategories.length > 0 ? (
                 <PrimaryButton variant="ghost" onClick={handleClearIncomeSelection}>
-                  ?? ?? ??
+                  소득 선택 해제
                 </PrimaryButton>
               ) : (
                 <p className="screen-copy question-copy-note">
-                  ??? ??? ?? ?? ???? ?????.
+                  선택이 없으면 추가 소득 없음으로 계산합니다.
                 </p>
               )}
             </section>
@@ -872,7 +872,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'earnedIncomeMonthly',
-                          label: '? ????',
+                          label: '월 근로소득',
                           value: formData.earnedIncomeMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -882,7 +882,7 @@ export function renderQuestionContent({
                               }),
                             ),
                           helperText: usesEmployeeHealthInsurance
-                            ? '????? ?? ? ???? ?? ??? ?????.'
+                            ? '직장가입자 선택 시 급여에도 같은 금액을 반영합니다.'
                             : undefined,
                         },
                       ]
@@ -891,7 +891,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'otherPensionMonthly',
-                          label: '? ????',
+                          label: '월 기타연금',
                           value: formData.otherPensionMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -899,11 +899,11 @@ export function renderQuestionContent({
                                 otherPensionMonthly: value,
                               }),
                             ),
-                          helperText: '????? ??? ?? ??? ?????.',
+                          helperText: '국민연금과 별도로 받는 연금만 입력합니다.',
                         },
                         {
                           key: 'otherPensionStartAge',
-                          label: '???? ?? ??',
+                          label: '기타연금 시작 나이',
                           value: formData.otherPensionStartAge,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -912,7 +912,7 @@ export function renderQuestionContent({
                               }),
                             ),
                           display: 'number' as const,
-                          suffix: '?',
+                          suffix: '세',
                           min: 1,
                           step: 1,
                         },
@@ -922,7 +922,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'freelanceIncomeMonthly',
-                          label: '? ???? ??',
+                          label: '월 프리랜서 소득',
                           value: formData.freelanceIncomeMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -930,7 +930,7 @@ export function renderQuestionContent({
                                 freelanceIncomeMonthly: value,
                               }),
                             ),
-                          helperText: '?? ?? ?? ?????????? ?? ?????.',
+                          helperText: '등록 없이 받는 자문·외주·인적용역 수입 기준입니다.',
                         },
                       ]
                     : []),
@@ -938,7 +938,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'businessIncomeMonthly',
-                          label: '? ????',
+                          label: '월 사업소득',
                           value: formData.businessIncomeMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -946,7 +946,7 @@ export function renderQuestionContent({
                                 businessIncomeMonthly: value,
                               }),
                             ),
-                          helperText: '?????? ?? ?? ?? ?????.',
+                          helperText: '사업자등록이 있는 사업 소득 기준입니다.',
                         },
                       ]
                     : []),
@@ -954,7 +954,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'rentalIncomeMonthly',
-                          label: '? ????',
+                          label: '월 임대소득',
                           value: formData.rentalIncomeMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -962,7 +962,7 @@ export function renderQuestionContent({
                                 rentalIncomeMonthly: value,
                               }),
                             ),
-                          helperText: '????? ?????? ?? ??? ?????.',
+                          helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
                         },
                       ]
                     : []),
@@ -970,7 +970,7 @@ export function renderQuestionContent({
                     ? [
                         {
                           key: 'miscIncomeMonthly',
-                          label: '? ????',
+                          label: '월 기타소득',
                           value: formData.miscIncomeMonthly,
                           onChange: (value: number) =>
                             onPatchFormData(
@@ -978,7 +978,7 @@ export function renderQuestionContent({
                                 miscIncomeMonthly: value,
                               }),
                             ),
-                          helperText: '? ?? ?? ??? ???? ? ??? ????.',
+                          helperText: '위 분류 외에 별도로 들어오는 월 유입을 적습니다.',
                         },
                       ]
                     : []),
