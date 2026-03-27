@@ -392,7 +392,7 @@ const findLivingCostAdvice = (
     const nextLivingCost = getLivingCostSnapshot(nextFormData)
     const statsNote =
       currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
-        ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD31D\uC785\uB2C8\uB2E4.`
+        ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD30E\uC785\uB2C8\uB2E4.`
         : ''
     const message = resolvesDeficit(nextResult)
       ? `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.${statsNote}`
@@ -479,7 +479,7 @@ const findJeonseAdvice = (
   return createAdviceCandidate({
     id: 'jeonse-shift',
     message: resolvesDeficit(nextResult)
-      ? `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74 \uBCF4\uC720\uC138\uC640 \uAC74\uAC15\uBCF4\uD5D8\uB8CC \uBD80\uB2F4\uC774 \uC904\uC5B4 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
+      ? `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFB8\uBA74 \uBCF4\uC720\uC138\uC640 \uAC74\uAC15\uBCF4\uD5D8\uB8CC \uBD80\uB2F4\uC774 \uC904\uC5B4 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.`
       : `\uC790\uAC00 \uB300\uC2E0 \uC804\uC138 \uC2DC\uB098\uB9AC\uC624\uB85C \uBC14\uAFC0\uBA74 \uC6D4 \uC801\uC790 \uD3ED\uC774 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} \uAC1C\uC120\uB429\uB2C8\uB2E4.`,
     actionLabel: '\uC804\uC138 \uC801\uC6A9',
     beforeResult: result,
