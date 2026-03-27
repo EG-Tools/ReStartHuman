@@ -304,6 +304,13 @@ export function buildResultRows({
   const shouldShowAcademyRow =
     formData.livingCostInputMode === 'detailed' && academyMonthly > 0
   const otherIncomeTypeLabel = getOtherIncomeTypeLabel(formData.otherIncomeType)
+  const otherIncomeInputMonthly =
+    formData.otherIncomeType === 'earned'
+      ? Math.max(formData.otherIncomeMonthly, formData.salaryMonthly)
+      : formData.otherIncomeMonthly
+  const pensionStartsLater = formData.currentAge < formData.pensionStartAge
+  const otherPensionStartsLater =
+    formData.otherIncomeType === 'pension' && formData.currentAge < formData.otherIncomeStartAge
   const totalIncomePieces = [
     result.totalDividendAnnualNet > 0
       ? `${formatCompactCurrency(result.totalDividendAnnualNet)} 배당`
@@ -451,8 +458,12 @@ export function buildResultRows({
             ),
             monthly: formatCompactCurrency(result.pensionMonthlyApplied),
             annual: formatCompactCurrency(result.pensionMonthlyApplied * 12),
-            tenYear: formatCompactCurrency(result.pensionMonthlyApplied * 12 * formData.simulationYears),
-            note: '월 기준 유입',
+            tenYear: formatCompactCurrency(result.projectionPensionIncomeTotal),
+            note: pensionStartsLater ? `${formData.pensionStartAge}세부터 반영` : '월 기준 유입',
+            noteDetail:
+              pensionStartsLater
+                ? `현재 ${formData.currentAge}세 기준 국민연금은 ${formData.pensionStartAge}세부터 현금흐름에 반영합니다.`
+                : undefined,
           } satisfies ResultRow,
         ]
       : []),
@@ -461,11 +472,18 @@ export function buildResultRows({
           {
             category: '유입',
             item: '기타 소득',
-            input: `월 ${formatCompactCurrency(result.otherIncomeMonthlyApplied)}`,
+            input: `월 ${formatCompactCurrency(otherIncomeInputMonthly)}`,
             monthly: formatCompactCurrency(result.otherIncomeMonthlyApplied),
             annual: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12),
-            tenYear: formatCompactCurrency(result.otherIncomeMonthlyApplied * 12 * formData.simulationYears),
-            note: `${otherIncomeTypeLabel} 월 유입`,
+            tenYear: formatCompactCurrency(result.projectionOtherIncomeTotal),
+            note:
+              otherPensionStartsLater
+                ? `${formData.otherIncomeStartAge}세부터 반영`
+                : `${otherIncomeTypeLabel} 월 유입`,
+            noteDetail:
+              otherPensionStartsLater
+                ? `현재 ${formData.currentAge}세 기준 기타연금은 ${formData.otherIncomeStartAge}세부터 현금흐름에 반영합니다.`
+                : undefined,
           } satisfies ResultRow,
         ]
       : []),
@@ -475,7 +493,7 @@ export function buildResultRows({
       input: totalIncomePieces.length > 0 ? totalIncomePieces.join(' + ') : '입력된 유입 없음',
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
-      tenYear: formatCompactCurrency(result.totalIncomeMonthly * 12 * formData.simulationYears),
+      tenYear: formatCompactCurrency(result.projectionTotalIncomeTotal),
       note: '세금 차감 전',
     },
     {
@@ -535,7 +553,7 @@ export function buildResultRows({
       ),
       monthly: formatCompactCurrency(result.monthlyUsableCash),
       annual: formatCompactCurrency(result.monthlyUsableCash * 12),
-      tenYear: formatCompactCurrency(result.monthlyUsableCash * 12 * formData.simulationYears),
+      tenYear: formatCompactCurrency(result.projectionUsableCashTotal),
       note: '생활비·고정지출 차감 전',
     },
     {

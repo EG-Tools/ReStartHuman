@@ -56,9 +56,10 @@ export const defaultFormData: AlphaFormData = {
 
   otherIncomeType: 'none',
   otherIncomeMonthly: 0,
+  otherIncomeStartAge: 65,
 
   hasPensionIncome: false,
-  pensionStartAge: 60,
+  pensionStartAge: 65,
   pensionMonthlyAmount: 0,
 
   healthInsuranceType: 'regional',
