@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import test from 'node:test'
 import { policyConfig } from '../src/config/policyConfig'
 import { defaultFormData } from '../src/data/defaultFormData'
@@ -246,5 +246,52 @@ test('피부양자 배당이 정확히 2,000만원이면 high가 아니라 revie
   assert.equal(assessment.level, 'review')
   assert.equal(assessment.shouldChargeRegional, false)
   assert.ok(assessment.reasons.some((reason) => reason.includes('같은 수준')))
+  assert.equal(premium, 0)
+})
+
+test('피부양자 재산세 과표 추정이 5.4억원을 넘고 소득이 1,000만원을 넘으면 high로 본다', () => {
+  const formData = {
+    ...defaultFormData,
+    householdType: 'single' as const,
+    housingType: 'own' as const,
+    homeOfficialValue: 950_000_000,
+    healthInsuranceType: 'dependent' as const,
+    selectedIncomeCategories: ['earned'] as Array<'earned'>,
+    earnedIncomeMonthly: 1_000_000,
+    earnedIncomeDurationYears: 10,
+  }
+
+  const assessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross: 0,
+    age: 50,
+    pensionMonthly: 0,
+  })
+
+  assert.equal(assessment.level, 'high')
+  assert.ok(assessment.reasons.some((reason) => reason.includes('재산세 과표')))
+})
+
+test('피부양자 재산세 과표 추정이 5.4억원 구간이어도 소득이 낮으면 review로 본다', () => {
+  const formData = {
+    ...defaultFormData,
+    householdType: 'single' as const,
+    housingType: 'own' as const,
+    homeOfficialValue: 950_000_000,
+    healthInsuranceType: 'dependent' as const,
+    otherIncomeType: 'none' as const,
+  }
+
+  const assessment = getDependentHealthInsuranceAssessment({
+    formData,
+    totalDividendAnnualGross: 0,
+    age: 50,
+    pensionMonthly: 0,
+  })
+  const premium = estimateHealthInsurance(formData, 0, 50, 0)
+
+  assert.equal(assessment.level, 'review')
+  assert.equal(assessment.shouldChargeRegional, false)
+  assert.ok(assessment.reasons.some((reason) => reason.includes('5.4억원')))
   assert.equal(premium, 0)
 })

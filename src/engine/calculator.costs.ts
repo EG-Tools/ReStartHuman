@@ -1,4 +1,4 @@
-﻿import { policyConfig } from '../config/policyConfig'
+import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome, ReviewLevel } from '../types/alpha'
 import {
   calculateEstimatedComprehensiveIncomeTax,
@@ -129,6 +129,75 @@ const getRegionalPropertyBase = (formData: AlphaFormData) => {
   return housingBase + getAdditionalHomeOfficialValueTotal(formData) + getAdditionalPropertyBase(formData)
 }
 
+const getDependentCurrentHomeOfficialValue = (formData: AlphaFormData) => {
+  if (formData.housingType !== 'own' || formData.homeOfficialValue <= 0) {
+    return 0
+  }
+
+  if (formData.householdType !== 'couple' || !formData.isJointOwnership) {
+    return roundCurrency(formData.homeOfficialValue)
+  }
+
+  return roundCurrency(formData.homeOfficialValue / policyConfig.holdingTax.jointOwnershipShareCount)
+}
+
+const getDependentCurrentHomeFairMarketRatio = (formData: AlphaFormData) => {
+  if (formData.housingType !== 'own' || formData.homeOfficialValue <= 0) {
+    return 0
+  }
+
+  const ownedHomeCount = getOwnedHomeCount(formData)
+
+  if (
+    ownedHomeCount === 1 &&
+    formData.homeOfficialValue <= policyConfig.holdingTax.singleHomeSpecialOfficialValueThreshold
+  ) {
+    return (
+      policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers.find(
+        (tier) => formData.homeOfficialValue <= tier.upperBound,
+      ) ??
+      policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers[
+        policyConfig.holdingTax.singleHomeSpecialFairMarketRatioTiers.length - 1
+      ]
+    ).ratio
+  }
+
+  return policyConfig.holdingTax.defaultFairMarketRatio
+}
+
+const getDependentPropertyTaxBaseApprox = (formData: AlphaFormData) => {
+  const currentHomeTaxBase =
+    getDependentCurrentHomeOfficialValue(formData) *
+    getDependentCurrentHomeFairMarketRatio(formData)
+  const additionalHomeTaxBase = getActiveAdditionalHomes(formData).reduce(
+    (sum, home) =>
+      sum + Math.max(home.officialValue, 0) * policyConfig.holdingTax.defaultFairMarketRatio,
+    0,
+  )
+  const landAssessedValue = formData.hasLandOrOtherProperty
+    ? roundCurrency(formData.landValue * policyConfig.holdingTax.landAssessedValueRatioApprox)
+    : 0
+  const attributedLandAssessedValue = getMineAttributedPropertyValue({
+    householdType: formData.householdType,
+    ownershipType: formData.landOwnershipType,
+    totalValue: landAssessedValue,
+    myShare: formData.myLandShare,
+  })
+  const attributedOtherPropertyValue = getMineAttributedPropertyValue({
+    householdType: formData.householdType,
+    ownershipType: formData.otherPropertyOwnershipType,
+    totalValue: formData.hasLandOrOtherProperty ? formData.otherPropertyOfficialValue : 0,
+    myShare: formData.myOtherPropertyShare,
+  })
+
+  return roundCurrency(
+    currentHomeTaxBase +
+      additionalHomeTaxBase +
+      attributedLandAssessedValue * policyConfig.holdingTax.defaultFairMarketRatio +
+      attributedOtherPropertyValue * policyConfig.holdingTax.defaultFairMarketRatio,
+  )
+}
+
 type DependentHealthInsuranceAssessment = {
   level: ReviewLevel
   reasons: string[]
@@ -154,6 +223,7 @@ export const getDependentHealthInsuranceAssessment = ({
     }
   }
 
+  const earnedMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'earned', age)
   const businessMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
   const freelanceMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'freelance', age)
   const rentalMonthly = getAgeQualifiedRentalIncomeMonthly(formData, age)
@@ -164,10 +234,15 @@ export const getDependentHealthInsuranceAssessment = ({
     formData.dependentFreelanceAnnualProfit,
     freelanceMonthly * 12,
   )
-  const passiveAnnualIncome =
-    totalDividendAnnualGross + pensionMonthly * 12 + (otherPensionMonthly + miscMonthly) * 12
-  const passiveIncomeThresholdAnnual =
-    policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual
+  const assessableIncomeAnnual = roundCurrency(
+    earnedMonthly * 12 +
+      totalDividendAnnualGross +
+      pensionMonthly * 12 +
+      (otherPensionMonthly + miscMonthly) * 12,
+  )
+  const assessableIncomeThresholdAnnual =
+    policyConfig.healthInsurance.dependentIncomeThresholdAnnual
+  const dependentPropertyTaxBaseApprox = getDependentPropertyTaxBaseApprox(formData)
   const highReasons: string[] = []
   const reviewReasons: string[] = []
 
@@ -204,24 +279,57 @@ export const getDependentHealthInsuranceAssessment = ({
     }
   }
 
-  if (passiveAnnualIncome > passiveIncomeThresholdAnnual) {
+  if (assessableIncomeAnnual > assessableIncomeThresholdAnnual) {
     highReasons.push(
-      '배당·연금·기타소득 합산이 연 ' +
-        formatCompactCurrency(passiveAnnualIncome) +
+      '근로·배당·연금·기타소득 합산이 연 ' +
+        formatCompactCurrency(assessableIncomeAnnual) +
         '로 2,000만원 기준을 넘습니다.',
     )
-  } else if (passiveAnnualIncome === passiveIncomeThresholdAnnual) {
+  } else if (assessableIncomeAnnual === assessableIncomeThresholdAnnual) {
     reviewReasons.push(
-      '배당·연금·기타소득 합산이 연 ' +
-        formatCompactCurrency(passiveAnnualIncome) +
+      '근로·배당·연금·기타소득 합산이 연 ' +
+        formatCompactCurrency(assessableIncomeAnnual) +
         '로 2,000만원 기준과 같은 수준입니다.',
     )
-  } else if (passiveAnnualIncome > 0) {
+  } else if (assessableIncomeAnnual > 0) {
     reviewReasons.push(
-      '배당·연금·기타소득 합산은 연 ' +
-        formatCompactCurrency(passiveAnnualIncome) +
+      '근로·배당·연금·기타소득 합산은 연 ' +
+        formatCompactCurrency(assessableIncomeAnnual) +
         ' 수준입니다.',
     )
+  }
+
+  if (
+    dependentPropertyTaxBaseApprox >
+    policyConfig.healthInsurance.dependentPropertyDisqualifyThreshold
+  ) {
+    highReasons.push(
+      '재산세 과표 추정을 약 ' +
+        formatCompactCurrency(dependentPropertyTaxBaseApprox) +
+        '으로 보면 9억원 기준을 넘어 피부양자 유지 가능성이 낮다고 봤습니다.',
+    )
+  } else if (
+    dependentPropertyTaxBaseApprox >
+    policyConfig.healthInsurance.dependentPropertyReviewThreshold
+  ) {
+    if (
+      assessableIncomeAnnual >
+      policyConfig.healthInsurance.dependentPropertyIncomeThresholdAnnual
+    ) {
+      highReasons.push(
+        '재산세 과표 추정이 약 ' +
+          formatCompactCurrency(dependentPropertyTaxBaseApprox) +
+          '이고 소득도 연 ' +
+          formatCompactCurrency(assessableIncomeAnnual) +
+          '라 피부양자 기준 재확인이 필요합니다.',
+      )
+    } else {
+      reviewReasons.push(
+        '재산세 과표 추정이 약 ' +
+          formatCompactCurrency(dependentPropertyTaxBaseApprox) +
+          '로 5.4억원 구간이라 소득 1,000만원 기준을 함께 확인하는 편이 좋습니다.',
+      )
+    }
   }
 
   const reasons = Array.from(new Set([...highReasons, ...reviewReasons]))
@@ -614,5 +722,3 @@ export const calculateCashProjection = (
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
   }
 }
-
-

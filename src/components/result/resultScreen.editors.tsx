@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
@@ -660,7 +660,7 @@ export function buildResultRows({
               result.estimatedComprehensiveTaxBaseAnnual > 0
                 ? `과세표준 연 ${formatCompactCurrency(result.estimatedComprehensiveTaxBaseAnnual)}`
                 : result.estimatedComprehensiveTaxReviewLevel !== 'none'
-                  ? '신고 가능성 안내'
+                  ? '추정 기준 안내'
                   : '현재 기준 과세표준 0원',
             monthly: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual / 12),
             annual: formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual),
@@ -669,11 +669,11 @@ export function buildResultRows({
               result.estimatedComprehensiveTaxReviewLevel === 'high'
                 ? '추정 · 신고 가능성 높음'
                 : result.estimatedComprehensiveTaxReviewLevel === 'review'
-                  ? '추정 · 신고 검토 필요'
+                  ? '추정 · 기준 확인'
                   : estimatedComprehensiveTaxStartsLater
                     ? '추정 · 향후 시작 소득 반영'
                     : '추정 · 국민연금·근로 등 반영',
-            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봅니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
+            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',
@@ -868,4 +868,3 @@ export function buildResultRows({
 
   return rows
 }
-

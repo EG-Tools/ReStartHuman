@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
@@ -272,7 +272,7 @@ test('estimated comprehensive and local income tax reflect structured income bas
     businessIncomeDurationYears: 10,
   })
 
-  assert.equal(result.estimatedComprehensiveTaxBaseAnnual, 36_000_000)
+  assert.equal(result.estimatedComprehensiveTaxBaseAnnual, 25_650_000)
   assert.ok(result.estimatedComprehensiveIncomeTaxAnnual > 0)
   assert.equal(
     result.estimatedLocalIncomeTaxAnnual,
@@ -296,4 +296,53 @@ test('ISA 배당만으로는 금융소득 종합과세 검토를 띄우지 않�
   assert.equal(result.comprehensiveTaxImpactAnnual, 0)
   assert.equal(result.estimatedComprehensiveTaxReviewLevel, 'none')
   assert.deepEqual(result.estimatedComprehensiveTaxReviewReasons, [])
+})
+
+test('국민연금은 연금소득공제를 거친 뒤 종합소득세 과세표준에 반영한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 65,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    pensionMonthlyAmount: 1_000_000,
+    pensionStartAge: 65,
+  })
+
+  assert.equal(result.estimatedComprehensiveTaxBaseAnnual, 4_600_000)
+  assert.equal(result.estimatedComprehensiveIncomeTaxAnnual, 276_000)
+  assert.equal(result.estimatedLocalIncomeTaxAnnual, 27_600)
+})
+
+test('기타소득금액이 연 300만원 이하로 보면 종합소득세 추정에서 제외한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    selectedIncomeCategories: ['misc'],
+    miscIncomeMonthly: 600_000,
+    miscIncomeDurationYears: 10,
+  })
+
+  assert.equal(result.estimatedComprehensiveTaxBaseAnnual, 0)
+  assert.equal(result.estimatedComprehensiveIncomeTaxAnnual, 0)
+  assert.ok(
+    result.estimatedComprehensiveTaxReviewReasons.some((reason) =>
+      reason.includes('기타소득금액이 연 300만원 이하'),
+    ),
+  )
 })
