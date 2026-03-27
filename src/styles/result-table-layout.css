@@ -366,6 +366,21 @@
   outline-offset: 2px;
 }
 
+.recent-advice-panel {
+  gap: 14px;
+}
+
+.recent-advice-copy {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.recent-advice-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .table-shell .result-table .result-input-cell .table-edit-group-caption-center > .table-edit-label {
   width: 100%;
   text-align: center;

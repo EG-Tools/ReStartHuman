@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
@@ -14,12 +14,19 @@ import { ProjectionInlineControls, ResultHelpDrawer } from './resultScreen.notic
 import {
   buildDeficitAdviceItems,
   buildInterpretationItems,
+  type DeficitAdviceItem,
   getAgeAssetBenchmark,
   getAssetInterpretationMessage,
   getHouseholdAssetEstimate,
   type ResultRow,
 } from './resultScreen.helpers'
 
+
+interface RecentAdviceState {
+  id: string
+  text: string
+  previousFormData: AlphaFormData
+}
 
 interface ResultCaptureContentProps {
   captureRef: RefObject<HTMLDivElement | null>
@@ -91,6 +98,7 @@ export const ResultScreen = memo(function ResultScreen({
   onPatchFormData,
   headerAction,
 }: ResultScreenProps) {
+  const [recentAdvice, setRecentAdvice] = useState<RecentAdviceState | null>(null)
   const dividendBasisLabel =
     result.dividendInputMode === 'gross'
       ? '배당 입력 기준: 세전'
@@ -163,15 +171,45 @@ export const ResultScreen = memo(function ResultScreen({
       }),
     [assetInterpretation, effectiveComprehensiveRate, formData, result],
   )
+  const handleResultPatch = useCallback(
+    (patch: Partial<AlphaFormData>) => {
+      setRecentAdvice(null)
+      onPatchFormData(patch)
+    },
+    [onPatchFormData],
+  )
+  const handleApplyAdvice = useCallback(
+    (item: DeficitAdviceItem) => {
+      if (!item.patch) {
+        return
+      }
+
+      setRecentAdvice({
+        id: item.id,
+        text: item.message,
+        previousFormData: formData,
+      })
+      onPatchFormData(item.patch)
+    },
+    [formData, onPatchFormData],
+  )
+  const handleUndoAdvice = useCallback(() => {
+    if (!recentAdvice) {
+      return
+    }
+
+    onPatchFormData(recentAdvice.previousFormData)
+    setRecentAdvice(null)
+  }, [onPatchFormData, recentAdvice])
   const adviceItems = useMemo<ResultInterpretationItem[]>(
     () =>
       buildDeficitAdviceItems(formData, result).map((item) => ({
         id: item.id,
         text: item.message,
         actionLabel: item.actionLabel,
-        onAction: item.patch ? () => onPatchFormData(item.patch!) : undefined,
+        onAction: item.patch ? () => handleApplyAdvice(item) : undefined,
       })),
-    [formData, onPatchFormData, result],
+    [formData, handleApplyAdvice, result],
   )
   const householdSummary = `${formData.householdType === 'couple' ? '부부 합산' : '1인 가구'}, ${
     formData.housingType === 'own'
@@ -198,7 +236,7 @@ export const ResultScreen = memo(function ResultScreen({
         householdSummary,
         housingRowLabel,
         housingRowNote,
-        onPatchFormData,
+        onPatchFormData: handleResultPatch,
         result,
       }),
     [
@@ -209,7 +247,7 @@ export const ResultScreen = memo(function ResultScreen({
       householdSummary,
       housingRowLabel,
       housingRowNote,
-      onPatchFormData,
+      handleResultPatch,
       result,
     ],
   )
@@ -234,8 +272,24 @@ export const ResultScreen = memo(function ResultScreen({
         interpretationItems={interpretationItems}
         adviceItems={adviceItems}
         rows={rows}
-        onPatchFormData={onPatchFormData}
+        onPatchFormData={handleResultPatch}
       />
+
+      {recentAdvice ? (
+        <section className="result-panel recent-advice-panel" data-capture-exclude="true">
+          <div className="panel-header">
+            <div>
+              <h2>{'\uCD5C\uADFC \uC801\uC6A9\uD55C \uC870\uC5B8'}</h2>
+            </div>
+          </div>
+          <p className="recent-advice-copy">{recentAdvice.text}</p>
+          <div className="recent-advice-actions">
+            <PrimaryButton variant="secondary" onClick={handleUndoAdvice}>
+              {'\uB418\uB3CC\uB9AC\uAE30'}
+            </PrimaryButton>
+          </div>
+        </section>
+      ) : null}
 
       <div className="footer-actions footer-actions-wrap result-actions">
         <PrimaryButton variant="secondary" onClick={onEditAnswers}>
