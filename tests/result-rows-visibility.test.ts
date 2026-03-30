@@ -99,15 +99,17 @@ test('other income row appears only when an income type is selected and has valu
   assert.ok(visibleRows.some((row) => row.note === '10년간 반영' && row.monthly === '500만원'))
 })
 
-test('multiple selected income categories create separate rows', () => {
+test('income rows follow the active single selected category', () => {
   const rows = buildRows({
     ...defaultFormData,
-    selectedIncomeCategories: ['earned', 'rental'],
+    selectedIncomeCategories: ['rental'],
     earnedIncomeMonthly: 1_000_000,
     rentalIncomeMonthly: 700_000,
   })
 
-  assert.equal(rows.filter((row) => row.category === '소득').length, 2)
+  assert.equal(rows.filter((row) => row.category === '소득').length, 1)
+  assert.ok(rows.some((row) => row.item === '임대소득'))
+  assert.ok(!rows.some((row) => row.item === '근로소득'))
 })
 
 test('income rows show duration notes when a structured income ends before the projection horizon', () => {

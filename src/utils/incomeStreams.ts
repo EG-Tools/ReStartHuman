@@ -58,38 +58,38 @@ export const incomeCategoryOptions: Array<{
 }> = [
   {
     value: 'earned',
-    label: '????',
-    description: '??? ???? ?? ??? ?? ??',
+    label: '근로소득',
+    description: '월 급여 형태로 들어오는 소득입니다.',
   },
   {
     value: 'otherPension',
-    label: '????',
-    description: '???? ?? ??? ?? ?? ??',
+    label: '기타연금',
+    description: '국민연금 외에 따로 받는 연금입니다.',
   },
   {
     value: 'rental',
-    label: '????',
-    description: '???? ??? ???? ???? ??',
+    label: '임대소득',
+    description: '월세 등 부동산 임대에서 들어오는 소득입니다.',
   },
   {
     value: 'freelance',
-    label: '????',
-    description: '???????????? ?? ??',
+    label: '프리랜서',
+    description: '사업자등록 없이 받는 용역성 소득입니다.',
   },
   {
     value: 'business',
-    label: '?????',
-    description: '?????? ?? ???? ??',
+    label: '개인사업자',
+    description: '사업자등록이 있는 사업소득입니다.',
   },
   {
     value: 'corporateExecutive',
-    label: '????',
-    description: '?? ??? ?? ??? ??? ?????.',
+    label: '법인대표',
+    description: '법인에서 대표로 받는 급여 소득입니다.',
   },
   {
     value: 'misc',
-    label: '????',
-    description: '? ?? ? ?????? ???? ??',
+    label: '기타소득',
+    description: '위 분류에 넣기 어려운 기타 정기 소득입니다.',
   },
 ]
 
@@ -131,20 +131,20 @@ const hasStructuredIncomeValue = (formData: AlphaFormData) =>
 export const getIncomeCategoryLabel = (category: IncomeCategory) => {
   switch (category) {
     case 'earned':
-      return '????'
+      return '근로소득'
     case 'otherPension':
-      return '????'
+      return '기타연금'
     case 'rental':
-      return '????'
+      return '임대소득'
     case 'freelance':
-      return '????'
+      return '프리랜서'
     case 'business':
-      return '?????'
+      return '개인사업자'
     case 'corporateExecutive':
-      return '???? ??'
+      return '법인대표'
     case 'misc':
     default:
-      return '????'
+      return '기타소득'
   }
 }
 
@@ -152,13 +152,13 @@ export const getSelectedIncomeCategories = (formData: AlphaFormData) => {
   const normalizedCategories = normalizeIncomeCategoryList(formData.selectedIncomeCategories)
 
   if (normalizedCategories.length > 0) {
-    return normalizedCategories
+    return normalizedCategories.slice(0, 1)
   }
 
   if (hasStructuredIncomeValue(formData)) {
     return INCOME_CATEGORY_ORDER.filter(
       (category) => getIncomeCategoryMonthlyValue(formData, category) > 0,
-    )
+    ).slice(0, 1)
   }
 
   const legacyCategory = LEGACY_TO_CATEGORY_MAP[formData.otherIncomeType]
@@ -338,10 +338,11 @@ export const buildStructuredIncomePatch = (
   categories: IncomeCategory[],
   patch: Partial<AlphaFormData> = {},
 ): Partial<AlphaFormData> => {
-  const primaryCategory = categories.length === 1 ? categories[0] : null
+  const normalizedCategories = normalizeIncomeCategoryList(categories).slice(0, 1)
+  const primaryCategory = normalizedCategories.length === 1 ? normalizedCategories[0] : null
 
   return {
-    selectedIncomeCategories: categories,
+    selectedIncomeCategories: normalizedCategories,
     otherIncomeType: primaryCategory ? CATEGORY_TO_LEGACY_MAP[primaryCategory] : 'none',
     ...patch,
   }

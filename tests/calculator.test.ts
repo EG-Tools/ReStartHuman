@@ -199,8 +199,8 @@ test('monthly rent income applies rental income tax to the final result', () => 
   assert.ok(rentalIncomeScenario.monthlyUsableCash > businessIncomeScenario.monthlyUsableCash)
 })
 
-test('multiple selected income categories are summed and only rental income is taxed separately', () => {
-  const result = calculateAlphaScenario({
+test('single selected income category drives the applied income and rental tax', () => {
+  const earnedResult = calculateAlphaScenario({
     ...defaultFormData,
     currentAge: 60,
     simulationYears: 10,
@@ -211,7 +211,7 @@ test('multiple selected income categories are summed and only rental income is t
     maintenanceMonthly: 0,
     telecomMonthly: 0,
     otherFixedMonthly: 0,
-    selectedIncomeCategories: ['earned', 'business', 'otherPension', 'rental'],
+    selectedIncomeCategories: ['earned'],
     earnedIncomeMonthly: 1_200_000,
     businessIncomeMonthly: 800_000,
     otherPensionMonthly: 500_000,
@@ -219,13 +219,35 @@ test('multiple selected income categories are summed and only rental income is t
     rentalIncomeMonthly: 600_000,
     healthInsuranceType: 'employee',
   })
+  const rentalResult = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 60,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    selectedIncomeCategories: ['rental'],
+    earnedIncomeMonthly: 1_200_000,
+    businessIncomeMonthly: 800_000,
+    otherPensionMonthly: 500_000,
+    otherPensionStartAge: 65,
+    rentalIncomeMonthly: 1_500_000,
+    healthInsuranceType: 'regional',
+  })
 
-  assert.equal(result.otherIncomeMonthlyApplied, 2_600_000)
-  assert.equal(result.incomeBreakdown.length, 4)
-  assert.equal(result.incomeBreakdown.find((item) => item.key === 'otherPension')?.appliedMonthly, 0)
-  assert.equal(result.incomeBreakdown.find((item) => item.key === 'rental')?.appliedMonthly, 600_000)
-  assert.equal(result.rentalIncomeTaxAnnual, 0)
-  assert.equal(result.projectionOtherIncomeTotal, 342_000_000)
+  assert.equal(earnedResult.otherIncomeMonthlyApplied, 1_200_000)
+  assert.equal(earnedResult.incomeBreakdown.length, 1)
+  assert.equal(earnedResult.incomeBreakdown[0]?.key, 'earned')
+  assert.equal(earnedResult.rentalIncomeTaxAnnual, 0)
+
+  assert.equal(rentalResult.otherIncomeMonthlyApplied, 1_500_000)
+  assert.equal(rentalResult.incomeBreakdown.length, 1)
+  assert.equal(rentalResult.incomeBreakdown[0]?.key, 'rental')
+  assert.ok(rentalResult.rentalIncomeTaxAnnual > 0)
 })
 
 test('income duration years cap projected structured income totals', () => {

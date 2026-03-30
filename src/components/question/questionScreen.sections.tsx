@@ -224,22 +224,23 @@ export function renderQuestionContent({
   }
 
   const handleToggleIncomeCategory = (category: IncomeCategory) => {
-    const isSelected = selectedIncomeCategories.includes(category)
-    const nextCategories = isSelected
-      ? selectedIncomeCategories.filter((item) => item !== category)
-      : [...selectedIncomeCategories, category]
+    const previousCategory = selectedIncomeCategories[0] ?? null
+    const isSelected = previousCategory === category
+    const nextCategories = isSelected ? [] : [category]
 
     const patch: Partial<AlphaFormData> = {}
 
-    if (isSelected) {
-      switch (category) {
+    const resetCategoryFields = (targetCategory: IncomeCategory | null) => {
+      if (!targetCategory) {
+        return
+      }
+
+      switch (targetCategory) {
         case 'earned':
           patch.earnedIncomeMonthly = 0
           patch.earnedIncomeDurationYears = defaultIncomeDurationYears
           if (usesEmployeeHealthInsurance) {
-            patch.salaryMonthly = selectedIncomeCategories.includes('corporateExecutive')
-              ? formData.corporateExecutiveSalaryMonthly
-              : 0
+            patch.salaryMonthly = 0
           }
           break
         case 'otherPension':
@@ -263,9 +264,7 @@ export function renderQuestionContent({
           patch.corporateExecutiveSalaryMonthly = 0
           patch.corporateExecutiveDurationYears = defaultIncomeDurationYears
           if (usesEmployeeHealthInsurance) {
-            patch.salaryMonthly = selectedIncomeCategories.includes('earned')
-              ? formData.earnedIncomeMonthly
-              : 0
+            patch.salaryMonthly = 0
           }
           break
         case 'misc':
@@ -273,21 +272,27 @@ export function renderQuestionContent({
           patch.miscIncomeDurationYears = defaultIncomeDurationYears
           break
       }
-    } else if (
-      category === 'earned' &&
-      usesEmployeeHealthInsurance &&
-      formData.salaryMonthly <= 0 &&
-      formData.earnedIncomeMonthly > 0
-    ) {
-      patch.salaryMonthly = formData.earnedIncomeMonthly
-    } else if (
-      category === 'corporateExecutive' &&
-      formData.corporateExecutiveSalaryMonthly > 0
-    ) {
-      patch.salaryMonthly = Math.max(
-        formData.corporateExecutiveSalaryMonthly,
-        formData.salaryMonthly,
-      )
+    }
+
+    resetCategoryFields(previousCategory)
+
+    if (!isSelected) {
+      if (
+        category === 'earned' &&
+        usesEmployeeHealthInsurance &&
+        formData.salaryMonthly <= 0 &&
+        formData.earnedIncomeMonthly > 0
+      ) {
+        patch.salaryMonthly = formData.earnedIncomeMonthly
+      } else if (
+        category === 'corporateExecutive' &&
+        formData.corporateExecutiveSalaryMonthly > 0
+      ) {
+        patch.salaryMonthly = Math.max(
+          formData.corporateExecutiveSalaryMonthly,
+          formData.salaryMonthly,
+        )
+      }
     }
 
     patchStructuredIncomeSelection(nextCategories, patch)
