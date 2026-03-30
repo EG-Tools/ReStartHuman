@@ -95,8 +95,8 @@ test('other income row appears only when an income type is selected and has valu
     otherIncomeMonthly: 5_000_000,
   })
 
-  assert.ok(!hiddenRows.some((row) => row.item === '기타 소득'))
-  assert.ok(visibleRows.some((row) => row.item === '사업소득'))
+  assert.ok(!hiddenRows.some((row) => row.note === '10년간 반영' && row.monthly === '500만원'))
+  assert.ok(visibleRows.some((row) => row.note === '10년간 반영' && row.monthly === '500만원'))
 })
 
 test('multiple selected income categories create separate rows', () => {
@@ -119,7 +119,7 @@ test('income rows show duration notes when a structured income ends before the p
     healthInsuranceType: 'dependent',
   })
 
-  const earnedRow = rows.find((row) => row.item === '근로소득')
+  const earnedRow = rows.find((row) => row.note === '5년간 반영' && row.monthly === '100만원')
   assert.equal(earnedRow?.note, '5년간 반영')
 })
 

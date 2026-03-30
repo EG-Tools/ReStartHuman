@@ -204,6 +204,18 @@ type DependentHealthInsuranceAssessment = {
   shouldChargeRegional: boolean
 }
 
+const getEstimatedBusinessIncomeAnnualForHealthInsurance = (
+  formData: AlphaFormData,
+  age: number,
+) => {
+  const currentBusinessIncomeAnnual =
+    getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age) * 12
+
+  return roundCurrency(
+    Math.max(currentBusinessIncomeAnnual, formData.previousYearDeclaredBusinessIncomeAnnual),
+  )
+}
+
 export const getDependentHealthInsuranceAssessment = ({
   formData,
   totalDividendAnnualGross,
@@ -353,12 +365,18 @@ export const estimateHealthInsurance = (
   const earnedIncomeMonthly = usesEmployeeHealthInsurance
     ? getAgeQualifiedEarnedIncomeMonthly(formData, age)
     : 0
+  const businessIncomeMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
   const nonSalaryOtherIncomeMonthly = usesEmployeeHealthInsurance
     ? getAgeQualifiedNonSalaryIncomeMonthly(formData, age)
     : getStructuredAgeQualifiedOtherIncomeMonthly(formData, age)
+  const businessIncomeAnnualForHealthInsurance =
+    getEstimatedBusinessIncomeAnnualForHealthInsurance(formData, age)
   const effectiveSalaryMonthly = Math.max(formData.salaryMonthly, earnedIncomeMonthly)
   const annualNonSalaryIncome =
-    totalDividendAnnualGross + nonSalaryOtherIncomeMonthly * 12 + pensionMonthly * 12
+    totalDividendAnnualGross +
+    pensionMonthly * 12 +
+    Math.max(nonSalaryOtherIncomeMonthly - businessIncomeMonthly, 0) * 12 +
+    businessIncomeAnnualForHealthInsurance
 
   const employeeMonthlyBasePremium =
     effectiveSalaryMonthly *

@@ -3,9 +3,10 @@ import type { AlphaFormData, IncomeBreakdownItem, IncomeCategory } from '../type
 const INCOME_CATEGORY_ORDER: IncomeCategory[] = [
   'earned',
   'otherPension',
+  'rental',
   'freelance',
   'business',
-  'rental',
+  'corporateExecutive',
   'misc',
 ]
 
@@ -27,9 +28,10 @@ const CATEGORY_TO_LEGACY_MAP: Record<
 > = {
   earned: 'earned',
   otherPension: 'pension',
+  rental: 'monthlyRent',
   freelance: 'other',
   business: 'business',
-  rental: 'monthlyRent',
+  corporateExecutive: 'earned',
   misc: 'other',
 }
 
@@ -56,40 +58,45 @@ export const incomeCategoryOptions: Array<{
 }> = [
   {
     value: 'earned',
-    label: '근로소득',
-    description: '급여나 보수처럼 월급 형태로 받는 소득',
+    label: '????',
+    description: '??? ???? ?? ??? ?? ??',
   },
   {
     value: 'otherPension',
-    label: '기타연금',
-    description: '국민연금 외에 따로 받는 연금 소득',
-  },
-  {
-    value: 'freelance',
-    label: '프리랜서',
-    description: '인적용역·자문·외주처럼 등록 없이 버는 소득',
-  },
-  {
-    value: 'business',
-    label: '사업소득',
-    description: '사업자등록이 있는 사업에서 들어오는 소득',
+    label: '????',
+    description: '???? ?? ??? ?? ?? ??',
   },
   {
     value: 'rental',
-    label: '임대소득',
-    description: '월세처럼 부동산 임대에서 들어오는 소득',
+    label: '????',
+    description: '???? ??? ???? ???? ??',
+  },
+  {
+    value: 'freelance',
+    label: '????',
+    description: '???????????? ?? ??',
+  },
+  {
+    value: 'business',
+    label: '?????',
+    description: '?????? ?? ???? ??',
+  },
+  {
+    value: 'corporateExecutive',
+    label: '????',
+    description: '?? ??? ?? ??? ??? ?????.',
   },
   {
     value: 'misc',
-    label: '기타소득',
-    description: '일회성·보조성 월 유입 등 나머지 소득',
+    label: '????',
+    description: '? ?? ? ?????? ???? ??',
   },
 ]
 
 export const incomeCategoryOptionRows = [
-  [incomeCategoryOptions[0], incomeCategoryOptions[1]],
-  [incomeCategoryOptions[2], incomeCategoryOptions[3]],
-  [incomeCategoryOptions[4], incomeCategoryOptions[5]],
+  [incomeCategoryOptions[0], incomeCategoryOptions[1], incomeCategoryOptions[2]],
+  [incomeCategoryOptions[3], incomeCategoryOptions[4], incomeCategoryOptions[5]],
+  [incomeCategoryOptions[6]],
 ] as const
 
 const isIncomeCategory = (value: string): value is IncomeCategory =>
@@ -115,26 +122,29 @@ const normalizeIncomeCategoryList = (categories: readonly string[] | undefined) 
 const hasStructuredIncomeValue = (formData: AlphaFormData) =>
   toSafeMoney(formData.earnedIncomeMonthly) > 0 ||
   toSafeMoney(formData.otherPensionMonthly) > 0 ||
+  toSafeMoney(formData.rentalIncomeMonthly) > 0 ||
   toSafeMoney(formData.freelanceIncomeMonthly) > 0 ||
   toSafeMoney(formData.businessIncomeMonthly) > 0 ||
-  toSafeMoney(formData.rentalIncomeMonthly) > 0 ||
+  toSafeMoney(formData.corporateExecutiveSalaryMonthly) > 0 ||
   toSafeMoney(formData.miscIncomeMonthly) > 0
 
 export const getIncomeCategoryLabel = (category: IncomeCategory) => {
   switch (category) {
     case 'earned':
-      return '근로소득'
+      return '????'
     case 'otherPension':
-      return '기타연금'
-    case 'freelance':
-      return '프리랜서'
-    case 'business':
-      return '사업소득'
+      return '????'
     case 'rental':
-      return '임대소득'
+      return '????'
+    case 'freelance':
+      return '????'
+    case 'business':
+      return '?????'
+    case 'corporateExecutive':
+      return '???? ??'
     case 'misc':
     default:
-      return '기타소득'
+      return '????'
   }
 }
 
@@ -184,6 +194,14 @@ export const getIncomeCategoryMonthlyValue = (
       return formData.otherIncomeType === 'pension'
         ? toSafeMoney(formData.otherIncomeMonthly)
         : 0
+    case 'rental':
+      if (hasStructuredIncomeValue(formData)) {
+        return toSafeMoney(formData.rentalIncomeMonthly)
+      }
+
+      return formData.otherIncomeType === 'monthlyRent'
+        ? toSafeMoney(formData.otherIncomeMonthly)
+        : 0
     case 'freelance':
       return toSafeMoney(formData.freelanceIncomeMonthly)
     case 'business':
@@ -194,14 +212,8 @@ export const getIncomeCategoryMonthlyValue = (
       return formData.otherIncomeType === 'business'
         ? toSafeMoney(formData.otherIncomeMonthly)
         : 0
-    case 'rental':
-      if (hasStructuredIncomeValue(formData)) {
-        return toSafeMoney(formData.rentalIncomeMonthly)
-      }
-
-      return formData.otherIncomeType === 'monthlyRent'
-        ? toSafeMoney(formData.otherIncomeMonthly)
-        : 0
+    case 'corporateExecutive':
+      return toSafeMoney(formData.corporateExecutiveSalaryMonthly)
     case 'misc':
     default:
       if (hasStructuredIncomeValue(formData)) {
@@ -238,12 +250,14 @@ export const getIncomeCategoryDurationYears = (
   switch (category) {
     case 'earned':
       return toSafeDurationYears(formData.earnedIncomeDurationYears, 10)
+    case 'rental':
+      return toSafeDurationYears(formData.rentalIncomeDurationYears, 10)
     case 'freelance':
       return toSafeDurationYears(formData.freelanceIncomeDurationYears, 10)
     case 'business':
       return toSafeDurationYears(formData.businessIncomeDurationYears, 10)
-    case 'rental':
-      return toSafeDurationYears(formData.rentalIncomeDurationYears, 10)
+    case 'corporateExecutive':
+      return toSafeDurationYears(formData.corporateExecutiveDurationYears, 10)
     case 'misc':
       return toSafeDurationYears(formData.miscIncomeDurationYears, 10)
     case 'otherPension':
@@ -286,7 +300,7 @@ export const getAgeQualifiedRentalIncomeMonthly = (formData: AlphaFormData, age:
 
 export const getAgeQualifiedNonSalaryIncomeMonthly = (formData: AlphaFormData, age: number) =>
   getSelectedIncomeCategories(formData)
-    .filter((category) => category !== 'earned')
+    .filter((category) => category !== 'earned' && category !== 'corporateExecutive')
     .reduce(
       (sum, category) => sum + getAgeQualifiedIncomeCategoryMonthly(formData, category, age),
       0,

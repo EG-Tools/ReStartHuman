@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
 import type { QuestionStep, AlphaFormData, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
@@ -8,6 +8,7 @@ import {
   dividendModeOptions,
   dividendOwnershipOptions,
   healthInsuranceOptionRows,
+  healthInsuranceOptions,
   householdOptions,
   housingOptions,
   isaTypeOptions,
@@ -42,18 +43,36 @@ export function renderQuestionContent({
   const myIsaType = formData.myIsaType === 'workingClass' ? 'workingClass' : 'general'
   const spouseIsaType =
     formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
-  const usesEmployeeHealthInsurance =
-    formData.healthInsuranceType === 'employee' ||
-    formData.healthInsuranceType === 'employeeWithDependentSpouse'
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const hasBusinessIncome = selectedIncomeCategories.includes('business')
+  const hasCorporateExecutiveIncome = selectedIncomeCategories.includes('corporateExecutive')
+  const effectiveHealthInsuranceType =
+    hasCorporateExecutiveIncome
+      ? 'employee'
+      : hasBusinessIncome
+        ? formData.healthInsuranceType === 'employee'
+          ? 'employee'
+          : 'regional'
+        : formData.healthInsuranceType
+  const usesEmployeeHealthInsurance =
+    effectiveHealthInsuranceType === 'employee' ||
+    effectiveHealthInsuranceType === 'employeeWithDependentSpouse'
   const usesEarnedIncomeAsSalary =
     usesEmployeeHealthInsurance && selectedIncomeCategories.includes('earned')
-  const isDependentHealthInsurance = formData.healthInsuranceType === 'dependent'
+  const isDependentHealthInsurance = effectiveHealthInsuranceType === 'dependent'
   const hasFreelanceIncome = selectedIncomeCategories.includes('freelance')
-  const hasBusinessIncome = selectedIncomeCategories.includes('business')
   const hasRentalIncome = selectedIncomeCategories.includes('rental')
   const showsDependentRegistrationQuestion =
     isDependentHealthInsurance && !hasBusinessIncome && (hasFreelanceIncome || hasRentalIncome)
+  const getHealthInsuranceOption = (value: AlphaFormData['healthInsuranceType']) =>
+    healthInsuranceOptions.find((option) => option.value === value) ??
+    healthInsuranceOptions[0]
+  const businessHealthInsuranceOptionRows = [
+    [getHealthInsuranceOption('regional'), getHealthInsuranceOption('employee')],
+  ]
+  const availableHealthInsuranceOptionRows = hasBusinessIncome
+    ? businessHealthInsuranceOptionRows
+    : healthInsuranceOptionRows
   const defaultIncomeDurationYears = 10
 
   const renderBooleanChoice = (
@@ -101,11 +120,71 @@ export function renderQuestionContent({
     </div>
   )
 
+  const applyIncomeDrivenHealthInsurancePatch = (
+    categories: IncomeCategory[],
+    patch: Partial<AlphaFormData> = {},
+  ) => {
+    const nextHealthInsuranceType: AlphaFormData['healthInsuranceType'] =
+      patch.healthInsuranceType ?? effectiveHealthInsuranceType
+
+    if (categories.includes('corporateExecutive')) {
+      const nextSalaryMonthly = Math.max(
+        patch.corporateExecutiveSalaryMonthly ?? formData.corporateExecutiveSalaryMonthly,
+        patch.salaryMonthly ?? formData.salaryMonthly,
+      )
+
+      return {
+        ...patch,
+        healthInsuranceType: 'employee' as const,
+        salaryMonthly: nextSalaryMonthly,
+      }
+    }
+
+    if (categories.includes('business')) {
+      return {
+        ...patch,
+        healthInsuranceType:
+          nextHealthInsuranceType === 'employee' ? ('employee' as const) : ('regional' as const),
+      }
+    }
+
+    return patch
+  }
+
+  const buildStructuredIncomeStatePatch = (
+    categories: IncomeCategory[],
+    patch: Partial<AlphaFormData> = {},
+  ) =>
+    buildStructuredIncomePatch(
+      categories,
+      applyIncomeDrivenHealthInsurancePatch(categories, patch),
+    )
+
   const patchStructuredIncomeSelection = (
     categories: IncomeCategory[],
     patch: Partial<AlphaFormData> = {},
   ) => {
-    onPatchFormData(buildStructuredIncomePatch(categories, patch))
+    onPatchFormData(buildStructuredIncomeStatePatch(categories, patch))
+  }
+
+  const handleHealthInsuranceTypeChange = (
+    value: AlphaFormData['healthInsuranceType'],
+  ) => {
+    const salaryPatch =
+      value === 'employee' || value === 'employeeWithDependentSpouse'
+        ? hasCorporateExecutiveIncome
+          ? { salaryMonthly: formData.corporateExecutiveSalaryMonthly }
+          : selectedIncomeCategories.includes('earned')
+            ? { salaryMonthly: formData.earnedIncomeMonthly }
+            : {}
+        : {}
+
+    onPatchFormData(
+      applyIncomeDrivenHealthInsurancePatch(selectedIncomeCategories, {
+        healthInsuranceType: value,
+        ...salaryPatch,
+      }),
+    )
   }
 
   const patchDividendSplitAmounts = (
@@ -158,12 +237,18 @@ export function renderQuestionContent({
           patch.earnedIncomeMonthly = 0
           patch.earnedIncomeDurationYears = defaultIncomeDurationYears
           if (usesEmployeeHealthInsurance) {
-            patch.salaryMonthly = 0
+            patch.salaryMonthly = selectedIncomeCategories.includes('corporateExecutive')
+              ? formData.corporateExecutiveSalaryMonthly
+              : 0
           }
           break
         case 'otherPension':
           patch.otherPensionMonthly = 0
           patch.otherPensionStartAge = 65
+          break
+        case 'rental':
+          patch.rentalIncomeMonthly = 0
+          patch.rentalIncomeDurationYears = defaultIncomeDurationYears
           break
         case 'freelance':
           patch.freelanceIncomeMonthly = 0
@@ -172,10 +257,16 @@ export function renderQuestionContent({
         case 'business':
           patch.businessIncomeMonthly = 0
           patch.businessIncomeDurationYears = defaultIncomeDurationYears
+          patch.previousYearDeclaredBusinessIncomeAnnual = 0
           break
-        case 'rental':
-          patch.rentalIncomeMonthly = 0
-          patch.rentalIncomeDurationYears = defaultIncomeDurationYears
+        case 'corporateExecutive':
+          patch.corporateExecutiveSalaryMonthly = 0
+          patch.corporateExecutiveDurationYears = defaultIncomeDurationYears
+          if (usesEmployeeHealthInsurance) {
+            patch.salaryMonthly = selectedIncomeCategories.includes('earned')
+              ? formData.earnedIncomeMonthly
+              : 0
+          }
           break
         case 'misc':
           patch.miscIncomeMonthly = 0
@@ -189,6 +280,14 @@ export function renderQuestionContent({
       formData.earnedIncomeMonthly > 0
     ) {
       patch.salaryMonthly = formData.earnedIncomeMonthly
+    } else if (
+      category === 'corporateExecutive' &&
+      formData.corporateExecutiveSalaryMonthly > 0
+    ) {
+      patch.salaryMonthly = Math.max(
+        formData.corporateExecutiveSalaryMonthly,
+        formData.salaryMonthly,
+      )
     }
 
     patchStructuredIncomeSelection(nextCategories, patch)
@@ -200,39 +299,46 @@ export function renderQuestionContent({
     patch: Partial<AlphaFormData>,
   ) => {
     if (selectedIncomeCategories.length !== 1 || selectedIncomeCategories[0] !== category) {
-      return buildStructuredIncomePatch(selectedIncomeCategories, patch)
+      return buildStructuredIncomeStatePatch(selectedIncomeCategories, patch)
     }
 
     switch (category) {
       case 'earned':
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
           ...patch,
           otherIncomeMonthly: patch.earnedIncomeMonthly ?? formData.earnedIncomeMonthly,
         })
       case 'otherPension':
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
           ...patch,
           otherIncomeMonthly: patch.otherPensionMonthly ?? formData.otherPensionMonthly,
           otherIncomeStartAge: patch.otherPensionStartAge ?? formData.otherPensionStartAge,
         })
-      case 'business':
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
-          ...patch,
-          otherIncomeMonthly: patch.businessIncomeMonthly ?? formData.businessIncomeMonthly,
-        })
       case 'rental':
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
           ...patch,
           otherIncomeMonthly: patch.rentalIncomeMonthly ?? formData.rentalIncomeMonthly,
         })
+      case 'business':
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly: patch.businessIncomeMonthly ?? formData.businessIncomeMonthly,
+        })
+      case 'corporateExecutive':
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
+          ...patch,
+          otherIncomeMonthly:
+            patch.corporateExecutiveSalaryMonthly ??
+            formData.corporateExecutiveSalaryMonthly,
+        })
       case 'misc':
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
           ...patch,
           otherIncomeMonthly: patch.miscIncomeMonthly ?? formData.miscIncomeMonthly,
         })
       case 'freelance':
       default:
-        return buildStructuredIncomePatch(selectedIncomeCategories, {
+        return buildStructuredIncomeStatePatch(selectedIncomeCategories, {
           ...patch,
           otherIncomeMonthly: patch.freelanceIncomeMonthly ?? formData.freelanceIncomeMonthly,
         })
@@ -315,11 +421,47 @@ export function renderQuestionContent({
           },
         ]
       : []),
+    ...(selectedIncomeCategories.includes('rental')
+      ? [
+          {
+            key: 'rental-income-pair',
+            helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
+            fields: [
+              {
+                key: 'rentalIncomeMonthly',
+                label: '월 임대소득',
+                value: formData.rentalIncomeMonthly,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('rental', {
+                      rentalIncomeMonthly: value,
+                    }),
+                  ),
+              },
+              {
+                key: 'rentalIncomeDurationYears',
+                label: '반영기간',
+                value: formData.rentalIncomeDurationYears,
+                onChange: (value: number) =>
+                  onPatchFormData(
+                    buildIncomeFieldPatch('rental', {
+                      rentalIncomeDurationYears: Math.max(value, 1),
+                    }),
+                  ),
+                display: 'number' as const,
+                suffix: '년',
+                min: 1,
+                step: 1,
+              },
+            ],
+          },
+        ]
+      : []),
     ...(selectedIncomeCategories.includes('freelance')
       ? [
           {
             key: 'freelance-income-pair',
-            helperText: '등록 없이 받는 자문·외주·인적용역 수입 기준입니다.',
+            helperText: '프리랜서 소득은 계약 형태와 신고 방식에 따라 실제 세금과 건보료가 달라질 수 있습니다.',
             fields: [
               {
                 key: 'freelanceIncomeMonthly',
@@ -355,7 +497,7 @@ export function renderQuestionContent({
       ? [
           {
             key: 'business-income-pair',
-            helperText: '사업자등록이 있는 사업 소득 기준입니다.',
+            helperText: '건강보험 추정에는 현재 사업소득과 직전년도 신고 사업소득을 함께 참고합니다.',
             fields: [
               {
                 key: 'businessIncomeMonthly',
@@ -387,31 +529,32 @@ export function renderQuestionContent({
           },
         ]
       : []),
-    ...(selectedIncomeCategories.includes('rental')
+    ...(selectedIncomeCategories.includes('corporateExecutive')
       ? [
           {
-            key: 'rental-income-pair',
-            helperText: '결과표에서 임대소득세를 따로 추정해 반영합니다.',
+            key: 'corporate-executive-income-pair',
+            helperText: '법인 매출이 아니라 대표 개인에게 실제 들어오는 급여만 입력합니다. 건강보험은 직장가입자로 고정합니다.',
             fields: [
               {
-                key: 'rentalIncomeMonthly',
-                label: '월 임대소득',
-                value: formData.rentalIncomeMonthly,
+                key: 'corporateExecutiveSalaryMonthly',
+                label: '월 법인대표 급여',
+                value: formData.corporateExecutiveSalaryMonthly,
                 onChange: (value: number) =>
                   onPatchFormData(
-                    buildIncomeFieldPatch('rental', {
-                      rentalIncomeMonthly: value,
+                    buildIncomeFieldPatch('corporateExecutive', {
+                      corporateExecutiveSalaryMonthly: value,
+                      salaryMonthly: value,
                     }),
                   ),
               },
               {
-                key: 'rentalIncomeDurationYears',
+                key: 'corporateExecutiveDurationYears',
                 label: '반영기간',
-                value: formData.rentalIncomeDurationYears,
+                value: formData.corporateExecutiveDurationYears,
                 onChange: (value: number) =>
                   onPatchFormData(
-                    buildIncomeFieldPatch('rental', {
-                      rentalIncomeDurationYears: Math.max(value, 1),
+                    buildIncomeFieldPatch('corporateExecutive', {
+                      corporateExecutiveDurationYears: Math.max(value, 1),
                     }),
                   ),
                 display: 'number' as const,
@@ -460,6 +603,35 @@ export function renderQuestionContent({
         ]
       : []),
   ]
+
+  const businessSupplementFields = selectedIncomeCategories.includes('business')
+    ? [
+        {
+          key: 'previousYearDeclaredBusinessIncomeAnnual',
+          label: '직전년도 신고 사업소득(연)',
+          value: formData.previousYearDeclaredBusinessIncomeAnnual,
+          onChange: (value: number) =>
+            onPatchFormData(
+              buildIncomeFieldPatch('business', {
+                previousYearDeclaredBusinessIncomeAnnual: value,
+              }),
+            ),
+          helperText:
+            '건강보험료가 늦게 크게 오르는 경우를 보기 위해 현재 사업소득과 비교해 더 큰 값을 참고합니다.',
+        },
+      ]
+    : []
+
+  const corporateExecutiveGuidance = selectedIncomeCategories.includes('corporateExecutive') ? (
+    <section className="question-block">
+      <div className="question-block-header">
+        <h2>법인대표 입력 안내</h2>
+      </div>
+      <p className="screen-copy question-copy-note">
+        회사 대표로 따로 받는 배당이 있다면 앞 질문의 일반계좌 연간 배당금에 합산해서 입력하세요.
+      </p>
+    </section>
+  ) : null
 
   const renderIncomeCategoryRows = () => (
     <div className="question-stack question-stack-compact">
@@ -1151,27 +1323,50 @@ export function renderQuestionContent({
               </div>
               {renderIncomeCategoryRows()}
               <p className="screen-copy question-copy-note">
-                배당·이자소득은 앞 질문에서 따로 입력합니다. 해당하는 소득을 모두 선택하세요.
+                배당·이자소득은 앞 질문에서 따로 입력합니다. 법인대표가 회사에서 따로 받는 배당이 있으면 앞 질문의 일반계좌 배당금에 합산해서 입력하세요.
               </p>
             </section>
             {selectedIncomeCategories.length > 0 ? (
               <QuestionNumberFieldPairs pairs={incomeFieldPairs} />
             ) : null}
+            {businessSupplementFields.length > 0 ? (
+              <QuestionNumberFields fields={businessSupplementFields} />
+            ) : null}
+            {corporateExecutiveGuidance}
           </div>
         )
       case 'healthInsurance':
         return (
           <div className="question-stack">
-            {renderChoiceRows(formData.healthInsuranceType, healthInsuranceOptionRows, (value) =>
-              onPatchFormData({
-                healthInsuranceType: value,
-                ...((value === 'employee' || value === 'employeeWithDependentSpouse') &&
-                formData.otherIncomeType === 'earned'
-                  ? { salaryMonthly: formData.otherIncomeMonthly }
-                  : {}),
-              }),
+            {hasCorporateExecutiveIncome ? (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>건강보험 유형</h2>
+                </div>
+                <p className="screen-copy question-copy-note">
+                  법인대표 급여를 선택했으므로 건강보험은 직장가입자로 고정합니다.
+                </p>
+              </section>
+            ) : (
+              <>
+                {hasBusinessIncome ? (
+                  <section className="question-block">
+                    <div className="question-block-header">
+                      <h2>건강보험 유형</h2>
+                    </div>
+                    <p className="screen-copy question-copy-note">
+                      개인사업자는 지역가입자를 기본으로 보고, 다른 직장 급여가 있는 경우만 직장가입자로 입력합니다.
+                    </p>
+                  </section>
+                ) : null}
+                {renderChoiceRows(
+                  effectiveHealthInsuranceType,
+                  availableHealthInsuranceOptionRows,
+                  handleHealthInsuranceTypeChange,
+                )}
+              </>
             )}
-            {usesEmployeeHealthInsurance ? (
+            {usesEmployeeHealthInsurance && !hasCorporateExecutiveIncome ? (
               usesEarnedIncomeAsSalary ? (
                 <section className="question-block">
                   <div className="question-block-header">

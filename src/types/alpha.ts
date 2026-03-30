@@ -2,7 +2,14 @@ export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
-export type IncomeCategory = 'earned' | 'otherPension' | 'freelance' | 'business' | 'rental' | 'misc'
+export type IncomeCategory =
+  | 'earned'
+  | 'otherPension'
+  | 'rental'
+  | 'freelance'
+  | 'business'
+  | 'corporateExecutive'
+  | 'misc'
 export type RegistrationStatus = 'yes' | 'no' | 'unknown'
 export type RentalIncomeType = 'housing' | 'commercial' | 'unknown'
 export type ReviewLevel = 'none' | 'review' | 'high'
@@ -96,6 +103,9 @@ export interface AlphaFormData {
   freelanceIncomeDurationYears: number
   businessIncomeMonthly: number
   businessIncomeDurationYears: number
+  previousYearDeclaredBusinessIncomeAnnual: number
+  corporateExecutiveSalaryMonthly: number
+  corporateExecutiveDurationYears: number
   rentalIncomeMonthly: number
   rentalIncomeDurationYears: number
   miscIncomeMonthly: number

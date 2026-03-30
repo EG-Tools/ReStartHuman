@@ -148,8 +148,11 @@ const getEstimatedComprehensiveTaxBaseBreakdown = ({
   age: number
   nationalPensionMonthly: number
 }): EstimatedComprehensiveTaxBaseBreakdown => {
+  const corporateExecutiveGrossAnnual =
+    getAgeQualifiedIncomeCategoryMonthly(formData, 'corporateExecutive', age) * 12
   const earnedGrossAnnual =
-    getAgeQualifiedIncomeCategoryMonthly(formData, 'earned', age) * 12
+    getAgeQualifiedIncomeCategoryMonthly(formData, 'earned', age) * 12 +
+    corporateExecutiveGrossAnnual
   const earnedIncomeAmountAnnual = Math.max(
     earnedGrossAnnual - calculateEarnedIncomeDeductionAnnual(earnedGrossAnnual),
     0,

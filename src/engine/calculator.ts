@@ -39,98 +39,126 @@ const sanitizeAdditionalHome = (home: AdditionalHome): AdditionalHome => ({
   officialValue: sanitizeMoney(home.officialValue),
 })
 
-const sanitizeInput = (formData: AlphaFormData): AlphaFormData => ({
-  ...formData,
-  isaType: formData.isaType === 'workingClass' ? 'workingClass' : 'general',
-  myIsaType:
-    formData.myIsaType === 'workingClass'
-      ? 'workingClass'
-      : formData.isaType === 'workingClass'
+const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
+  const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const hasBusinessIncome = selectedIncomeCategories.includes('business')
+  const hasCorporateExecutiveIncome = selectedIncomeCategories.includes('corporateExecutive')
+  const normalizedSalaryMonthly = sanitizeMoney(formData.salaryMonthly)
+  const normalizedCorporateExecutiveSalaryMonthly = sanitizeMoney(
+    formData.corporateExecutiveSalaryMonthly,
+  )
+  const nextHealthInsuranceType = hasCorporateExecutiveIncome
+    ? 'employee'
+    : hasBusinessIncome
+      ? formData.healthInsuranceType === 'employee'
+        ? 'employee'
+        : 'regional'
+      : formData.healthInsuranceType
+
+  return {
+    ...formData,
+    isaType: formData.isaType === 'workingClass' ? 'workingClass' : 'general',
+    myIsaType:
+      formData.myIsaType === 'workingClass'
         ? 'workingClass'
-        : 'general',
-  spouseIsaType:
-    formData.spouseIsaType === 'workingClass'
-      ? 'workingClass'
-      : formData.isaType === 'workingClass'
+        : formData.isaType === 'workingClass'
+          ? 'workingClass'
+          : 'general',
+    spouseIsaType:
+      formData.spouseIsaType === 'workingClass'
         ? 'workingClass'
-        : 'general',
-  simulationYears: Math.min(80, Math.max(1, sanitizeMoney(formData.simulationYears) || 30)),
-  homeMarketValue: sanitizeMoney(formData.homeMarketValue),
-  homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
-  additionalHomes: formData.additionalHomes.slice(0, 4).map(sanitizeAdditionalHome),
-  jeonseDeposit: sanitizeMoney(formData.jeonseDeposit),
-  monthlyRentDeposit: sanitizeMoney(formData.monthlyRentDeposit),
-  monthlyRentAmount: sanitizeMoney(formData.monthlyRentAmount),
-  hasLandOrOtherProperty: formData.hasLandOrOtherProperty,
-  landValue: formData.hasLandOrOtherProperty ? sanitizeMoney(formData.landValue) : 0,
-  myLandShare: sanitizeMoney(formData.myLandShare),
-  spouseLandShare: sanitizeMoney(formData.spouseLandShare),
-  otherPropertyOfficialValue: formData.hasLandOrOtherProperty
-    ? sanitizeMoney(formData.otherPropertyOfficialValue)
-    : 0,
-  myOtherPropertyShare: sanitizeMoney(formData.myOtherPropertyShare),
-  spouseOtherPropertyShare: sanitizeMoney(formData.spouseOtherPropertyShare),
-  taxableAccountAssets: sanitizeMoney(formData.taxableAccountAssets),
-  isaAssets: sanitizeMoney(formData.isaAssets),
-  pensionAccountAssets: sanitizeMoney(formData.pensionAccountAssets),
-  otherAssets: sanitizeMoney(formData.otherAssets),
-  taxableAccountDividendAnnual: sanitizeMoney(formData.taxableAccountDividendAnnual),
-  isaDividendAnnual: sanitizeMoney(formData.isaDividendAnnual),
-  pensionDividendAnnual: sanitizeMoney(formData.pensionDividendAnnual),
-  myAnnualDividendAttributed: sanitizeMoney(formData.myAnnualDividendAttributed),
-  spouseAnnualDividendAttributed: sanitizeMoney(formData.spouseAnnualDividendAttributed),
-  myAnnualIsaDividendAttributed: sanitizeMoney(formData.myAnnualIsaDividendAttributed),
-  spouseAnnualIsaDividendAttributed: sanitizeMoney(formData.spouseAnnualIsaDividendAttributed),
-  selectedIncomeCategories: getSelectedIncomeCategories(formData),
-  earnedIncomeMonthly: sanitizeMoney(formData.earnedIncomeMonthly),
-  earnedIncomeDurationYears: Math.max(1, sanitizeMoney(formData.earnedIncomeDurationYears) || 10),
-  otherPensionMonthly: sanitizeMoney(formData.otherPensionMonthly),
-  otherPensionStartAge: Math.max(1, sanitizeMoney(formData.otherPensionStartAge) || 65),
-  freelanceIncomeMonthly: sanitizeMoney(formData.freelanceIncomeMonthly),
-  freelanceIncomeDurationYears: Math.max(1, sanitizeMoney(formData.freelanceIncomeDurationYears) || 10),
-  businessIncomeMonthly: sanitizeMoney(formData.businessIncomeMonthly),
-  businessIncomeDurationYears: Math.max(1, sanitizeMoney(formData.businessIncomeDurationYears) || 10),
-  rentalIncomeMonthly: sanitizeMoney(formData.rentalIncomeMonthly),
-  rentalIncomeDurationYears: Math.max(1, sanitizeMoney(formData.rentalIncomeDurationYears) || 10),
-  miscIncomeMonthly: sanitizeMoney(formData.miscIncomeMonthly),
-  miscIncomeDurationYears: Math.max(1, sanitizeMoney(formData.miscIncomeDurationYears) || 10),
-  otherIncomeMonthly: sanitizeMoney(formData.otherIncomeMonthly),
-  otherIncomeStartAge: Math.max(1, sanitizeMoney(formData.otherIncomeStartAge) || 65),
-  pensionStartAge: Math.max(1, sanitizeMoney(formData.pensionStartAge) || 65),
-  pensionMonthlyAmount: sanitizeMoney(formData.pensionMonthlyAmount),
-  salaryMonthly: sanitizeMoney(formData.salaryMonthly),
-  healthInsuranceOverrideMonthly: sanitizeOptionalMoney(formData.healthInsuranceOverrideMonthly),
-  dependentBusinessRegistrationStatus:
-    formData.dependentBusinessRegistrationStatus === 'yes' ||
-    formData.dependentBusinessRegistrationStatus === 'no'
-      ? formData.dependentBusinessRegistrationStatus
-      : 'unknown',
-  dependentRentalIncomeType:
-    formData.dependentRentalIncomeType === 'housing' ||
-    formData.dependentRentalIncomeType === 'commercial'
-      ? formData.dependentRentalIncomeType
-      : 'unknown',
-  dependentFreelanceAnnualProfit: sanitizeMoney(formData.dependentFreelanceAnnualProfit),
-  insuranceMonthly: sanitizeMoney(formData.insuranceMonthly),
-  insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears) || 10),
-  maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
-  telecomMonthly: sanitizeMoney(formData.telecomMonthly),
-  currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),
-  carYearlyCost: sanitizeMoney(formData.carYearlyCost),
-  loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
-  loanInterestYears: sanitizeMoney(formData.loanInterestYears),
-  otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),
-  livingCostMonthlyTotal: sanitizeMoney(formData.livingCostMonthlyTotal),
-  foodMonthly: sanitizeMoney(formData.foodMonthly),
-  necessitiesMonthly: sanitizeMoney(formData.necessitiesMonthly),
-  diningOutMonthly: sanitizeMoney(formData.diningOutMonthly),
-  hobbyMonthly: sanitizeMoney(formData.hobbyMonthly),
-  academyMonthly: sanitizeMoney(formData.academyMonthly ?? 0),
-  otherLivingMonthly: sanitizeMoney(formData.otherLivingMonthly),
-  inflationRateAnnual: clampRate(formData.inflationRateAnnual, policyConfig.inflation.defaultAnnualRate),
-  startingCashReserve: sanitizeMoney(formData.startingCashReserve),
-  currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 50),
-})
+        : formData.isaType === 'workingClass'
+          ? 'workingClass'
+          : 'general',
+    simulationYears: Math.min(80, Math.max(1, sanitizeMoney(formData.simulationYears) || 30)),
+    homeMarketValue: sanitizeMoney(formData.homeMarketValue),
+    homeOfficialValue: sanitizeMoney(formData.homeOfficialValue),
+    additionalHomes: formData.additionalHomes.slice(0, 4).map(sanitizeAdditionalHome),
+    jeonseDeposit: sanitizeMoney(formData.jeonseDeposit),
+    monthlyRentDeposit: sanitizeMoney(formData.monthlyRentDeposit),
+    monthlyRentAmount: sanitizeMoney(formData.monthlyRentAmount),
+    hasLandOrOtherProperty: formData.hasLandOrOtherProperty,
+    landValue: formData.hasLandOrOtherProperty ? sanitizeMoney(formData.landValue) : 0,
+    myLandShare: sanitizeMoney(formData.myLandShare),
+    spouseLandShare: sanitizeMoney(formData.spouseLandShare),
+    otherPropertyOfficialValue: formData.hasLandOrOtherProperty
+      ? sanitizeMoney(formData.otherPropertyOfficialValue)
+      : 0,
+    myOtherPropertyShare: sanitizeMoney(formData.myOtherPropertyShare),
+    spouseOtherPropertyShare: sanitizeMoney(formData.spouseOtherPropertyShare),
+    taxableAccountAssets: sanitizeMoney(formData.taxableAccountAssets),
+    isaAssets: sanitizeMoney(formData.isaAssets),
+    pensionAccountAssets: sanitizeMoney(formData.pensionAccountAssets),
+    otherAssets: sanitizeMoney(formData.otherAssets),
+    taxableAccountDividendAnnual: sanitizeMoney(formData.taxableAccountDividendAnnual),
+    isaDividendAnnual: sanitizeMoney(formData.isaDividendAnnual),
+    pensionDividendAnnual: sanitizeMoney(formData.pensionDividendAnnual),
+    myAnnualDividendAttributed: sanitizeMoney(formData.myAnnualDividendAttributed),
+    spouseAnnualDividendAttributed: sanitizeMoney(formData.spouseAnnualDividendAttributed),
+    myAnnualIsaDividendAttributed: sanitizeMoney(formData.myAnnualIsaDividendAttributed),
+    spouseAnnualIsaDividendAttributed: sanitizeMoney(formData.spouseAnnualIsaDividendAttributed),
+    selectedIncomeCategories,
+    earnedIncomeMonthly: sanitizeMoney(formData.earnedIncomeMonthly),
+    earnedIncomeDurationYears: Math.max(1, sanitizeMoney(formData.earnedIncomeDurationYears) || 10),
+    otherPensionMonthly: sanitizeMoney(formData.otherPensionMonthly),
+    otherPensionStartAge: Math.max(1, sanitizeMoney(formData.otherPensionStartAge) || 65),
+    freelanceIncomeMonthly: sanitizeMoney(formData.freelanceIncomeMonthly),
+    freelanceIncomeDurationYears: Math.max(1, sanitizeMoney(formData.freelanceIncomeDurationYears) || 10),
+    businessIncomeMonthly: sanitizeMoney(formData.businessIncomeMonthly),
+    businessIncomeDurationYears: Math.max(1, sanitizeMoney(formData.businessIncomeDurationYears) || 10),
+    previousYearDeclaredBusinessIncomeAnnual: sanitizeMoney(
+      formData.previousYearDeclaredBusinessIncomeAnnual,
+    ),
+    corporateExecutiveSalaryMonthly: normalizedCorporateExecutiveSalaryMonthly,
+    corporateExecutiveDurationYears: Math.max(
+      1,
+      sanitizeMoney(formData.corporateExecutiveDurationYears) || 10,
+    ),
+    rentalIncomeMonthly: sanitizeMoney(formData.rentalIncomeMonthly),
+    rentalIncomeDurationYears: Math.max(1, sanitizeMoney(formData.rentalIncomeDurationYears) || 10),
+    miscIncomeMonthly: sanitizeMoney(formData.miscIncomeMonthly),
+    miscIncomeDurationYears: Math.max(1, sanitizeMoney(formData.miscIncomeDurationYears) || 10),
+    otherIncomeMonthly: sanitizeMoney(formData.otherIncomeMonthly),
+    otherIncomeStartAge: Math.max(1, sanitizeMoney(formData.otherIncomeStartAge) || 65),
+    pensionStartAge: Math.max(1, sanitizeMoney(formData.pensionStartAge) || 65),
+    pensionMonthlyAmount: sanitizeMoney(formData.pensionMonthlyAmount),
+    healthInsuranceType: nextHealthInsuranceType,
+    salaryMonthly: hasCorporateExecutiveIncome
+      ? Math.max(normalizedSalaryMonthly, normalizedCorporateExecutiveSalaryMonthly)
+      : normalizedSalaryMonthly,
+    healthInsuranceOverrideMonthly: sanitizeOptionalMoney(formData.healthInsuranceOverrideMonthly),
+    dependentBusinessRegistrationStatus:
+      formData.dependentBusinessRegistrationStatus === 'yes' ||
+      formData.dependentBusinessRegistrationStatus === 'no'
+        ? formData.dependentBusinessRegistrationStatus
+        : 'unknown',
+    dependentRentalIncomeType:
+      formData.dependentRentalIncomeType === 'housing' ||
+      formData.dependentRentalIncomeType === 'commercial'
+        ? formData.dependentRentalIncomeType
+        : 'unknown',
+    dependentFreelanceAnnualProfit: sanitizeMoney(formData.dependentFreelanceAnnualProfit),
+    insuranceMonthly: sanitizeMoney(formData.insuranceMonthly),
+    insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears) || 10),
+    maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
+    telecomMonthly: sanitizeMoney(formData.telecomMonthly),
+    currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),
+    carYearlyCost: sanitizeMoney(formData.carYearlyCost),
+    loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
+    loanInterestYears: sanitizeMoney(formData.loanInterestYears),
+    otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),
+    livingCostMonthlyTotal: sanitizeMoney(formData.livingCostMonthlyTotal),
+    foodMonthly: sanitizeMoney(formData.foodMonthly),
+    necessitiesMonthly: sanitizeMoney(formData.necessitiesMonthly),
+    diningOutMonthly: sanitizeMoney(formData.diningOutMonthly),
+    hobbyMonthly: sanitizeMoney(formData.hobbyMonthly),
+    academyMonthly: sanitizeMoney(formData.academyMonthly ?? 0),
+    otherLivingMonthly: sanitizeMoney(formData.otherLivingMonthly),
+    inflationRateAnnual: clampRate(formData.inflationRateAnnual, policyConfig.inflation.defaultAnnualRate),
+    startingCashReserve: sanitizeMoney(formData.startingCashReserve),
+    currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 50),
+  }
+}
 
 export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult => {
   const formData = sanitizeInput(rawFormData)

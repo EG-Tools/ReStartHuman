@@ -61,6 +61,9 @@ export const defaultFormData: AlphaFormData = {
   freelanceIncomeDurationYears: 10,
   businessIncomeMonthly: 0,
   businessIncomeDurationYears: 10,
+  previousYearDeclaredBusinessIncomeAnnual: 0,
+  corporateExecutiveSalaryMonthly: 0,
+  corporateExecutiveDurationYears: 10,
   rentalIncomeMonthly: 0,
   rentalIncomeDurationYears: 10,
   miscIncomeMonthly: 0,
@@ -105,4 +108,3 @@ export const defaultFormData: AlphaFormData = {
   startingCashReserve: 100_000_000,
   currentAge: 50,
 }
-
