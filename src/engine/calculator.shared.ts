@@ -32,6 +32,7 @@ export interface CashProjection {
   cumulativeNetChange: number
   endingBalance: number
   timeline: CashBalancePoint[]
+  cumulativeHealthInsurance: number
   cumulativePensionIncome: number
   cumulativeOtherIncome: number
   cumulativeTotalIncome: number

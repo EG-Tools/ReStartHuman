@@ -249,6 +249,7 @@ export interface AlphaResult {
   rentalIncomeTaxMonthly: number
 
   healthInsuranceMonthly: number
+  nextReflectedHealthInsuranceMonthly: number
   healthInsuranceSource: 'estimated' | 'manual'
 
   healthInsuranceReviewLevel: ReviewLevel
@@ -260,6 +261,7 @@ export interface AlphaResult {
   pensionMonthlyApplied: number
   otherIncomeMonthlyApplied: number
   incomeBreakdown: IncomeBreakdownItem[]
+  projectionHealthInsuranceTotal: number
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
   projectionRentalIncomeTaxTotal: number

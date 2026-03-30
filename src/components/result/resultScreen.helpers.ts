@@ -178,16 +178,24 @@ const getHealthInsuranceInterpretationMessage = (
   result: AlphaResult,
   formData: AlphaFormData,
 ) => {
+  const reflectedHealthInsuranceMonthly =
+    result.nextReflectedHealthInsuranceMonthly ?? result.healthInsuranceMonthly
+  const projectedHealthInsuranceSummary =
+    result.healthInsuranceSource === 'estimated' &&
+    reflectedHealthInsuranceMonthly !== result.healthInsuranceMonthly
+      ? ` 1\uB144 \uACB0\uACFC\uC640 \uADF8\uB798\uD504\uB294 \uB2E4\uC74C \uBC18\uC601 \uAE30\uC900\uC73C\uB85C \uC6D4 ${formatCompactCurrency(reflectedHealthInsuranceMonthly)}\uB97C \uC801\uC6A9\uD588\uC2B5\uB2C8\uB2E4.`
+      : ''
+
   if (
     formData.healthInsuranceType === 'dependent' &&
     result.healthInsuranceReviewLevel !== 'none'
   ) {
-    return `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. 피부양자 기준으로 입력했지만 ${result.healthInsuranceReviewReasons.join(' ')} 실제 판정은 공단 또는 전문가 확인이 필요합니다.`
+    return `\uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uD604\uC7AC \uAE30\uC900 \uC6D4 ${formatCompactCurrency(result.healthInsuranceMonthly)} \uC218\uC900\uC785\uB2C8\uB2E4. \uD53C\uBD80\uC591\uC790 \uAE30\uC900\uC73C\uB85C \uC785\uB825\uD588\uC9C0\uB9CC ${result.healthInsuranceReviewReasons.join(' ')} \uC2E4\uC81C \uD310\uC815\uC740 \uACF5\uB2E8 \uB610\uB294 \uC804\uBB38\uAC00 \uD655\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.${projectedHealthInsuranceSummary}`
   }
 
   return result.healthInsuranceMonthly >= 1_000_000
-    ? `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 보고 월 유입 대비 부담이 큰 편으로 추정했습니다.`
-    : `건강보험료는 월 ${formatCompactCurrency(result.healthInsuranceMonthly)} 수준입니다. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}으로 추정했습니다.`
+    ? `\uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uD604\uC7AC \uAE30\uC900 \uC6D4 ${formatCompactCurrency(result.healthInsuranceMonthly)} \uC218\uC900\uC785\uB2C8\uB2E4. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}\uC73C\uB85C \uBCF4\uACE0 \uC6D4 \uC720\uC785 \uB300\uBE44 \uBD80\uB2F4\uC774 \uD070 \uD3B8\uC73C\uB85C \uCD94\uC815\uD588\uC2B5\uB2C8\uB2E4.${projectedHealthInsuranceSummary}`
+    : `\uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uD604\uC7AC \uAE30\uC900 \uC6D4 ${formatCompactCurrency(result.healthInsuranceMonthly)} \uC218\uC900\uC785\uB2C8\uB2E4. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}\uC73C\uB85C \uCD94\uC815\uD588\uC2B5\uB2C8\uB2E4.${projectedHealthInsuranceSummary}`
 }
 
 const getIncomeInterpretationMessage = (result: AlphaResult, formData: AlphaFormData) => {

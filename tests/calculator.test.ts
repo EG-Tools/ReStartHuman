@@ -396,3 +396,21 @@ test('corporate executive salary uses employee insurance assumptions', () => {
   )
   assert.ok(result.estimatedComprehensiveTaxBaseAnnual > 0)
 })
+test('current health insurance uses the current business amount while projection uses the reflected basis', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    healthInsuranceType: 'regional',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    selectedIncomeCategories: ['business'],
+    businessIncomeMonthly: 1_000_000,
+    previousYearDeclaredBusinessIncomeAnnual: 48_000_000,
+  })
+
+  assert.ok(result.nextReflectedHealthInsuranceMonthly > result.healthInsuranceMonthly)
+  assert.ok(result.projectionHealthInsuranceTotal >= result.nextReflectedHealthInsuranceMonthly * 12)
+})

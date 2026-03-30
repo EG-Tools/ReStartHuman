@@ -347,9 +347,41 @@ export function buildResultRows({
   const businessIncomeAnnual = formData.businessIncomeMonthly * 12
   const businessHealthInsuranceSummary = selectedIncomeCategories.includes('business')
     ? formData.previousYearDeclaredBusinessIncomeAnnual > 0
-      ? `개인사업자 건강보험은 현재 월 사업소득금액 연 ${formatCompactCurrency(businessIncomeAnnual)}와 직전년도 신고 사업소득금액 연 ${formatCompactCurrency(formData.previousYearDeclaredBusinessIncomeAnnual)} 중 큰 값을 참고했습니다.`
-      : `개인사업자 건강보험은 현재 월 사업소득금액 연 ${formatCompactCurrency(businessIncomeAnnual)} 기준으로 추정했습니다.`
+      ? `\uAC1C\uC778\uC0AC\uC5C5\uC790 \uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uD604\uC7AC \uC6D4 \uAE30\uC900\uC5D0\uC11C \uD604\uC7AC \uC0AC\uC5C5\uC18C\uB4DD\uAE08\uC561 \uC5F0 ${formatCompactCurrency(businessIncomeAnnual)}\uC744 \uBCF4\uACE0, 1\uB144 \uACB0\uACFC\uC640 \uADF8\uB798\uD504\uC5D0\uC11C\uB294 \uC9C1\uC804\uB144\uB3C4 \uC2E0\uACE0 \uC0AC\uC5C5\uC18C\uB4DD\uAE08\uC561 \uC5F0 ${formatCompactCurrency(formData.previousYearDeclaredBusinessIncomeAnnual)}\uC744 \uD568\uAED8 \uCC38\uACE0\uD588\uC2B5\uB2C8\uB2E4.`
+      : `\uAC1C\uC778\uC0AC\uC5C5\uC790 \uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uD604\uC7AC \uC0AC\uC5C5\uC18C\uB4DD\uAE08\uC561 \uC5F0 ${formatCompactCurrency(businessIncomeAnnual)} \uAE30\uC900\uC73C\uB85C \uCD94\uC815\uD588\uC2B5\uB2C8\uB2E4.`
     : ''
+  const reflectedHealthInsuranceMonthly =
+    result.nextReflectedHealthInsuranceMonthly ?? result.healthInsuranceMonthly
+  const projectionHealthInsuranceTotal =
+    result.projectionHealthInsuranceTotal ??
+    reflectedHealthInsuranceMonthly * 12 * formData.simulationYears
+  const hasProjectedHealthInsuranceShift =
+    result.healthInsuranceSource === 'estimated' &&
+    reflectedHealthInsuranceMonthly !== result.healthInsuranceMonthly
+  const healthInsuranceNote =
+    result.healthInsuranceSource === 'manual'
+      ? '\uC218\uB3D9 \uC785\uB825 \uC801\uC6A9'
+      : hasProjectedHealthInsuranceShift
+        ? '\uC6D4 \uAE30\uC900 \uD604\uC7AC / 1\uB144\u00B7\uADF8\uB798\uD504 \uB2E4\uC74C \uBC18\uC601'
+        : result.healthInsuranceReviewLevel === 'high'
+          ? '\uCD94\uC815 \u00B7 \uD53C\uBD80\uC591\uC790 \uC7AC\uD655\uC778'
+          : result.healthInsuranceReviewLevel === 'review'
+            ? '\uCD94\uC815 \u00B7 \uAE30\uC900 \uD655\uC778 \uAD8C\uC7A5'
+            : '\uB2E8\uC21C \uCD94\uC815'
+  const healthInsuranceProjectionSummary =
+    result.healthInsuranceSource === 'manual'
+      ? '\uC218\uB3D9 \uC785\uB825\uD55C \uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB97C \uC6D4 \uAE30\uC900, 1\uB144 \uACB0\uACFC, \uADF8\uB798\uD504\uC5D0 \uB3D9\uC77C\uD558\uAC8C \uC801\uC6A9\uD588\uC2B5\uB2C8\uB2E4.'
+      : hasProjectedHealthInsuranceShift
+        ? `\uC6D4 \uAE30\uC900\uC740 \uD604\uC7AC \uAE30\uC900 ${formatCompactCurrency(result.healthInsuranceMonthly)}\uC744, 1\uB144 \uACB0\uACFC\uC640 \uADF8\uB798\uD504\uB294 \uB2E4\uC74C \uBC18\uC601 \uAE30\uC900 ${formatCompactCurrency(reflectedHealthInsuranceMonthly)}\uC744 \uC801\uC6A9\uD588\uC2B5\uB2C8\uB2E4.`
+        : ''
+  const healthInsuranceNoteDetail = [
+    policyConfig.healthInsurance.approximationNotice,
+    result.healthInsuranceReviewLevel === 'none' ? '' : healthInsuranceReviewSummary,
+    healthInsuranceProjectionSummary,
+    businessHealthInsuranceSummary,
+  ]
+    .filter(Boolean)
+    .join(' ')
   const buildIncomeRowPatch = (
     key: AlphaResult['incomeBreakdown'][number]['key'],
     value: number,
@@ -644,18 +676,10 @@ export function buildResultRows({
       item: '건강보험료',
       input: <HealthInsuranceEditor result={result} onPatchFormData={onPatchFormData} />,
       monthly: formatCompactCurrency(result.healthInsuranceMonthly),
-      annual: formatCompactCurrency(result.healthInsuranceMonthly * 12),
-      tenYear: formatCompactCurrency(result.healthInsuranceMonthly * 12 * formData.simulationYears),
-      note:
-        result.healthInsuranceReviewLevel === 'high'
-          ? '추정 · 피부양자 재확인'
-          : result.healthInsuranceReviewLevel === 'review'
-            ? '추정 · 기준 확인 권장'
-            : '단순 추정',
-      noteDetail:
-        result.healthInsuranceReviewLevel === 'none'
-          ? `${policyConfig.healthInsurance.approximationNotice}${businessHealthInsuranceSummary ? ` ${businessHealthInsuranceSummary}` : ''}`
-          : `${policyConfig.healthInsurance.approximationNotice} ${healthInsuranceReviewSummary}${businessHealthInsuranceSummary ? ` ${businessHealthInsuranceSummary}` : ''}`,
+      annual: formatCompactCurrency(reflectedHealthInsuranceMonthly * 12),
+      tenYear: formatCompactCurrency(projectionHealthInsuranceTotal),
+      note: healthInsuranceNote,
+      noteDetail: healthInsuranceNoteDetail,
     },
     ...(shouldShowEstimatedComprehensiveTaxRows
       ? [

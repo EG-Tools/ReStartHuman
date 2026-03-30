@@ -207,9 +207,14 @@ type DependentHealthInsuranceAssessment = {
 const getEstimatedBusinessIncomeAnnualForHealthInsurance = (
   formData: AlphaFormData,
   age: number,
+  includeDeclaredBusinessIncome = true,
 ) => {
   const currentBusinessIncomeAnnual =
     getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age) * 12
+
+  if (!includeDeclaredBusinessIncome) {
+    return roundCurrency(currentBusinessIncomeAnnual)
+  }
 
   return roundCurrency(
     Math.max(currentBusinessIncomeAnnual, formData.previousYearDeclaredBusinessIncomeAnnual),
@@ -353,12 +358,18 @@ export const getDependentHealthInsuranceAssessment = ({
   }
 }
 
+type HealthInsuranceEstimationOptions = {
+  includeDeclaredBusinessIncome?: boolean
+}
+
 export const estimateHealthInsurance = (
   formData: AlphaFormData,
   totalDividendAnnualGross: number,
   age: number,
   pensionMonthly: number,
+  options: HealthInsuranceEstimationOptions = {},
 ) => {
+  const includeDeclaredBusinessIncome = options.includeDeclaredBusinessIncome ?? true
   const usesEmployeeHealthInsurance =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
@@ -369,8 +380,11 @@ export const estimateHealthInsurance = (
   const nonSalaryOtherIncomeMonthly = usesEmployeeHealthInsurance
     ? getAgeQualifiedNonSalaryIncomeMonthly(formData, age)
     : getStructuredAgeQualifiedOtherIncomeMonthly(formData, age)
-  const businessIncomeAnnualForHealthInsurance =
-    getEstimatedBusinessIncomeAnnualForHealthInsurance(formData, age)
+  const businessIncomeAnnualForHealthInsurance = getEstimatedBusinessIncomeAnnualForHealthInsurance(
+    formData,
+    age,
+    includeDeclaredBusinessIncome,
+  )
   const effectiveSalaryMonthly = Math.max(formData.salaryMonthly, earnedIncomeMonthly)
   const annualNonSalaryIncome =
     totalDividendAnnualGross +
@@ -640,6 +654,7 @@ export const calculateCashProjection = (
   projectionYears = 30,
 ): CashProjection => {
   let cumulativeNetChange = 0
+  let cumulativeHealthInsurance = 0
   let cumulativePensionIncome = 0
   let cumulativeOtherIncome = 0
   let cumulativeTotalIncome = 0
@@ -712,6 +727,7 @@ export const calculateCashProjection = (
     const projectedMonthlySurplus = projectedMonthlyUsableCash - projectedExpenses
     const annualNetChange = roundCurrency(projectedMonthlySurplus * 12)
 
+    cumulativeHealthInsurance += roundCurrency(projectedHealthInsuranceMonthly * 12)
     cumulativePensionIncome += roundCurrency(projectedPensionMonthly * 12)
     cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
     cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
@@ -731,6 +747,7 @@ export const calculateCashProjection = (
     cumulativeNetChange: roundCurrency(cumulativeNetChange),
     endingBalance: roundCurrency(balance),
     timeline,
+    cumulativeHealthInsurance: roundCurrency(cumulativeHealthInsurance),
     cumulativePensionIncome: roundCurrency(cumulativePensionIncome),
     cumulativeOtherIncome: roundCurrency(cumulativeOtherIncome),
     cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),

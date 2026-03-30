@@ -206,11 +206,19 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
       nationalPensionMonthly: pensionMonthlyApplied,
     }),
   )
-  const estimatedHealthInsurance = estimateHealthInsurance(
+  const currentEstimatedHealthInsurance = estimateHealthInsurance(
     formData,
     taxableDividend.annualGross,
     formData.currentAge,
     pensionMonthlyApplied,
+    { includeDeclaredBusinessIncome: false },
+  )
+  const nextReflectedEstimatedHealthInsurance = estimateHealthInsurance(
+    formData,
+    taxableDividend.annualGross,
+    formData.currentAge,
+    pensionMonthlyApplied,
+    { includeDeclaredBusinessIncome: true },
   )
   const dependentHealthInsuranceAssessment = getDependentHealthInsuranceAssessment({
     formData,
@@ -219,7 +227,9 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     pensionMonthly: pensionMonthlyApplied,
   })
   const healthInsuranceMonthly =
-    formData.healthInsuranceOverrideMonthly ?? estimatedHealthInsurance
+    formData.healthInsuranceOverrideMonthly ?? currentEstimatedHealthInsurance
+  const nextReflectedHealthInsuranceMonthly =
+    formData.healthInsuranceOverrideMonthly ?? nextReflectedEstimatedHealthInsurance
   const holdingTax = estimateHoldingTax(formData)
   const rentalIncomeMonthlyApplied = getAgeQualifiedRentalIncomeMonthly(formData, formData.currentAge)
   const rentalIncomeTax =
@@ -297,6 +307,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     rentalIncomeTaxAnnual: rentalIncomeTax.annualTax,
     rentalIncomeTaxMonthly: rentalIncomeTax.monthlyTax,
     healthInsuranceMonthly,
+    nextReflectedHealthInsuranceMonthly,
     healthInsuranceSource: formData.healthInsuranceOverrideMonthly === null ? 'estimated' : 'manual',
     healthInsuranceReviewLevel: dependentHealthInsuranceAssessment.level,
     healthInsuranceReviewReasons: dependentHealthInsuranceAssessment.reasons,
@@ -306,6 +317,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     pensionMonthlyApplied,
     otherIncomeMonthlyApplied,
     incomeBreakdown,
+    projectionHealthInsuranceTotal: cashProjection.cumulativeHealthInsurance,
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
     projectionRentalIncomeTaxTotal: cashProjection.cumulativeRentalIncomeTax,

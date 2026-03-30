@@ -325,3 +325,33 @@ test('previous year declared business income increases the insurance estimate', 
 
   assert.ok(withDeclaredIncome > withoutDeclaredIncome)
 })
+test('current health insurance can stay lower than the next reflected estimate', () => {
+  const currentPremium = estimateHealthInsurance(
+    {
+      ...defaultFormData,
+      healthInsuranceType: 'regional',
+      selectedIncomeCategories: ['business'],
+      businessIncomeMonthly: 1_000_000,
+      previousYearDeclaredBusinessIncomeAnnual: 48_000_000,
+    },
+    0,
+    50,
+    0,
+    { includeDeclaredBusinessIncome: false },
+  )
+  const nextReflectedPremium = estimateHealthInsurance(
+    {
+      ...defaultFormData,
+      healthInsuranceType: 'regional',
+      selectedIncomeCategories: ['business'],
+      businessIncomeMonthly: 1_000_000,
+      previousYearDeclaredBusinessIncomeAnnual: 48_000_000,
+    },
+    0,
+    50,
+    0,
+    { includeDeclaredBusinessIncome: true },
+  )
+
+  assert.ok(nextReflectedPremium > currentPremium)
+})
