@@ -55,7 +55,7 @@ export const getOtherIncomeTypeLabel = (incomeType: AlphaFormData['otherIncomeTy
     case 'earned':
       return '근로소득'
     case 'business':
-      return '사업소득'
+      return '개인사업자'
     case 'pension':
       return '기타연금'
     case 'monthlyRent':

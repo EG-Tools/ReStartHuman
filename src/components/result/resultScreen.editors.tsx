@@ -344,6 +344,12 @@ export function buildResultRows({
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const businessIncomeAnnual = formData.businessIncomeMonthly * 12
+  const businessHealthInsuranceSummary = selectedIncomeCategories.includes('business')
+    ? formData.previousYearDeclaredBusinessIncomeAnnual > 0
+      ? `개인사업자 건강보험은 현재 월 사업소득금액 연 ${formatCompactCurrency(businessIncomeAnnual)}와 직전년도 신고 사업소득금액 연 ${formatCompactCurrency(formData.previousYearDeclaredBusinessIncomeAnnual)} 중 큰 값을 참고했습니다.`
+      : `개인사업자 건강보험은 현재 월 사업소득금액 연 ${formatCompactCurrency(businessIncomeAnnual)} 기준으로 추정했습니다.`
+    : ''
   const buildIncomeRowPatch = (
     key: AlphaResult['incomeBreakdown'][number]['key'],
     value: number,
@@ -648,8 +654,8 @@ export function buildResultRows({
             : '단순 추정',
       noteDetail:
         result.healthInsuranceReviewLevel === 'none'
-          ? policyConfig.healthInsurance.approximationNotice
-          : `${policyConfig.healthInsurance.approximationNotice} ${healthInsuranceReviewSummary}`,
+          ? `${policyConfig.healthInsurance.approximationNotice}${businessHealthInsuranceSummary ? ` ${businessHealthInsuranceSummary}` : ''}`
+          : `${policyConfig.healthInsurance.approximationNotice} ${healthInsuranceReviewSummary}${businessHealthInsuranceSummary ? ` ${businessHealthInsuranceSummary}` : ''}`,
     },
     ...(shouldShowEstimatedComprehensiveTaxRows
       ? [

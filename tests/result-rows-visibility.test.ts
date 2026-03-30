@@ -137,6 +137,22 @@ test('estimated comprehensive and local tax rows appear for taxable structured i
   assert.ok(rows.some((row) => row.item === '종합소득세'))
   assert.ok(rows.some((row) => row.item === '지방소득세'))
 })
+test('business rows explain tax and health insurance bases', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    healthInsuranceType: 'regional',
+    selectedIncomeCategories: ['business'],
+    businessIncomeMonthly: 1_000_000,
+    previousYearDeclaredBusinessIncomeAnnual: 24_000_000,
+  })
+
+  const healthInsuranceRow = rows.find((row) => row.item === '건강보험료')
+  const comprehensiveTaxRow = rows.find((row) => row.item === '종합소득세')
+
+  assert.ok(healthInsuranceRow?.noteDetail?.includes('직전년도 신고 사업소득금액'))
+  assert.ok(comprehensiveTaxRow?.noteDetail?.includes('업종군과 필요경비에 따라 실제 세액은 달라질 수 있습니다'))
+})
+
 test('deferred national pension stays visible without being added to current total income', () => {
   const rows = buildRows({
     ...defaultFormData,

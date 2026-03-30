@@ -419,7 +419,9 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
   const reasons: string[] = []
 
   if (businessMonthly > 0) {
-    reasons.push('사업소득이 있어 종합소득세 신고 가능성이 높습니다.')
+    reasons.push(
+      '개인사업자 소득은 입력한 사업소득금액 기준으로 종합소득세를 단순 추정했습니다. 업종군과 필요경비에 따라 실제 세액은 달라질 수 있습니다.',
+    )
   }
 
   if (freelanceMonthly > 0) {

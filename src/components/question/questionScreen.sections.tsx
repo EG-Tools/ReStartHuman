@@ -502,11 +502,12 @@ export function renderQuestionContent({
       ? [
           {
             key: 'business-income-pair',
-            helperText: '건강보험 추정에는 현재 사업소득과 직전년도 신고 사업소득을 함께 참고합니다.',
+            helperText:
+              '월 사업소득금액은 현금흐름과 종합소득세 추정에 반영합니다. 업종군과 필요경비에 따라 실제 세액은 달라질 수 있습니다.',
             fields: [
               {
                 key: 'businessIncomeMonthly',
-                label: '월 사업소득',
+                label: '월 사업소득금액',
                 value: formData.businessIncomeMonthly,
                 onChange: (value: number) =>
                   onPatchFormData(
@@ -613,7 +614,7 @@ export function renderQuestionContent({
     ? [
         {
           key: 'previousYearDeclaredBusinessIncomeAnnual',
-          label: '직전년도 신고 사업소득(연)',
+          label: '직전년도 신고 사업소득금액(연)',
           value: formData.previousYearDeclaredBusinessIncomeAnnual,
           onChange: (value: number) =>
             onPatchFormData(
@@ -622,7 +623,7 @@ export function renderQuestionContent({
               }),
             ),
           helperText:
-            '건강보험료가 늦게 크게 오르는 경우를 보기 위해 현재 사업소득과 비교해 더 큰 값을 참고합니다.',
+            '건강보험료는 현재 월 사업소득금액과 직전년도 신고 사업소득금액 중 더 큰 쪽을 참고해 추정합니다.',
         },
       ]
     : []
