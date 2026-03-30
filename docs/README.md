@@ -23,6 +23,11 @@ It is meant to answer three questions fast:
 2. `UI_LAYOUT_NOTES.md`
 3. `RESULT_SCREEN_RULES.md`
 
+## Encoding note
+- Files with Korean text must be read and written as UTF-8.
+- After editing Korean strings, reopen the file in UTF-8 and confirm there is no `????` or broken text before finishing the task.
+
+
 ## File list
 - `PRODUCT_OVERVIEW.md`
   - product goal, screen flow, and current design philosophy

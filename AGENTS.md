@@ -13,6 +13,7 @@ If you need product context, logic notes, or testing details, start in `docs/REA
 - Before editing UI, identify the actual owning file and selector first. Do not guess.
 - Preserve existing file paths and naming unless the user explicitly asks to reorganize them.
 - If a feature touches calculation logic, result-row visibility, save/load behavior, or conditional question behavior, read the matching file in `docs/` before editing.
+- Preserve Korean text in UTF-8. When editing files that contain Korean, write them in UTF-8, reopen them in UTF-8, and confirm no `????` or garbled text was introduced.
 
 ## Verification rules
 - After code changes, run all of the following before calling the work complete:
