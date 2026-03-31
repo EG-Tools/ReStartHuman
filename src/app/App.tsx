@@ -269,9 +269,9 @@ export default function App() {
       {isOptionsOpen ? (
         <AppOptionsModal
           onClose={() => setIsOptionsOpen(false)}
-          isAdFreeEnabled={adSupport.isAdFreeEnabled}
-          canEnableAdFree={adSupport.canEnableAdFree}
-          onEnableAdFree={adSupport.enableAdFree}
+          isAdminModeEnabled={adSupport.isAdminModeEnabled}
+          canEnableAdminMode={adSupport.canEnableAdminMode}
+          onEnableAdminMode={adSupport.enableAdminMode}
         />
       ) : null}
     </div>

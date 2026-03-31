@@ -6,40 +6,43 @@ import {
   safeStorageSetItem,
 } from '../utils/browserStorage'
 
-const AD_FREE_STORAGE_KEY = 'restarthuman_alpha_ad_free_enabled'
-const AD_FREE_BYPASS_ENABLED = import.meta.env.DEV
+const ADMIN_MODE_STORAGE_KEY = 'restarthuman_alpha_admin_mode_enabled'
+const LEGACY_AD_FREE_STORAGE_KEY = 'restarthuman_alpha_ad_free_enabled'
 
-const readAdFreeEnabled = (storage?: Storage) =>
-  AD_FREE_BYPASS_ENABLED && safeStorageGetItem(storage, AD_FREE_STORAGE_KEY) === 'true'
+const readAdminModeEnabled = (storage?: Storage) =>
+  safeStorageGetItem(storage, ADMIN_MODE_STORAGE_KEY) === 'true' ||
+  safeStorageGetItem(storage, LEGACY_AD_FREE_STORAGE_KEY) === 'true'
 
 export const useAdSupport = () => {
-  const [isAdFreeEnabled, setIsAdFreeEnabled] = useState(() =>
-    readAdFreeEnabled(getBrowserStorage()),
+  const [isAdminModeEnabled, setIsAdminModeEnabled] = useState(() =>
+    readAdminModeEnabled(getBrowserStorage()),
   )
 
   useEffect(() => {
-    if (AD_FREE_BYPASS_ENABLED) {
+    const storage = getBrowserStorage()
+
+    if (!readAdminModeEnabled(storage)) {
       return
     }
 
-    safeStorageRemoveItem(getBrowserStorage(), AD_FREE_STORAGE_KEY)
+    safeStorageSetItem(storage, ADMIN_MODE_STORAGE_KEY, 'true')
+    safeStorageRemoveItem(storage, LEGACY_AD_FREE_STORAGE_KEY)
   }, [])
 
-  const enableAdFree = useCallback(() => {
-    if (!AD_FREE_BYPASS_ENABLED) {
-      return false
-    }
-
+  const enableAdminMode = useCallback(() => {
     const storage = getBrowserStorage()
-    const didPersist = safeStorageSetItem(storage, AD_FREE_STORAGE_KEY, 'true')
 
-    setIsAdFreeEnabled(didPersist || readAdFreeEnabled(storage))
-    return didPersist
+    safeStorageSetItem(storage, ADMIN_MODE_STORAGE_KEY, 'true')
+    safeStorageRemoveItem(storage, LEGACY_AD_FREE_STORAGE_KEY)
+    setIsAdminModeEnabled(true)
+
+    return true
   }, [])
 
   return {
-    isAdFreeEnabled,
-    canEnableAdFree: AD_FREE_BYPASS_ENABLED,
-    enableAdFree,
+    isAdminModeEnabled,
+    isAdFreeEnabled: isAdminModeEnabled,
+    canEnableAdminMode: true,
+    enableAdminMode,
   }
 }

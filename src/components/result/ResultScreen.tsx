@@ -299,15 +299,15 @@ export const ResultScreen = memo(function ResultScreen({
       />
 
       <div className="footer-actions footer-actions-wrap result-actions">
-        <PrimaryButton variant="secondary" onClick={onEditAnswers}>
-          수정
-        </PrimaryButton>
-        <PrimaryButton onClick={onOpenSaveSlots}>저장</PrimaryButton>
-        <PrimaryButton onClick={handleShareImage} disabled={exportState !== 'idle'}>
-          {exportState === 'sharing' ? '공유 중...' : '공유'}
-        </PrimaryButton>
         <PrimaryButton variant="ghost" onClick={onStartOver}>
-          처음으로
+          {'\uCC98\uC74C\uC73C\uB85C'}
+        </PrimaryButton>
+        <PrimaryButton variant="secondary" onClick={onEditAnswers}>
+          {'\uC218\uC815'}
+        </PrimaryButton>
+        <PrimaryButton onClick={onOpenSaveSlots}>{'\uC800\uC7A5'}</PrimaryButton>
+        <PrimaryButton onClick={handleShareImage} disabled={exportState !== 'idle'}>
+          {exportState === 'sharing' ? '\uACF5\uC720 \uC911...' : '\uACF5\uC720'}
         </PrimaryButton>
       </div>
 

@@ -8,37 +8,41 @@ interface AppOptionsButtonProps {
 
 interface AppOptionsModalProps {
   onClose: () => void
-  isAdFreeEnabled: boolean
-  canEnableAdFree: boolean
-  onEnableAdFree: () => boolean
+  isAdminModeEnabled: boolean
+  canEnableAdminMode: boolean
+  onEnableAdminMode: () => boolean
 }
 
 const text = {
-  openOptions: '\uC635\uC158 \uC5F4\uAE30',
-  settings: '\uC124\uC815',
-  options: '\uC635\uC158',
-  developerSupport: '\uAC1C\uBC1C\uC790 \uD6C4\uC6D0',
-  activeStatus: '\uAD11\uACE0 \uC0DD\uB7B5 \uD65C\uC131',
-  temporarySupport: '\uC784\uC2DC \uD6C4\uC6D0',
-  preparing: '\uC900\uBE44 \uC911',
-  usingWithoutAds: '\uAD11\uACE0 \uC5C6\uC774 \uC0AC\uC6A9 \uC911',
-  supportPrice: '\uD6C4\uC6D0 1\uB144\uC5D0 3,000\uC6D0',
-  supportPreparing: '\uD6C4\uC6D0 \uC900\uBE44 \uC911',
+  openOptions: '옵션 열기',
+  settings: '설정',
+  options: '옵션',
+  developerSupport: '개발자 후원',
+  activeStatus: '관리자 모드',
+  temporarySupport: '테스트 후원',
+  preparing: '준비 중',
+  usingWithoutAds: '관리자 모드 사용 중',
+  supportPrice: '후원 1년에 3,000원',
+  supportPreparing: '후원 준비 중',
   enabledCopy:
-    '\uC774 \uAE30\uAE30\uC5D0\uC11C\uB294 \uACB0\uACFC \uC804 \uAD11\uACE0\uB97C \uAC74\uB108\uB701\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C\uD55C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4. \uC9C0\uAE08\uC740 \uAC1C\uBC1C\uC6A9 \uC784\uC2DC \uAD6C\uD604\uC774\uB77C \uBE0C\uB77C\uC6B0\uC800 \uC800\uC7A5\uC18C\uB97C \uC9C0\uC6B0\uBA74 \uB2E4\uC2DC \uAD11\uACE0\uAC00 \uBCF4\uC77C \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
+    '후원에 감사드립니다. 이 기기에서는 관리자 모드가 활성화되어 결과 전 광고 없이 전체 기능을 확인할 수 있습니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
   temporaryCopy:
-    '\uD6C4\uC6D0 \uAE30\uB2A5\uC740 \uC544\uC9C1 \uAC1C\uBC1C\uC6A9\uC73C\uB85C\uB9CC \uC784\uC2DC \uC5F0\uACB0\uB3FC \uC788\uC2B5\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C\uD55C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4. \uD655\uC778\uC744 \uB204\uB974\uBA74 \uC774 \uAE30\uAE30\uC5D0\uC11C\uB9CC \uACB0\uACFC \uC804 \uAD11\uACE0\uB97C \uC784\uC2DC\uB85C \uC228\uAE41\uB2C8\uB2E4.',
+    '테스트 버전에서는 후원을 확인하면 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 지금은 실제 결제 연동 전 테스트 흐름으로 운영합니다.',
   preparingCopy:
-    '\uD6C4\uC6D0 \uAE30\uB2A5\uC740 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4. \uC2E4\uC81C \uACB0\uC81C \uC5F0\uB3D9\uC774 \uC644\uB8CC\uB418\uAE30 \uC804\uAE4C\uC9C0\uB294 \uC77C\uBC18 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uAD11\uACE0 \uC81C\uAC70\uB97C \uC5F4\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.',
-  creator: '\uC81C\uC791\uC790\uBA85',
-  email: '\uC774\uBA54\uC77C',
-  close: '\uB2EB\uAE30',
-  confirmSupport: '\uD6C4\uC6D0 \uD655\uC778',
-  supportQuestion: '\uD6C4\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?',
+    '후원 기능은 준비 중입니다. 실제 결제 연동이 완료되기 전까지는 일반 사용자에게 광고 제거를 열지 않습니다.',
+  creator: '제작자명',
+  email: '이메일',
+  close: '닫기',
+  confirmSupport: '후원 확인',
+  supportQuestion: '후원하시겠습니까?',
   supportNote:
-    '\uC608\uB97C \uB204\uB974\uBA74 \uC774 \uAE30\uAE30\uC5D0\uC11C\uB9CC \uACB0\uACFC \uC804 \uAD11\uACE0\uB97C \uC784\uC2DC\uB85C \uC228\uAE41\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C\uD55C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4.',
-  yes: '\uC608',
-  no: '\uC544\uB2C8\uC624',
+    '예를 누르면 후원 감사 메시지 뒤에 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
+  supportThanks: '후원에 감사드립니다.',
+  supportSuccessNote:
+    '이 기기에서 관리자 모드가 활성화되었습니다. 이제 결과 전 광고 없이 전체 기능을 확인할 수 있습니다.',
+  confirm: '확인',
+  yes: '예',
+  no: '아니오',
 } as const
 
 function SettingsIcon() {
@@ -71,16 +75,22 @@ export function AppOptionsButton({ onClick }: AppOptionsButtonProps) {
 
 export function AppOptionsModal({
   onClose,
-  isAdFreeEnabled,
-  canEnableAdFree,
-  onEnableAdFree,
+  isAdminModeEnabled,
+  canEnableAdminMode,
+  onEnableAdminMode,
 }: AppOptionsModalProps) {
   const [isSupportPromptOpen, setIsSupportPromptOpen] = useState(false)
-  const canOpenSupportPrompt = canEnableAdFree && !isAdFreeEnabled
+  const [isSupportSuccessOpen, setIsSupportSuccessOpen] = useState(false)
+  const canOpenSupportPrompt = canEnableAdminMode && !isAdminModeEnabled
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (isSupportSuccessOpen) {
+          setIsSupportSuccessOpen(false)
+          return
+        }
+
         if (isSupportPromptOpen) {
           setIsSupportPromptOpen(false)
           return
@@ -95,35 +105,34 @@ export function AppOptionsModal({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isSupportPromptOpen, onClose])
+  }, [isSupportPromptOpen, isSupportSuccessOpen, onClose])
 
   const handleConfirmSupport = () => {
-    const didEnable = onEnableAdFree()
+    const didEnable = onEnableAdminMode()
+    setIsSupportPromptOpen(false)
 
     if (!didEnable) {
-      setIsSupportPromptOpen(false)
       return
     }
 
-    setIsSupportPromptOpen(false)
-    onClose()
+    setIsSupportSuccessOpen(true)
   }
 
-  const supportStatusLabel = isAdFreeEnabled
+  const supportStatusLabel = isAdminModeEnabled
     ? text.activeStatus
-    : canEnableAdFree
+    : canEnableAdminMode
       ? text.temporarySupport
       : text.preparing
 
-  const supportButtonLabel = isAdFreeEnabled
+  const supportButtonLabel = isAdminModeEnabled
     ? text.usingWithoutAds
-    : canEnableAdFree
+    : canEnableAdminMode
       ? text.supportPrice
       : text.supportPreparing
 
-  const supportCopy = isAdFreeEnabled
+  const supportCopy = isAdminModeEnabled
     ? text.enabledCopy
-    : canEnableAdFree
+    : canEnableAdminMode
       ? text.temporaryCopy
       : text.preparingCopy
 
@@ -148,7 +157,7 @@ export function AppOptionsModal({
               <p className="support-version-label">{APP_VERSION_LABEL}</p>
               <h2>{text.developerSupport}</h2>
             </div>
-            <span className={'support-status-pill' + (isAdFreeEnabled ? ' is-active' : '')}>
+            <span className={'support-status-pill' + (isAdminModeEnabled ? ' is-active' : '')}>
               {supportStatusLabel}
             </span>
           </div>
@@ -157,7 +166,7 @@ export function AppOptionsModal({
 
           <div className="support-actions">
             <PrimaryButton
-              variant={isAdFreeEnabled ? 'primary' : 'secondary'}
+              variant={isAdminModeEnabled ? 'primary' : 'secondary'}
               onClick={() => {
                 if (canOpenSupportPrompt) {
                   setIsSupportPromptOpen(true)
@@ -205,6 +214,31 @@ export function AppOptionsModal({
                 <PrimaryButton onClick={handleConfirmSupport}>{text.yes}</PrimaryButton>
                 <PrimaryButton variant="secondary" onClick={() => setIsSupportPromptOpen(false)}>
                   {text.no}
+                </PrimaryButton>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {isSupportSuccessOpen ? (
+          <div
+            className="support-confirm-backdrop"
+            role="presentation"
+            onClick={() => setIsSupportSuccessOpen(false)}
+          >
+            <div
+              className="support-confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label={text.supportThanks}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="eyebrow">{text.developerSupport}</p>
+              <h2>{text.supportThanks}</h2>
+              <p className="support-note">{text.supportSuccessNote}</p>
+              <div className="support-confirm-actions">
+                <PrimaryButton onClick={() => setIsSupportSuccessOpen(false)}>
+                  {text.confirm}
                 </PrimaryButton>
               </div>
             </div>
