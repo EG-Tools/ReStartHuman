@@ -255,9 +255,12 @@
 }
 
 .cashflow-event-legend {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: flex;
   gap: 8px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cashflow-event-legend-item {
@@ -272,6 +275,7 @@
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.2;
+  flex: 0 0 auto;
   flex-wrap: nowrap;
 }
 
@@ -302,6 +306,11 @@
 
 @media (max-width: 640px) {
   .cashflow-event-legend {
-    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .cashflow-event-legend-item {
+    padding: 9px 11px;
+    font-size: 0.78rem;
   }
 }
