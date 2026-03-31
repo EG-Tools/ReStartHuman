@@ -80,22 +80,22 @@ export const SummaryCards = memo(function SummaryCards({
 }) {
   const cards = [
     {
-      label: '월 실사용 가능액',
+      label: '월 가용액',
       value: formatCompactCurrency(result.monthlyUsableCash),
       tone: 'neutral',
     },
     {
-      label: '월 흑자 / 적자',
+      label: '월 흑자/적자',
       value: formatSignedCompactCurrency(result.monthlySurplusOrDeficit),
       tone: result.riskLevel,
     },
     {
-      label: '1 년 결과',
+      label: '1년 결과',
       value: formatSignedCompactCurrency(result.yearlySurplusOrDeficit),
       tone: result.riskLevel,
     },
     {
-      label: `${projectionYears} 년 결과`,
+      label: `${projectionYears}년 결과`,
       value: formatSignedCompactCurrency(result.tenYearSurplusOrDeficit),
       tone: result.riskLevel,
     },
@@ -130,7 +130,7 @@ export const SummaryCards = memo(function SummaryCards({
 
 const formatYAxisEok = (value: number) => {
   const eokValue = value / 100_000_000
-  return `${eokValue.toFixed(2)} 억`
+  return `${eokValue.toFixed(2)}억`
 }
 
 type CashFlowEventTone = 'pension' | 'insurance' | 'expense'
@@ -164,6 +164,7 @@ export const CashFlowChart = memo(function CashFlowChart({
   projectionYears: number
   currentAge: number
 }) {
+  const markerPillHalfWidth = 24
   const points =
     result.cashBalanceTimeline.length > 0
       ? result.cashBalanceTimeline
@@ -299,7 +300,10 @@ export const CashFlowChart = memo(function CashFlowChart({
     .map((marker, index) => {
       const markerPoint =
         coordinates.find((point) => point.year === marker.yearOffset) ?? coordinates[coordinates.length - 1]
-      const labelX = Math.max(borderX + 28, Math.min(markerPoint.x, width - paddingRight - 28))
+      const labelX = Math.max(
+        borderX + markerPillHalfWidth,
+        Math.min(markerPoint.x, width - paddingRight - markerPillHalfWidth),
+      )
 
       return {
         ...marker,
@@ -412,9 +416,9 @@ export const CashFlowChart = memo(function CashFlowChart({
               <circle className="cashflow-event-dot" cx={marker.x} cy={marker.y} r={4.5} />
               <rect
                 className="cashflow-event-pill"
-                x={marker.labelX - 28}
+                x={marker.labelX - markerPillHalfWidth}
                 y={labelY - 10}
-                width={56}
+                width={markerPillHalfWidth * 2}
                 height={20}
                 rx={10}
                 ry={10}
@@ -496,11 +500,28 @@ const splitResultItemWord = (word: string) => {
   return [chars.slice(0, 2).join(''), chars.slice(2).join('')]
 }
 
+const mergeTrailingNumericChunk = (chunks: string[]) => {
+  if (chunks.length < 2) {
+    return chunks
+  }
+
+  const lastChunk = chunks[chunks.length - 1]
+  const previousChunk = chunks[chunks.length - 2]
+
+  if (!/^\d+$/.test(lastChunk)) {
+    return chunks
+  }
+
+  return [...chunks.slice(0, -2), `${previousChunk} ${lastChunk}`]
+}
+
 const splitResultItemLabel = (value: string) =>
-  value
-    .split(/[\s/]+/)
-    .flatMap((word) => splitResultItemWord(word.trim()))
-    .filter((chunk) => chunk.length > 0)
+  mergeTrailingNumericChunk(
+    value
+      .split(/[\s/]+/)
+      .flatMap((word) => splitResultItemWord(word.trim()))
+      .filter((chunk) => chunk.length > 0),
+  )
 
 const getResultCategoryClassName = (category: string) => {
   switch (category) {

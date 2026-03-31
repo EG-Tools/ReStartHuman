@@ -203,6 +203,11 @@
   text-align: right;
 }
 
+.table-shell .result-table .result-input-multiline {
+  white-space: pre-line;
+  line-height: 1.42;
+}
+
 .table-shell .result-table .result-input-cell .table-edit-cluster,
 .table-shell .result-table .result-input-cell .table-edit-group,
 .table-shell .result-table .result-input-cell .table-edit-stack {

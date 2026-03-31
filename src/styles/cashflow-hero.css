@@ -271,7 +271,8 @@
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.2;
+  flex-wrap: nowrap;
 }
 
 .cashflow-event-legend-item.tone-pension {
@@ -296,6 +297,7 @@
 
 .cashflow-event-legend-text {
   color: inherit;
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {

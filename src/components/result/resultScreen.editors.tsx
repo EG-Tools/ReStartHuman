@@ -519,7 +519,11 @@ export function buildResultRows({
     rows.push({
       category: '주거',
       item: `추가주택 ${index + 1}`,
-      input: `${getHousingTypeLabel(home.housingType)} · 시가 ${formatCompactCurrency(home.marketValue)} / 공시가격 ${formatCompactCurrency(home.officialValue)}`,
+      input: (
+        <span className="result-input-multiline">
+          {`${getHousingTypeLabel(home.housingType)} 시가 ${formatCompactCurrency(home.marketValue)}\n공시가격 ${formatCompactCurrency(home.officialValue)}`}
+        </span>
+      ),
       monthly: EMPTY_CELL,
       annual: EMPTY_CELL,
       tenYear: EMPTY_CELL,
