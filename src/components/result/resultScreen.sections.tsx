@@ -146,8 +146,8 @@ type CashFlowEventMarker = {
 
 const formatCashFlowEventDetail = (currentAge: number, yearOffset: number) =>
   yearOffset <= 0
-    ? `${currentAge}\uC138`
-    : `${currentAge + yearOffset}\uC138 / ${yearOffset}\uB144 \uD6C4`
+    ? `${currentAge}?`
+    : `${currentAge + yearOffset}? / ${yearOffset}? ?`
 
 export const CashFlowChart = memo(function CashFlowChart({
   formData,
@@ -242,7 +242,7 @@ export const CashFlowChart = memo(function CashFlowChart({
   const midYear2 = Math.max(midYear1 + 1, Math.round((totalYears * 2) / 3))
   const xTicks = [0, midYear1, midYear2, totalYears].map((yearOffset) => ({
     yearOffset,
-    ageLabel: `${currentAge + yearOffset}\uC138`,
+    ageLabel: `${currentAge + yearOffset}?`,
     x: paddingLeft + (Math.min(yearOffset, totalYears) / totalYears) * chartWidth,
   }))
   const futurePensionStartOffsets = [
@@ -258,8 +258,8 @@ export const CashFlowChart = memo(function CashFlowChart({
       ? [
           {
             key: 'pension-start',
-            label: '\uC5F0\uAE08 \uC2DC\uC791',
-            shortLabel: '\uC5F0\uAE08',
+            label: '?? ??',
+            shortLabel: '??',
             detail: formatCashFlowEventDetail(currentAge, earliestPensionStartOffset),
             yearOffset: earliestPensionStartOffset,
             tone: 'pension' as const,
@@ -272,8 +272,8 @@ export const CashFlowChart = memo(function CashFlowChart({
       ? [
           {
             key: 'health-insurance-reflect',
-            label: '\uAC74\uBCF4 \uBC18\uC601',
-            shortLabel: '\uAC74\uBCF4',
+            label: '?? ??',
+            shortLabel: '??',
             detail: formatCashFlowEventDetail(currentAge, 1),
             yearOffset: 1,
             tone: 'insurance' as const,
@@ -286,8 +286,8 @@ export const CashFlowChart = memo(function CashFlowChart({
       ? [
           {
             key: 'insurance-end',
-            label: '\uBCF4\uD5D8 \uC885\uB8CC',
-            shortLabel: '\uBCF4\uD5D8',
+            label: '?? ??',
+            shortLabel: '??',
             detail: formatCashFlowEventDetail(currentAge, formData.insurancePaymentYears),
             yearOffset: formData.insurancePaymentYears,
             tone: 'expense' as const,
@@ -319,25 +319,25 @@ export const CashFlowChart = memo(function CashFlowChart({
       <div className="cashflow-hero-header">
         <div>
           <div className="cashflow-hero-titleline">
-            <p className="cashflow-hero-eyebrow">{projectionYears}\uB144 \uD604\uAE08\uD750\uB984 \uC608\uC0C1</p>
+            <p className="cashflow-hero-eyebrow">{projectionYears}? ???? ??</p>
             <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
               ({getRiskLabel(result.riskLevel)})
             </span>
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            \uD604\uC7AC \uBCF4\uC720 \uD604\uAE08\uC5D0\uC11C {projectionYears}\uB144 \uD6C4 \uADF8\uB798\uD504 \uBCC0\uD654\uC785\uB2C8\uB2E4.
+            ?? ?? ???? {projectionYears}? ? ??? ?????.
           </p>
         </div>
         <div className="cashflow-hero-meta">
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-start">
-            \uC2DC\uC791 {formatCompactCurrency(result.startingCashReserve)}
+            ?? {formatCompactCurrency(result.startingCashReserve)}
           </span>
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-center">
-            {projectionYears}\uB144\uD6C4 {formatCompactCurrency(result.cashBalanceAfterTenYears)}
+            {projectionYears}?? {formatCompactCurrency(result.cashBalanceAfterTenYears)}
           </span>
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-end">
-            \uBB3C\uAC00\uBC18\uC601 {displayedInflationRate}%
+            ???? {displayedInflationRate}%
           </span>
         </div>
       </div>
@@ -346,7 +346,7 @@ export const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`${projectionYears}\uB144 \uD604\uAE08\uD750\uB984 \uADF8\uB798\uD504`}
+        aria-label={`${projectionYears}? ???? ???`}
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -469,11 +469,11 @@ export const CashFlowChart = memo(function CashFlowChart({
       </svg>
 
       {chartMarkers.length > 0 ? (
-        <div className="cashflow-event-legend" aria-label={'\uC8FC\uC694 \uC804\uD658 \uC2DC\uC810'}>
+        <div className="cashflow-event-legend" aria-label={'?? ?? ??'}>
           {chartMarkers.map((marker) => (
             <div key={`legend-${marker.key}`} className={`cashflow-event-legend-item tone-${marker.tone}`}>
               <span className="cashflow-event-legend-swatch" aria-hidden="true" />
-              <span className="cashflow-event-legend-text">{`${marker.label} \u00B7 ${marker.detail}`}</span>
+              <span className="cashflow-event-legend-text">{`${marker.label} ? ${marker.detail}`}</span>
             </div>
           ))}
         </div>
