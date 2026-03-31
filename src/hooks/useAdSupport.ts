@@ -5,8 +5,7 @@ import {
   safeStorageRemoveItem,
   safeStorageSetItem,
 } from '../utils/browserStorage'
-
-export type AppAccessMode = 'general' | 'pro'
+import type { AppAccessMode } from '../types/alpha'
 
 const ADMIN_MODE_STORAGE_KEY = 'restarthuman_alpha_admin_mode_enabled'
 const ACCESS_MODE_STORAGE_KEY = 'restarthuman_alpha_access_mode'

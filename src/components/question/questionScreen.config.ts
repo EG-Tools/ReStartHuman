@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
-import type { QuestionStep, AlphaFormData } from '../../types/alpha'
+import type { QuestionStep, AlphaFormData, AppAccessMode } from '../../types/alpha'
 
 export interface QuestionScreenProps {
   question: QuestionStep
   questionIndex: number
   totalQuestions: number
   formData: AlphaFormData
+  accessMode: AppAccessMode
   onBack: () => void
   onNext: () => void
   onSeekQuestion: (index: number) => void

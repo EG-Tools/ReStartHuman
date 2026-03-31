@@ -2,15 +2,19 @@ import { useCallback, useMemo, useState } from 'react'
 import { appRoutes } from '../app/routes'
 import { questionFlow } from '../data/questionFlow'
 import type { AppRoute } from '../app/routes'
-import type { AlphaFormData } from '../types/alpha'
+import type { AlphaFormData, AppAccessMode } from '../types/alpha'
 
-export const useAlphaFlow = (formData: AlphaFormData, shouldBypassAd = false) => {
+export const useAlphaFlow = (
+  formData: AlphaFormData,
+  accessMode: AppAccessMode,
+  shouldBypassAd = false,
+) => {
   const [route, setRoute] = useState<AppRoute>(appRoutes.start)
   const [questionIndex, setQuestionIndex] = useState(0)
 
   const visibleQuestions = useMemo(
-    () => questionFlow.filter((question) => question.visibility(formData)),
-    [formData],
+    () => questionFlow.filter((question) => question.visibility(formData, accessMode)),
+    [accessMode, formData],
   )
 
   const clampQuestionIndex = useCallback(

@@ -13,6 +13,7 @@ import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateAlphaScenario } from '../engine/calculator'
 import { useAdSupport } from '../hooks/useAdSupport'
+import { getAccessModeFormData } from '../utils/accessMode'
 import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
 import { useSaveSlots } from '../hooks/useSaveSlots'
@@ -61,19 +62,27 @@ export default function App() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
   const adSupport = useAdSupport()
-  const flow = useAlphaFlow(formData, adSupport.isAdFreeEnabled)
+  const effectiveFormData = useMemo(
+    () => getAccessModeFormData(formData, adSupport.accessMode),
+    [adSupport.accessMode, formData],
+  )
+  const flow = useAlphaFlow(effectiveFormData, adSupport.accessMode, adSupport.isAdFreeEnabled)
   const saveSlots = useSaveSlots()
-  const calculationInput = useMemo(() => createCalculatorInput(formData), [formData])
+  const calculationInput = useMemo(
+    () => createCalculatorInput(effectiveFormData),
+    [effectiveFormData],
+  )
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
+  const reusableLoadedSlotResult = adSupport.accessMode === 'pro' ? loadedSlotResult : null
   const liveResult = useMemo(
     () =>
-      shouldRenderResult && loadedSlotResult === null
+      shouldRenderResult && reusableLoadedSlotResult === null
         ? calculateAlphaScenario(calculationInput)
         : null,
-    [calculationInput, loadedSlotResult, shouldRenderResult],
+    [calculationInput, reusableLoadedSlotResult, shouldRenderResult],
   )
-  const result = loadedSlotResult ?? liveResult
+  const result = reusableLoadedSlotResult ?? liveResult
   const optionsButton = useMemo(
     () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
     [],
@@ -154,7 +163,7 @@ export default function App() {
     (slot: SaveSlotRecord) => {
       const nextFormData = { ...defaultFormData, ...slot.formData }
       const canReuseStoredResult =
-        slot.result.policyBaseDate === policyConfig.policyBaseDate
+        adSupport.accessMode === 'pro' && slot.result.policyBaseDate === policyConfig.policyBaseDate
 
       setLoadedSlotResult(canReuseStoredResult ? slot.result : null)
       setNeedsLoadedSlotRefresh(true)
@@ -162,7 +171,7 @@ export default function App() {
       setSaveSlotMode(null)
       flow.openAd()
     },
-    [flow],
+    [adSupport.accessMode, flow],
   )
 
   const handleSaveSlot = useCallback(
@@ -214,7 +223,8 @@ export default function App() {
                 question={flow.currentQuestion}
                 questionIndex={flow.questionIndex}
                 totalQuestions={flow.visibleQuestions.length}
-                formData={formData}
+                formData={effectiveFormData}
+                accessMode={adSupport.accessMode}
                 onBack={flow.previousQuestion}
                 onNext={flow.nextQuestion}
                 onSeekQuestion={flow.goToQuestion}
@@ -237,7 +247,7 @@ export default function App() {
           {flow.route === appRoutes.result && result ? (
             <Suspense fallback={<section className="screen result-screen" />}>
               <ResultScreen
-                formData={formData}
+                formData={effectiveFormData}
                 result={result}
                 onEditAnswers={() => flow.goToQuestion(0)}
                 onStartOver={startOver}

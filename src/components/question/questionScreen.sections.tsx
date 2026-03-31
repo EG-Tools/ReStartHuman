@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
-import type { QuestionStep, AlphaFormData, IncomeCategory } from '../../types/alpha'
+import type { QuestionStep, AlphaFormData, AppAccessMode, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
 import { QuestionNumberFieldPairs, QuestionNumberFields, type QuestionNumberFieldPairConfig } from './questionScreen.shared'
 import {
@@ -29,6 +29,7 @@ import { rebalanceSplitAmounts, splitAmountEvenly } from '../../utils/splitAlloc
 export interface RenderQuestionContentArgs {
   question: QuestionStep
   formData: AlphaFormData
+  accessMode: AppAccessMode
   update: <K extends keyof AlphaFormData>(key: K, value: AlphaFormData[K]) => void
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }
@@ -36,6 +37,7 @@ export interface RenderQuestionContentArgs {
 export function renderQuestionContent({
   question,
   formData,
+  accessMode,
   update,
   onPatchFormData,
 }: RenderQuestionContentArgs): ReactNode {
@@ -44,6 +46,7 @@ export function renderQuestionContent({
   const spouseIsaType =
     formData.spouseIsaType === 'workingClass' ? 'workingClass' : 'general'
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const isGeneralAccessMode = accessMode === 'general'
   const hasBusinessIncome = selectedIncomeCategories.includes('business')
   const hasCorporateExecutiveIncome = selectedIncomeCategories.includes('corporateExecutive')
   const effectiveHealthInsuranceType =
@@ -610,6 +613,40 @@ export function renderQuestionContent({
       : []),
   ]
 
+  const generalIncomeFieldPairs: QuestionNumberFieldPairConfig[] = [
+    {
+      key: 'general-misc-income-pair',
+      fields: [
+        {
+          key: 'miscIncomeMonthly',
+          label: '\uC6D4 \uAE30\uD0C0\uC18C\uB4DD',
+          value: formData.miscIncomeMonthly,
+          onChange: (value: number) =>
+            onPatchFormData(
+              buildIncomeFieldPatch('misc', {
+                miscIncomeMonthly: value,
+              }),
+            ),
+        },
+        {
+          key: 'miscIncomeDurationYears',
+          label: '\uBC18\uC601\uAE30\uAC04',
+          value: formData.miscIncomeDurationYears,
+          onChange: (value: number) =>
+            onPatchFormData(
+              buildIncomeFieldPatch('misc', {
+                miscIncomeDurationYears: Math.max(value, 1),
+              }),
+            ),
+          display: 'number' as const,
+          suffix: '\uC138',
+          min: 1,
+          step: 1,
+        },
+      ],
+    },
+  ]
+
   const businessSupplementFields = selectedIncomeCategories.includes('business')
     ? [
         {
@@ -715,6 +752,28 @@ export function renderQuestionContent({
   const renderContent = () => {
     switch (question.id) {
       case 'household':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'currentAge',
+                    label: '\uD604\uC7AC \uB098\uC774',
+                    value: formData.currentAge,
+                    onChange: (value) => update('currentAge', value),
+                    display: 'number' as const,
+                    suffix: '\uC138',
+                    min: 1,
+                    step: 1,
+                    helperText: '\uACB0\uACFC \uD574\uC11D\uC758 \uC790\uC0B0 \uBE44\uAD50\uC640 \uD604\uAE08\uD750\uB984 \uADF8\uB798\uD504 \uC5F0\uB839 \uD45C\uC2DC\uC5D0 \uD568\uAED8 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.',
+                  },
+                ]}
+              />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <QuestionNumberFields
@@ -860,61 +919,69 @@ export function renderQuestionContent({
               />
             ) : null}
 
-            {renderBooleanChoice(
-              '집이 한채 더 있습니까?',
-              formData.additionalHomes.length > 0,
-              handleToggleAdditionalHomes,
-              '현재 거주 주택을 포함해 최대 5채까지 입력할 수 있습니다.',
-            )}
-
-            {formData.additionalHomes.length > 0 ? (
-              <div className="question-stack">
-                {formData.additionalHomes.map((home, index) => (
-                  <section key={`additional-home-${index}`} className="question-block">
-                    <div className="question-block-header">
-                      <h2>{`추가 주택 ${index + 1}`}</h2>
-                    </div>
-                    <ChoiceQuestion
-                      value={home.housingType}
-                      options={additionalHomeHousingOptions}
-                      onChange={(value) => handlePatchAdditionalHome(index, { housingType: value })}
-                    />
-                    <QuestionNumberFields
-                      columns={2}
-                      fields={[
-                        {
-                          key: `additional-home-market-${index}`,
-                          label: '시가',
-                          value: home.marketValue,
-                          onChange: (value) => handlePatchAdditionalHome(index, { marketValue: value }),
-                        },
-                        {
-                          key: `additional-home-official-${index}`,
-                          label: '공시가격',
-                          value: home.officialValue,
-                          onChange: (value) => handlePatchAdditionalHome(index, { officialValue: value }),
-                        },
-                      ]}
-                    />
-                    <PrimaryButton variant="ghost" onClick={() => handleRemoveAdditionalHome(index)}>
-                      이 주택 삭제
-                    </PrimaryButton>
-                  </section>
-                ))}
-                {formData.additionalHomes.length < 4 ? (
-                  <PrimaryButton variant="secondary" onClick={handleAddAdditionalHome}>
-                    주택 한 채 더 추가
-                  </PrimaryButton>
-                ) : (
-                  <p className="screen-copy question-copy-note">
-                    현재 거주 주택 포함 최대 5채까지 입력할 수 있습니다.
-                  </p>
+            {!isGeneralAccessMode ? (
+              <>
+                {renderBooleanChoice(
+                  '\uC9D1\uC774 \uD55C\uCC44 \uB354 \uC788\uC2B5\uB2C8\uAE4C?',
+                  formData.additionalHomes.length > 0,
+                  handleToggleAdditionalHomes,
+                  '\uD604\uC7AC \uAC70\uC8FC \uC8FC\uD0DD\uC744 \uD3EC\uD568\uD574 \uCD5C\uB300 5\uCC44\uAE4C\uC9C0 \uC785\uB825\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
                 )}
-              </div>
+
+                {formData.additionalHomes.length > 0 ? (
+                  <div className="question-stack">
+                    {formData.additionalHomes.map((home, index) => (
+                      <section key={`additional-home-${index}`} className="question-block">
+                        <div className="question-block-header">
+                          <h2>{`\uCD94\uAC00 \uC8FC\uD0DD ${index + 1}`}</h2>
+                        </div>
+                        <ChoiceQuestion
+                          value={home.housingType}
+                          options={additionalHomeHousingOptions}
+                          onChange={(value) => handlePatchAdditionalHome(index, { housingType: value })}
+                        />
+                        <QuestionNumberFields
+                          columns={2}
+                          fields={[
+                            {
+                              key: `additional-home-market-${index}`,
+                              label: '\uC2DC\uAC00',
+                              value: home.marketValue,
+                              onChange: (value) => handlePatchAdditionalHome(index, { marketValue: value }),
+                            },
+                            {
+                              key: `additional-home-official-${index}`,
+                              label: '\uACF5\uC2DC\uAC00\uACA9',
+                              value: home.officialValue,
+                              onChange: (value) => handlePatchAdditionalHome(index, { officialValue: value }),
+                            },
+                          ]}
+                        />
+                        <PrimaryButton variant="ghost" onClick={() => handleRemoveAdditionalHome(index)}>
+                          {'\uC774 \uC8FC\uD0DD \uC0AD\uC81C'}
+                        </PrimaryButton>
+                      </section>
+                    ))}
+                    {formData.additionalHomes.length < 4 ? (
+                      <PrimaryButton variant="secondary" onClick={handleAddAdditionalHome}>
+                        {'\uC8FC\uD0DD \uD55C \uCC44 \uB354 \uCD94\uAC00'}
+                      </PrimaryButton>
+                    ) : (
+                      <p className="screen-copy question-copy-note">
+                        {'\uD604\uC7AC \uAC70\uC8FC \uC8FC\uD0DD \uD3EC\uD568 \uCD5C\uB300 5\uCC44\uAE4C\uC9C0 \uC785\uB825\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.'}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </>
             ) : null}
           </div>
         )
             case 'propertyAssets':
+        if (isGeneralAccessMode) {
+          return null
+        }
+
         return (
           <div className="question-stack">
             {renderBooleanChoice(
@@ -1026,6 +1093,23 @@ export function renderQuestionContent({
           </div>
         )
       case 'assets':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'taxableAccountAssets',
+                    label: '\uC77C\uBC18 \uC8FC\uC2DD \uC790\uC0B0',
+                    value: formData.taxableAccountAssets,
+                    onChange: (value) => update('taxableAccountAssets', value),
+                  },
+                ]}
+              />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <QuestionNumberFields
@@ -1103,6 +1187,46 @@ export function renderQuestionContent({
           </div>
         )
       case 'dividends':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <ChoiceQuestion
+                value={formData.dividendInputMode}
+                options={dividendModeOptions}
+                onChange={(value) => update('dividendInputMode', value)}
+              />
+              <QuestionNumberFields
+                columns={2}
+                fields={[
+                  {
+                    key: 'taxableAccountDividendAnnual',
+                    label: '\uC77C\uBC18 \uC8FC\uC2DD\uACC4\uC88C \uC5F0\uAC04 \uBC30\uB2F9\uAE08',
+                    value: formData.taxableAccountDividendAnnual,
+                    onChange: (value) => update('taxableAccountDividendAnnual', value),
+                  },
+                  {
+                    key: 'pensionMonthlyAmount',
+                    label: '\uAD6D\uBBFC\uC5F0\uAE08 \uC6D4 \uC2E4\uC218\uB839\uC561 \uC608\uC0C1',
+                    value: formData.pensionMonthlyAmount,
+                    onChange: (value) => update('pensionMonthlyAmount', value),
+                    helperText: '\uC138\uD6C4 \uAE30\uC900, \uC2E4\uC81C \uD1B5\uC7A5\uC5D0 \uB4E4\uC5B4\uC624\uB294 \uAE08\uC561\uC744 \uC785\uB825\uD569\uB2C8\uB2E4.',
+                  },
+                  {
+                    key: 'pensionStartAge',
+                    label: '\uAD6D\uBBFC\uC5F0\uAE08 \uC218\uB839 \uC2DC\uC791 \uB098\uC774',
+                    value: formData.pensionStartAge,
+                    onChange: (value) => update('pensionStartAge', Math.max(value, 1)),
+                    display: 'number' as const,
+                    suffix: '\uC138',
+                    min: 1,
+                    step: 1,
+                  },
+                ]}
+              />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <ChoiceQuestion
@@ -1321,6 +1445,14 @@ export function renderQuestionContent({
           </div>
         )
       case 'income':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <QuestionNumberFieldPairs pairs={generalIncomeFieldPairs} />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <section className="question-block">
@@ -1342,6 +1474,21 @@ export function renderQuestionContent({
           </div>
         )
       case 'healthInsurance':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>{'\uAC74\uAC15\uBCF4\uD5D8 \uC720\uD615'}</h2>
+                </div>
+                <p className="screen-copy question-copy-note">
+                  {'\uC77C\uBC18 \uBAA8\uB4DC\uB294 \uC9C0\uC5ED\uAC00\uC785\uC790 \uAE30\uC900\uC73C\uB85C \uB2E8\uC21C \uCD94\uC815\uD569\uB2C8\uB2E4.'}
+                </p>
+              </section>
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             {hasCorporateExecutiveIncome ? (
@@ -1465,6 +1612,23 @@ export function renderQuestionContent({
           </div>
         )
       case 'fixedExpenses':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'otherFixedMonthly',
+                    label: '\uC6D4 \uACE0\uC815\uC9C0\uCD9C \uCD1D\uC561',
+                    value: formData.otherFixedMonthly,
+                    onChange: (value) => update('otherFixedMonthly', value),
+                  },
+                ]}
+              />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <QuestionNumberFieldPairs
@@ -1550,6 +1714,23 @@ export function renderQuestionContent({
           </div>
         )
       case 'livingCosts':
+        if (isGeneralAccessMode) {
+          return (
+            <div className="question-stack">
+              <QuestionNumberFields
+                fields={[
+                  {
+                    key: 'livingCostMonthlyTotal',
+                    label: '\uC6D4 \uC0DD\uD65C\uBE44 \uCD1D\uC561',
+                    value: formData.livingCostMonthlyTotal,
+                    onChange: (value) => update('livingCostMonthlyTotal', value),
+                  },
+                ]}
+              />
+            </div>
+          )
+        }
+
         return (
           <div className="question-stack">
             <ChoiceQuestion

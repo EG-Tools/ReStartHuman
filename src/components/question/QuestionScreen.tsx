@@ -8,6 +8,7 @@ export function QuestionScreen({
   questionIndex,
   totalQuestions,
   formData,
+  accessMode,
   onBack,
   onNext,
   onSeekQuestion,
@@ -34,6 +35,7 @@ export function QuestionScreen({
       {renderQuestionContent({
         question,
         formData,
+        accessMode,
         update,
         onPatchFormData,
       })}

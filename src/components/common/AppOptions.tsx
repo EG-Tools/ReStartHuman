@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_VERSION_LABEL } from '../../config/appMeta'
-import type { AppAccessMode } from '../../hooks/useAdSupport'
+import type { AppAccessMode } from '../../types/alpha'
 import { PrimaryButton } from './Ui'
 
 interface AppOptionsButtonProps {

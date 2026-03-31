@@ -2,6 +2,7 @@ export type HouseholdType = 'single' | 'couple'
 export type HousingType = 'own' | 'jeonse' | 'monthlyRent'
 export type DividendInputMode = 'gross' | 'net'
 export type IsaType = 'general' | 'workingClass' | 'unknown'
+export type AppAccessMode = 'general' | 'pro'
 export type IncomeCategory =
   | 'earned'
   | 'otherPension'
@@ -306,6 +307,6 @@ export interface QuestionStep {
   id: QuestionStepId
   title: string
   description: string
-  visibility: (formData: AlphaFormData) => boolean
+  visibility: (formData: AlphaFormData, accessMode: AppAccessMode) => boolean
 }
 
