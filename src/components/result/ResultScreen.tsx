@@ -1,4 +1,4 @@
-﻿import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
@@ -56,6 +56,7 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
       <ProjectionInlineControls formData={formData} onPatchFormData={onPatchFormData} />
 
       <CashFlowChart
+        formData={formData}
         result={result}
         inflationEnabled={formData.inflationEnabled}
         inflationRateAnnual={formData.inflationRateAnnual}

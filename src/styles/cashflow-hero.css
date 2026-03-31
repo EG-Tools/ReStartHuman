@@ -214,3 +214,92 @@
     font-size: 0.76rem;
   }
 }
+
+.cashflow-event-line {
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+  opacity: 0.9;
+}
+
+.cashflow-event-dot {
+  fill: #ffffff;
+  stroke-width: 2;
+}
+
+.cashflow-event-pill {
+  fill: rgba(17, 24, 28, 0.88);
+  stroke: rgba(227, 236, 240, 0.24);
+  stroke-width: 1;
+}
+
+.cashflow-event-text {
+  fill: #f7fbfc;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.cashflow-event-marker.tone-pension .cashflow-event-line,
+.cashflow-event-marker.tone-pension .cashflow-event-dot {
+  stroke: #6a9dff;
+}
+
+.cashflow-event-marker.tone-insurance .cashflow-event-line,
+.cashflow-event-marker.tone-insurance .cashflow-event-dot {
+  stroke: #e0b057;
+}
+
+.cashflow-event-marker.tone-expense .cashflow-event-line,
+.cashflow-event-marker.tone-expense .cashflow-event-dot {
+  stroke: #68c4a4;
+}
+
+.cashflow-event-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.cashflow-event-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(69, 84, 93, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cashflow-event-legend-item.tone-pension {
+  color: #486cb8;
+}
+
+.cashflow-event-legend-item.tone-insurance {
+  color: #9c6f19;
+}
+
+.cashflow-event-legend-item.tone-expense {
+  color: #2f7b64;
+}
+
+.cashflow-event-legend-swatch {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.cashflow-event-legend-text {
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  .cashflow-event-legend {
+    grid-template-columns: 1fr;
+  }
+}

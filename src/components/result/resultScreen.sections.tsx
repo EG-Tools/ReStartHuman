@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { AlphaResult } from '../../types/alpha'
+import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
   formatCompactCurrency,
   formatSignedCompactCurrency,
@@ -133,13 +133,31 @@ const formatYAxisEok = (value: number) => {
   return `${eokValue.toFixed(2)} 억`
 }
 
+type CashFlowEventTone = 'pension' | 'insurance' | 'expense'
+
+type CashFlowEventMarker = {
+  key: string
+  label: string
+  shortLabel: string
+  detail: string
+  yearOffset: number
+  tone: CashFlowEventTone
+}
+
+const formatCashFlowEventDetail = (currentAge: number, yearOffset: number) =>
+  yearOffset <= 0
+    ? `${currentAge}\uC138`
+    : `${currentAge + yearOffset}\uC138 / ${yearOffset}\uB144 \uD6C4`
+
 export const CashFlowChart = memo(function CashFlowChart({
+  formData,
   result,
   inflationEnabled,
   inflationRateAnnual,
   projectionYears,
   currentAge,
 }: {
+  formData: AlphaFormData
   result: AlphaResult
   inflationEnabled: boolean
   inflationRateAnnual: number
@@ -223,34 +241,99 @@ export const CashFlowChart = memo(function CashFlowChart({
   const midYear2 = Math.max(midYear1 + 1, Math.round((totalYears * 2) / 3))
   const xTicks = [0, midYear1, midYear2, totalYears].map((yearOffset) => ({
     yearOffset,
-    ageLabel: `${currentAge + yearOffset}세`,
+    ageLabel: `${currentAge + yearOffset}\uC138`,
     x: paddingLeft + (Math.min(yearOffset, totalYears) / totalYears) * chartWidth,
   }))
+  const futurePensionStartOffsets = [
+    formData.pensionMonthlyAmount > 0 ? formData.pensionStartAge - currentAge : null,
+    formData.selectedIncomeCategories.includes('otherPension') && formData.otherPensionMonthly > 0
+      ? formData.otherPensionStartAge - currentAge
+      : null,
+  ].filter((value): value is number => value !== null && value > 0 && value <= totalYears)
+  const earliestPensionStartOffset =
+    futurePensionStartOffsets.length > 0 ? Math.min(...futurePensionStartOffsets) : null
+  const rawMarkers: CashFlowEventMarker[] = [
+    ...(earliestPensionStartOffset !== null
+      ? [
+          {
+            key: 'pension-start',
+            label: '\uC5F0\uAE08 \uC2DC\uC791',
+            shortLabel: '\uC5F0\uAE08',
+            detail: formatCashFlowEventDetail(currentAge, earliestPensionStartOffset),
+            yearOffset: earliestPensionStartOffset,
+            tone: 'pension' as const,
+          },
+        ]
+      : []),
+    ...(result.healthInsuranceSource === 'estimated' &&
+    result.nextReflectedHealthInsuranceMonthly !== result.healthInsuranceMonthly &&
+    totalYears >= 1
+      ? [
+          {
+            key: 'health-insurance-reflect',
+            label: '\uAC74\uBCF4 \uBC18\uC601',
+            shortLabel: '\uAC74\uBCF4',
+            detail: formatCashFlowEventDetail(currentAge, 1),
+            yearOffset: 1,
+            tone: 'insurance' as const,
+          },
+        ]
+      : []),
+    ...(formData.insuranceMonthly > 0 &&
+    formData.insurancePaymentYears > 0 &&
+    formData.insurancePaymentYears <= totalYears
+      ? [
+          {
+            key: 'insurance-end',
+            label: '\uBCF4\uD5D8 \uC885\uB8CC',
+            shortLabel: '\uBCF4\uD5D8',
+            detail: formatCashFlowEventDetail(currentAge, formData.insurancePaymentYears),
+            yearOffset: formData.insurancePaymentYears,
+            tone: 'expense' as const,
+          },
+        ]
+      : []),
+  ]
+  const chartMarkers = rawMarkers
+    .sort((left, right) => left.yearOffset - right.yearOffset)
+    .map((marker, index) => {
+      const markerPoint =
+        coordinates.find((point) => point.year === marker.yearOffset) ?? coordinates[coordinates.length - 1]
+      const labelX = Math.max(borderX + 28, Math.min(markerPoint.x, width - paddingRight - 28))
+
+      return {
+        ...marker,
+        x: markerPoint.x,
+        y: markerPoint.y,
+        labelX,
+        lane: index % 2,
+      }
+    })
 
   return (
     <section className={`result-panel cashflow-hero tone-${result.riskLevel}`}>
       <div className="cashflow-hero-header">
         <div>
           <div className="cashflow-hero-titleline">
-            <p className="cashflow-hero-eyebrow">{projectionYears}년 현금흐름 예상</p>
+            <p className="cashflow-hero-eyebrow">{projectionYears}\uB144 \uD604\uAE08\uD750\uB984 \uC608\uC0C1</p>
             <span className={`cashflow-hero-status risk-${result.riskLevel}`}>
               ({getRiskLabel(result.riskLevel)})
             </span>
           </div>
           <h2>{formatCompactCurrency(endingBalance)}</h2>
           <p className="cashflow-hero-copy">
-            현재 보유한 현금에서 {projectionYears}년 후 그래프 변화입니다.
+            \uD604\uC7AC \uBCF4\uC720 \uD604\uAE08\uC5D0\uC11C {projectionYears}\uB144 \uD6C4 \uADF8\uB798\uD504 \uBCC0\uD654\uC785\uB2C8\uB2E4.
           </p>
         </div>
         <div className="cashflow-hero-meta">
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-start">
-            시작 {formatCompactCurrency(result.startingCashReserve)}
+            \uC2DC\uC791 {formatCompactCurrency(result.startingCashReserve)}
           </span>
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-center">
-            {projectionYears}년후 {formatCompactCurrency(result.cashBalanceAfterTenYears)}
+            {projectionYears}\uB144\uD6C4 {formatCompactCurrency(result.cashBalanceAfterTenYears)}
           </span>
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-end">
-            물가반영 {displayedInflationRate}%
+            \uBB3C\uAC00\uBC18\uC601 {displayedInflationRate}%
           </span>
         </div>
       </div>
@@ -259,7 +342,7 @@ export const CashFlowChart = memo(function CashFlowChart({
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`${projectionYears}년 현금흐름 그래프`}
+        aria-label={`${projectionYears}\uB144 \uD604\uAE08\uD750\uB984 \uADF8\uB798\uD504`}
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -315,6 +398,40 @@ export const CashFlowChart = memo(function CashFlowChart({
           }}
         />
 
+        {chartMarkers.map((marker) => {
+          const labelY = paddingTop + 14 + marker.lane * 22
+          return (
+            <g key={marker.key} className={`cashflow-event-marker tone-${marker.tone}`}>
+              <line
+                className="cashflow-event-line"
+                x1={marker.x}
+                y1={paddingTop}
+                x2={marker.x}
+                y2={chartFloorY}
+              />
+              <circle className="cashflow-event-dot" cx={marker.x} cy={marker.y} r={4.5} />
+              <rect
+                className="cashflow-event-pill"
+                x={marker.labelX - 28}
+                y={labelY - 10}
+                width={56}
+                height={20}
+                rx={10}
+                ry={10}
+              />
+              <text
+                className="cashflow-event-text"
+                x={marker.labelX}
+                y={labelY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {marker.shortLabel}
+              </text>
+            </g>
+          )
+        })}
+
         {xTicks.map((tick) => {
           const textAnchor =
             tick.yearOffset === 0 ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'
@@ -346,6 +463,17 @@ export const CashFlowChart = memo(function CashFlowChart({
           )
         })}
       </svg>
+
+      {chartMarkers.length > 0 ? (
+        <div className="cashflow-event-legend" aria-label={'\uC8FC\uC694 \uC804\uD658 \uC2DC\uC810'}>
+          {chartMarkers.map((marker) => (
+            <div key={`legend-${marker.key}`} className={`cashflow-event-legend-item tone-${marker.tone}`}>
+              <span className="cashflow-event-legend-swatch" aria-hidden="true" />
+              <span className="cashflow-event-legend-text">{`${marker.label} \u00B7 ${marker.detail}`}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </section>
   )
 })
