@@ -272,6 +272,9 @@ export default function App() {
           isAdminModeEnabled={adSupport.isAdminModeEnabled}
           canEnableAdminMode={adSupport.canEnableAdminMode}
           onEnableAdminMode={adSupport.enableAdminMode}
+          accessMode={adSupport.accessMode}
+          canToggleAccessMode={adSupport.canToggleAccessMode}
+          onChangeAccessMode={adSupport.setAccessMode}
         />
       ) : null}
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_VERSION_LABEL } from '../../config/appMeta'
+import type { AppAccessMode } from '../../hooks/useAdSupport'
 import { PrimaryButton } from './Ui'
 
 interface AppOptionsButtonProps {
@@ -11,6 +12,9 @@ interface AppOptionsModalProps {
   isAdminModeEnabled: boolean
   canEnableAdminMode: boolean
   onEnableAdminMode: () => boolean
+  accessMode: AppAccessMode
+  canToggleAccessMode: boolean
+  onChangeAccessMode: (mode: AppAccessMode) => boolean
 }
 
 const text = {
@@ -24,12 +28,21 @@ const text = {
   usingWithoutAds: '관리자 모드 사용 중',
   supportPrice: '후원 1년에 3,000원',
   supportPreparing: '후원 준비 중',
-  enabledCopy:
+  enabledCopyPro:
     '후원에 감사드립니다. 이 기기에서는 관리자 모드가 활성화되어 결과 전 광고 없이 전체 기능을 확인할 수 있습니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
+  enabledCopyGeneral:
+    '관리자 모드가 활성화되어 있지만 지금은 일반 보기로 전환해 광고와 일반 사용자 흐름을 테스트하고 있습니다. 필요하면 아래 토글에서 프로 보기로 다시 바꿀 수 있습니다.',
   temporaryCopy:
     '테스트 버전에서는 후원을 확인하면 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 지금은 실제 결제 연동 전 테스트 흐름으로 운영합니다.',
   preparingCopy:
     '후원 기능은 준비 중입니다. 실제 결제 연동이 완료되기 전까지는 일반 사용자에게 광고 제거를 열지 않습니다.',
+  modeLabel: '테스트 표시 모드',
+  modeGeneral: '일반',
+  modePro: '프로',
+  modeGeneralCopy:
+    '일반 보기는 광고가 포함된 흐름과 일반 사용자 기준 화면을 테스트할 때 쓸 수 있습니다.',
+  modeProCopy:
+    '프로 보기는 관리자 모드와 광고 생략 상태를 그대로 테스트할 때 쓸 수 있습니다.',
   creator: '제작자명',
   email: '이메일',
   close: '닫기',
@@ -39,7 +52,7 @@ const text = {
     '예를 누르면 후원 감사 메시지 뒤에 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
   supportThanks: '후원에 감사드립니다.',
   supportSuccessNote:
-    '이 기기에서 관리자 모드가 활성화되었습니다. 이제 결과 전 광고 없이 전체 기능을 확인할 수 있습니다.',
+    '이 기기에서 관리자 모드가 활성화되었습니다. 이제 일반/프로 표시 모드를 바꿔가며 테스트할 수 있습니다.',
   confirm: '확인',
   yes: '예',
   no: '아니오',
@@ -78,6 +91,9 @@ export function AppOptionsModal({
   isAdminModeEnabled,
   canEnableAdminMode,
   onEnableAdminMode,
+  accessMode,
+  canToggleAccessMode,
+  onChangeAccessMode,
 }: AppOptionsModalProps) {
   const [isSupportPromptOpen, setIsSupportPromptOpen] = useState(false)
   const [isSupportSuccessOpen, setIsSupportSuccessOpen] = useState(false)
@@ -131,10 +147,15 @@ export function AppOptionsModal({
       : text.supportPreparing
 
   const supportCopy = isAdminModeEnabled
-    ? text.enabledCopy
+    ? accessMode === 'pro'
+      ? text.enabledCopyPro
+      : text.enabledCopyGeneral
     : canEnableAdminMode
       ? text.temporaryCopy
       : text.preparingCopy
+
+  const currentModeLabel = accessMode === 'pro' ? text.modePro : text.modeGeneral
+  const currentModeCopy = accessMode === 'pro' ? text.modeProCopy : text.modeGeneralCopy
 
   return (
     <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
@@ -163,6 +184,34 @@ export function AppOptionsModal({
           </div>
 
           <p className="support-copy">{supportCopy}</p>
+
+          {canToggleAccessMode ? (
+            <div className="support-option-row support-mode-section">
+              <span>{text.modeLabel}</span>
+              <strong>{currentModeLabel}</strong>
+              <p className="support-note support-mode-copy">{currentModeCopy}</p>
+              <div className="slot-mode-switch support-mode-toggle" role="tablist" aria-label={text.modeLabel}>
+                <button
+                  type="button"
+                  className={`slot-mode-button ${accessMode === 'general' ? 'is-active' : ''}`.trim()}
+                  role="tab"
+                  aria-selected={accessMode === 'general'}
+                  onClick={() => onChangeAccessMode('general')}
+                >
+                  {text.modeGeneral}
+                </button>
+                <button
+                  type="button"
+                  className={`slot-mode-button ${accessMode === 'pro' ? 'is-active' : ''}`.trim()}
+                  role="tab"
+                  aria-selected={accessMode === 'pro'}
+                  onClick={() => onChangeAccessMode('pro')}
+                >
+                  {text.modePro}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="support-actions">
             <PrimaryButton
