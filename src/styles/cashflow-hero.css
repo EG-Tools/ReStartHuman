@@ -24,15 +24,15 @@
   max-width: none;
   margin-inline: 0;
   padding: 22px 24px;
-  background: linear-gradient(145deg, rgba(240, 249, 248, 0.98), rgba(255, 250, 243, 0.94));
+  background: linear-gradient(145deg, rgba(15, 28, 33, 0.98), rgba(10, 17, 21, 0.96));
 }
 
 .cashflow-hero.tone-deficit {
-  background: linear-gradient(145deg, rgba(255, 245, 241, 0.98), rgba(255, 250, 243, 0.94));
+  background: linear-gradient(145deg, rgba(45, 20, 23, 0.98), rgba(13, 17, 21, 0.96));
 }
 
 .cashflow-hero.tone-neutral {
-  background: linear-gradient(145deg, rgba(255, 249, 238, 0.98), rgba(255, 250, 243, 0.94));
+  background: linear-gradient(145deg, rgba(40, 32, 19, 0.98), rgba(13, 17, 21, 0.96));
 }
 
 .cashflow-hero-header {
@@ -50,7 +50,7 @@
 
 .cashflow-hero-eyebrow {
   margin: 0;
-  color: var(--muted);
+  color: #dce8eb;
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -60,7 +60,7 @@
 .cashflow-hero-copy {
   margin: 10px 0 0;
   max-width: 32rem;
-  color: var(--muted);
+  color: #d3dfe3;
 }
 
 .cashflow-hero-meta {
@@ -81,8 +81,8 @@
   max-width: 100%;
   padding: 7px var(--cashflow-meta-center-padding-x);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+  color: #dce8eb;
   font-size: 0.8rem;
   font-weight: 700;
   white-space: nowrap;
@@ -269,8 +269,8 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(69, 84, 93, 0.12);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(212, 226, 232, 0.12);
+  background: rgba(20, 30, 35, 0.88);
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
