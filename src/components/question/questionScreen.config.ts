@@ -29,8 +29,8 @@ export interface QuestionNumberFieldConfig {
 }
 
 export const householdOptions = [
-  { value: 'single', label: '본인' },
-  { value: 'couple', label: '공동명의' },
+  { value: 'single', label: '\u0031\uC778' },
+  { value: 'couple', label: '\uBD80\uBD80' },
 ] as const
 
 export const housingOptions = [
@@ -88,6 +88,11 @@ export const propertyOwnershipOptions = [
   { value: 'mineOnly', label: '본인' },
   { value: 'spouseOnly', label: '배우자' },
   { value: 'split', label: '공동명의' },
+] as const
+
+export const currentHomeOwnershipOptions = [
+  { value: 'mineOnly', label: '\uBCF8\uC778 \uB2E8\uB3C5' },
+  { value: 'split', label: '\uACF5\uB3D9\uBA85\uC758' },
 ] as const
 
 export const otherIncomeTypeOptions = [

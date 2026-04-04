@@ -5,6 +5,7 @@ import { formatCompactCurrency } from '../../utils/format'
 import { QuestionNumberFieldPairs, QuestionNumberFields, type QuestionNumberFieldPairConfig } from './questionScreen.shared'
 import {
   additionalHomeHousingOptions,
+  currentHomeOwnershipOptions,
   dividendModeOptions,
   dividendOwnershipOptions,
   healthInsuranceOptionRows,
@@ -224,6 +225,48 @@ export function renderQuestionContent({
       myAnnualIsaDividendAttributed: nextSplitAmounts.mineAmount,
       spouseAnnualIsaDividendAttributed: nextSplitAmounts.spouseAmount,
     })
+  }
+
+  const buildDividendOwnershipPatch = (
+    value: AlphaFormData['dividendOwnershipType'],
+  ): Partial<AlphaFormData> => {
+    if (value === 'split') {
+      const splitAmounts = splitAmountEvenly(formData.taxableAccountDividendAnnual)
+
+      return {
+        dividendOwnershipType: value,
+        myAnnualDividendAttributed: splitAmounts.mineAmount,
+        spouseAnnualDividendAttributed: splitAmounts.spouseAmount,
+      }
+    }
+
+    return {
+      dividendOwnershipType: value,
+      myAnnualDividendAttributed:
+        value === 'mineOnly' ? formData.taxableAccountDividendAnnual : 0,
+      spouseAnnualDividendAttributed:
+        value === 'spouseOnly' ? formData.taxableAccountDividendAnnual : 0,
+    }
+  }
+
+  const buildIsaOwnershipPatch = (
+    value: AlphaFormData['isaOwnershipType'],
+  ): Partial<AlphaFormData> => {
+    if (value === 'split') {
+      const splitAmounts = splitAmountEvenly(formData.isaDividendAnnual)
+
+      return {
+        isaOwnershipType: value,
+        myAnnualIsaDividendAttributed: splitAmounts.mineAmount,
+        spouseAnnualIsaDividendAttributed: splitAmounts.spouseAmount,
+      }
+    }
+
+    return {
+      isaOwnershipType: value,
+      myAnnualIsaDividendAttributed: value === 'mineOnly' ? formData.isaDividendAnnual : 0,
+      spouseAnnualIsaDividendAttributed: value === 'spouseOnly' ? formData.isaDividendAnnual : 0,
+    }
   }
 
   const handleToggleIncomeCategory = (category: IncomeCategory) => {
@@ -793,7 +836,7 @@ export function renderQuestionContent({
             />
             <section className="question-block household-choice-block">
               <div className="question-block-header">
-                <h2>부동산 명의</h2>
+                <h2>{'\uAC00\uAD6C \uAD6C\uC131'}</h2>
               </div>
               <ChoiceQuestion
                 value={formData.householdType}
@@ -801,7 +844,7 @@ export function renderQuestionContent({
                 onChange={(value) =>
                   onPatchFormData({
                     householdType: value,
-                    isJointOwnership: value === 'couple',
+                    isJointOwnership: value === 'single' ? false : formData.isJointOwnership,
                   })
                 }
               />
@@ -884,6 +927,26 @@ export function renderQuestionContent({
                   },
                 ]}
               />
+            ) : null}
+
+            {formData.householdType === 'couple' && formData.housingType === 'own' ? (
+              <section className="question-block">
+                <div className="question-block-header">
+                  <h2>{'\uD604\uC7AC \uAC70\uC8FC \uC8FC\uD0DD \uBA85\uC758'}</h2>
+                </div>
+                <ChoiceQuestion
+                  value={formData.isJointOwnership ? 'split' : 'mineOnly'}
+                  options={currentHomeOwnershipOptions}
+                  onChange={(value) =>
+                    onPatchFormData({
+                      isJointOwnership: value === 'split',
+                    })
+                  }
+                />
+                <p className="screen-copy question-copy-note">
+                  {'\uC8FC\uD0DD \uBA85\uC758\uC640 \uC8FC\uC2DD \uBA85\uC758\uB294 \uC11C\uB85C \uB3C5\uB9BD\uC801\uC73C\uB85C \uC124\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.'}
+                </p>
+              </section>
             ) : null}
 
             {formData.housingType === 'jeonse' ? (
@@ -1129,6 +1192,36 @@ export function renderQuestionContent({
                 },
               ]}
             />
+            {formData.householdType === 'couple' ? (
+              <>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>{'\uC77C\uBC18 \uC8FC\uC2DD \uBA85\uC758'}</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={formData.dividendOwnershipType}
+                    options={propertyOwnershipOptions}
+                    onChange={(value) => onPatchFormData(buildDividendOwnershipPatch(value))}
+                  />
+                  <p className="screen-copy question-copy-note">
+                    {'\uC9C8\uBB38 \u0035\uC758 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9 \uADC0\uC18D \uACC4\uC0B0\uC5D0\uB3C4 \uAC19\uC740 \uAE30\uC900\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.'}
+                  </p>
+                </section>
+                <section className="question-block">
+                  <div className="question-block-header">
+                    <h2>{'ISA \uBA85\uC758'}</h2>
+                  </div>
+                  <ChoiceQuestion
+                    value={formData.isaOwnershipType}
+                    options={propertyOwnershipOptions}
+                    onChange={(value) => onPatchFormData(buildIsaOwnershipPatch(value))}
+                  />
+                  <p className="screen-copy question-copy-note">
+                    {'\uC9C8\uBB38 \u0035\uC758 ISA \uBC30\uB2F9 \uADC0\uC18D \uACC4\uC0B0\uC5D0\uB3C4 \uAC19\uC740 \uAE30\uC900\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4.'}
+                  </p>
+                </section>
+              </>
+            ) : null}
             {formData.householdType === 'couple' ? (
               <>
                 <section className="question-block">

@@ -414,3 +414,26 @@ test('current health insurance uses the current business amount while projection
   assert.ok(result.nextReflectedHealthInsuranceMonthly > result.healthInsuranceMonthly)
   assert.ok(result.projectionHealthInsuranceTotal >= result.nextReflectedHealthInsuranceMonthly * 12)
 })
+
+
+test('stock ownership can stay split while the current home stays singly owned', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    householdType: 'couple',
+    housingType: 'own',
+    homeMarketValue: 1_000_000_000,
+    homeOfficialValue: 700_000_000,
+    isJointOwnership: false,
+    dividendInputMode: 'gross',
+    taxableAccountDividendAnnual: 24_000_000,
+    dividendOwnershipType: 'split',
+    myAnnualDividendAttributed: 12_000_000,
+    spouseAnnualDividendAttributed: 12_000_000,
+  })
+
+  assert.deepEqual(
+    result.taxableDividendOwnershipBreakdown.map((item) => item.attributedAnnual),
+    [12_000_000, 12_000_000],
+  )
+  assert.ok(result.holdingTaxAnnual > 0)
+})
