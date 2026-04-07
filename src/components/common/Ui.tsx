@@ -11,25 +11,24 @@ const formatDraftValue = (
   value: number,
   zeroDisplayMode: ZeroDisplayMode = 'blank',
 ) =>
-  Number.isFinite(value) && (value !== 0 || zeroDisplayMode === 'zero') ? String(value) : ''
+  Number.isFinite(value) && (Math.round(value) !== 0 || zeroDisplayMode === 'zero')
+    ? String(Math.round(value))
+    : ''
 
 const sanitizeDraftValue = (draftValue: string) => {
-  const normalizedValue = draftValue.replace(/,/g, '').replace(/[^\d.]/g, '')
-  const [integerPart, ...decimalParts] = normalizedValue.split('.')
-
-  return decimalParts.length > 0 ? `${integerPart}.${decimalParts.join('')}` : integerPart
+  return draftValue.replace(/,/g, '').replace(/[^\d]/g, '')
 }
 
 const parseDraftValue = (draftValue: string, minValue: number) => {
-  const normalizedValue = Number(draftValue) || 0
+  const normalizedValue = Math.round(Number(draftValue) || 0)
   return Math.max(normalizedValue, minValue)
 }
 
 const toDisplayValue = (value: number, display: NumericDisplayMode) =>
-  display === 'currency' ? value / MANWON : value
+  display === 'currency' ? Math.round(value / MANWON) : Math.round(value)
 
 const toCommitValue = (value: number, display: NumericDisplayMode) =>
-  display === 'currency' ? value * MANWON : value
+  display === 'currency' ? Math.round(value) * MANWON : Math.round(value)
 
 interface UseNumericDraftControllerProps {
   value: number
@@ -318,7 +317,7 @@ export function InlineNumericField({
         <input
           className={inputClassName}
           type="text"
-          inputMode="decimal"
+          inputMode="numeric"
           min={min}
           step={resolvedStep}
           max={max}
