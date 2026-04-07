@@ -246,6 +246,7 @@ export interface AlphaResult {
   estimatedComprehensiveIncomeTaxAnnual: number
   estimatedLocalIncomeTaxAnnual: number
   estimatedComprehensiveTaxBaseAnnual: number
+  privatePensionTaxAnnual: number
   rentalIncomeTaxAnnual: number
   rentalIncomeTaxMonthly: number
 
@@ -265,6 +266,7 @@ export interface AlphaResult {
   projectionHealthInsuranceTotal: number
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
+  projectionPrivatePensionTaxTotal: number
   projectionRentalIncomeTaxTotal: number
   projectionEstimatedComprehensiveIncomeTaxTotal: number
   projectionEstimatedLocalIncomeTaxTotal: number

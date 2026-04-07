@@ -99,16 +99,55 @@ test('other pension income starts only from the configured age', () => {
   assert.equal(result.otherIncomeMonthlyApplied, 0)
   assert.equal(result.projectionOtherIncomeTotal, 18_000_000)
   assert.equal(result.estimatedComprehensiveIncomeTaxAnnual, 0)
-  assert.ok(result.projectionEstimatedComprehensiveIncomeTaxTotal > 0)
+  assert.equal(result.projectionEstimatedComprehensiveIncomeTaxTotal, 0)
+  assert.equal(result.projectionEstimatedLocalIncomeTaxTotal, 0)
+  assert.ok(result.projectionPrivatePensionTaxTotal > 0)
   assert.equal(result.cashBalanceTimeline[2]?.balance, 0)
   assert.equal(
     result.cashBalanceTimeline[5]?.balance,
-    result.projectionOtherIncomeTotal -
-      result.projectionEstimatedComprehensiveIncomeTaxTotal -
-      result.projectionEstimatedLocalIncomeTaxTotal,
+    result.projectionOtherIncomeTotal - result.projectionPrivatePensionTaxTotal,
   )
 })
 
+test('other pension uses age-based private pension tax rates', () => {
+  const youngerResult = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 65,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    selectedIncomeCategories: ['otherPension'],
+    otherPensionMonthly: 1_000_000,
+    otherPensionStartAge: 65,
+  })
+  const olderResult = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 75,
+    simulationYears: 10,
+    inflationEnabled: false,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    healthInsuranceType: 'dependent',
+    selectedIncomeCategories: ['otherPension'],
+    otherPensionMonthly: 1_000_000,
+    otherPensionStartAge: 65,
+  })
+
+  assert.equal(youngerResult.privatePensionTaxAnnual, 660_000)
+  assert.equal(olderResult.privatePensionTaxAnnual, 528_000)
+  assert.equal(youngerResult.estimatedComprehensiveIncomeTaxAnnual, 0)
+  assert.equal(olderResult.estimatedComprehensiveIncomeTaxAnnual, 0)
+})
 test('additional homes increase holding tax and health insurance property base', () => {
   const baseScenario = calculateAlphaScenario({
     ...defaultFormData,

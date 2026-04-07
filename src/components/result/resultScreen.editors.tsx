@@ -319,7 +319,7 @@ export function buildResultRows({
       ...result.incomeBreakdown
         .filter(
           (item) =>
-            ['earned', 'otherPension', 'freelance', 'business', 'corporateExecutive', 'misc'].includes(item.key) &&
+            ['earned', 'freelance', 'business', 'corporateExecutive', 'misc'].includes(item.key) &&
             (item.inputMonthly > 0 || item.projectionTotal > 0),
         )
         .map((item) => item.label),
@@ -331,6 +331,30 @@ export function buildResultRows({
       result.projectionEstimatedLocalIncomeTaxTotal > 0)
   const estimatedComprehensiveTaxReviewSummary =
     result.estimatedComprehensiveTaxReviewReasons.join(' ')
+  const shouldShowPrivatePensionTaxRow =
+    result.privatePensionTaxAnnual > 0 || result.projectionPrivatePensionTaxTotal > 0
+  const otherPensionIncomeItem = visibleIncomeBreakdown.find((item) => item.key === 'otherPension')
+  const otherPensionStartsLater =
+    !!otherPensionIncomeItem &&
+    typeof otherPensionIncomeItem.startAge === 'number' &&
+    formData.currentAge < otherPensionIncomeItem.startAge
+  const currentPrivatePensionTaxNote =
+    formData.currentAge >= 80
+      ? '추정 · 80세 이상 3.3%'
+      : formData.currentAge >= 70
+        ? '추정 · 70~79세 4.4%'
+        : '추정 · 70세 미만 5.5%'
+  const crossesPrivatePensionSeventy =
+    !!otherPensionIncomeItem && formData.currentAge < 70 && formData.currentAge + formData.simulationYears > 70
+  const crossesPrivatePensionEighty =
+    !!otherPensionIncomeItem && formData.currentAge < 80 && formData.currentAge + formData.simulationYears > 80
+  const privatePensionTaxNote =
+    otherPensionStartsLater
+      ? `추정 · ${formData.otherPensionStartAge}세 이후 반영`
+      : currentPrivatePensionTaxNote
+  const privatePensionTaxNoteDetail = shouldShowPrivatePensionTaxRow
+    ? `${policyConfig.privatePensionTax.note}${otherPensionStartsLater ? ` 현재는 시작 나이 전이라 0원이지만 ${formData.otherPensionStartAge}세 이후부터 반영합니다.` : ''}${crossesPrivatePensionSeventy ? ' 70세 이후에는 4.4%를, 80세 이후에는 3.3%를 자동 반영합니다.' : crossesPrivatePensionEighty ? ' 80세 이후에는 3.3%를 자동 반영합니다.' : ''}`
+    : ''
   const healthInsuranceReviewSummary = result.healthInsuranceReviewReasons.join(' ')
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
@@ -707,7 +731,7 @@ export function buildResultRows({
                   : estimatedComprehensiveTaxStartsLater
                     ? '추정 · 향후 시작 소득 반영'
                     : '추정 · 국민연금·근로 등 반영',
-            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·법인대표 급여·사업소득·프리랜서·기타연금·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
+            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·법인대표 급여·사업소득·프리랜서·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',
@@ -718,6 +742,24 @@ export function buildResultRows({
             tenYear: formatCompactCurrency(result.projectionEstimatedLocalIncomeTaxTotal),
             note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 시작 소득 반영' : '추정 · 종합소득세 연동',
             noteDetail: '종합소득세 추정액의 10%를 지방소득세로 반영했습니다.',
+          },
+        ]
+      : []),
+    ...(shouldShowPrivatePensionTaxRow
+      ? [
+          {
+            category: '세금',
+            item: '연금소득세',
+            input: otherPensionIncomeItem
+              ? otherPensionStartsLater
+                ? `${otherPensionIncomeItem.label} ${formatCompactCurrency(otherPensionIncomeItem.inputMonthly)} / ${formData.otherPensionStartAge}세 시작`
+                : `${otherPensionIncomeItem.label} ${formatCompactCurrency(otherPensionIncomeItem.appliedMonthly)}`
+              : EMPTY_CELL,
+            monthly: formatCompactCurrency(result.privatePensionTaxAnnual / 12),
+            annual: formatCompactCurrency(result.privatePensionTaxAnnual),
+            tenYear: formatCompactCurrency(result.projectionPrivatePensionTaxTotal),
+            note: privatePensionTaxNote,
+            noteDetail: privatePensionTaxNoteDetail,
           },
         ]
       : []),

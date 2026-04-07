@@ -1,6 +1,7 @@
 import { policyConfig } from '../config/policyConfig'
 import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome, ReviewLevel } from '../types/alpha'
 import {
+  calculateAgeQualifiedPrivatePensionTaxAnnual,
   calculateEstimatedComprehensiveIncomeTax,
   calculateRentalIncomeTax,
   getEstimatedComprehensiveTaxBaseAnnual,
@@ -659,6 +660,7 @@ export const calculateCashProjection = (
   let cumulativeOtherIncome = 0
   let cumulativeTotalIncome = 0
   let cumulativeUsableCash = 0
+  let cumulativePrivatePensionTax = 0
   let cumulativeRentalIncomeTax = 0
   let cumulativeEstimatedComprehensiveIncomeTax = 0
   let cumulativeEstimatedLocalIncomeTax = 0
@@ -700,6 +702,10 @@ export const calculateCashProjection = (
         nationalPensionMonthly: projectedPensionMonthly,
       }),
     )
+    const projectedPrivatePensionTaxAnnual = calculateAgeQualifiedPrivatePensionTaxAnnual(
+      formData,
+      projectedAge,
+    ).totalTaxAnnual
     const projectedTotalIncomeMonthly =
       totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
     const projectedMonthlyUsableCash =
@@ -708,6 +714,7 @@ export const calculateCashProjection = (
       holdingTaxMonthly -
       projectedEstimatedComprehensiveTax.incomeTaxAnnual / 12 -
       projectedEstimatedComprehensiveTax.localIncomeTaxAnnual / 12 -
+      projectedPrivatePensionTaxAnnual / 12 -
       financialComprehensiveTaxImpactAnnual / 12 -
       projectedRentalIncomeTaxAnnual / 12
     const inflationMultiplier = formData.inflationEnabled
@@ -732,6 +739,7 @@ export const calculateCashProjection = (
     cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
     cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
     cumulativeUsableCash += roundCurrency(projectedMonthlyUsableCash * 12)
+    cumulativePrivatePensionTax += projectedPrivatePensionTaxAnnual
     cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
     cumulativeEstimatedComprehensiveIncomeTax += projectedEstimatedComprehensiveTax.incomeTaxAnnual
     cumulativeEstimatedLocalIncomeTax += projectedEstimatedComprehensiveTax.localIncomeTaxAnnual
@@ -752,6 +760,7 @@ export const calculateCashProjection = (
     cumulativeOtherIncome: roundCurrency(cumulativeOtherIncome),
     cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),
     cumulativeUsableCash: roundCurrency(cumulativeUsableCash),
+    cumulativePrivatePensionTax: roundCurrency(cumulativePrivatePensionTax),
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
     cumulativeEstimatedComprehensiveIncomeTax: roundCurrency(cumulativeEstimatedComprehensiveIncomeTax),
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),

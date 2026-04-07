@@ -15,6 +15,7 @@ import {
   getSelectedIncomeCategories,
 } from '../utils/incomeStreams'
 import {
+  calculateAgeQualifiedPrivatePensionTaxAnnual,
   calculateComprehensiveTax,
   calculateEstimatedComprehensiveIncomeTax,
   calculateIsaTax,
@@ -206,6 +207,10 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
       nationalPensionMonthly: pensionMonthlyApplied,
     }),
   )
+  const currentPrivatePensionTax = calculateAgeQualifiedPrivatePensionTaxAnnual(
+    formData,
+    formData.currentAge,
+  )
   const currentEstimatedHealthInsurance = estimateHealthInsurance(
     formData,
     taxableDividend.annualGross,
@@ -250,6 +255,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
       holdingTax.monthly -
       estimatedComprehensiveTax.incomeTaxAnnual / 12 -
       estimatedComprehensiveTax.localIncomeTaxAnnual / 12 -
+      currentPrivatePensionTax.totalTaxAnnual / 12 -
       comprehensiveTax.impactAnnual / 12 -
       rentalIncomeTax.monthlyTax,
   )
@@ -304,6 +310,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     estimatedComprehensiveIncomeTaxAnnual: estimatedComprehensiveTax.incomeTaxAnnual,
     estimatedLocalIncomeTaxAnnual: estimatedComprehensiveTax.localIncomeTaxAnnual,
     estimatedComprehensiveTaxBaseAnnual: estimatedComprehensiveTax.taxableBaseAnnual,
+    privatePensionTaxAnnual: currentPrivatePensionTax.totalTaxAnnual,
     rentalIncomeTaxAnnual: rentalIncomeTax.annualTax,
     rentalIncomeTaxMonthly: rentalIncomeTax.monthlyTax,
     healthInsuranceMonthly,
@@ -320,6 +327,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     projectionHealthInsuranceTotal: cashProjection.cumulativeHealthInsurance,
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
+    projectionPrivatePensionTaxTotal: cashProjection.cumulativePrivatePensionTax,
     projectionRentalIncomeTaxTotal: cashProjection.cumulativeRentalIncomeTax,
     projectionEstimatedComprehensiveIncomeTaxTotal:
       cashProjection.cumulativeEstimatedComprehensiveIncomeTax,

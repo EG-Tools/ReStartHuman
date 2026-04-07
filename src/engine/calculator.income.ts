@@ -172,7 +172,6 @@ const getEstimatedComprehensiveTaxBaseBreakdown = ({
   )
   const grossTaxBaseAnnual = roundCurrency(
     earnedIncomeAmountAnnual +
-      otherPensionAnnual +
       freelanceAnnual +
       businessAnnual +
       miscIncomeAmountAnnual +
@@ -225,6 +224,36 @@ export const calculateEstimatedComprehensiveIncomeTax = (annualTaxBase: number) 
     totalTaxAnnual: roundCurrency(incomeTaxAnnual + localIncomeTaxAnnual),
   }
 }
+
+export const getPrivatePensionTaxBand = (age: number) =>
+  policyConfig.privatePensionTax.ageBands.find(
+    (band) => age >= band.minAge && age < band.maxAge,
+  ) ?? policyConfig.privatePensionTax.ageBands[policyConfig.privatePensionTax.ageBands.length - 1]
+
+export const calculatePrivatePensionTax = (annualAmount: number, age: number) => {
+  const normalizedAnnualAmount = roundCurrency(Math.max(annualAmount, 0))
+  const taxBand = getPrivatePensionTaxBand(age)
+  const incomeTaxAnnual = roundCurrency(normalizedAnnualAmount * taxBand.incomeTaxRate)
+  const localIncomeTaxAnnual = roundCurrency(normalizedAnnualAmount * taxBand.localIncomeTaxRate)
+
+  return {
+    annualIncome: normalizedAnnualAmount,
+    incomeTaxAnnual,
+    localIncomeTaxAnnual,
+    totalTaxAnnual: roundCurrency(incomeTaxAnnual + localIncomeTaxAnnual),
+    totalTaxRate: taxBand.totalRate,
+    bandLabel: taxBand.label,
+  }
+}
+
+export const calculateAgeQualifiedPrivatePensionTaxAnnual = (
+  formData: AlphaFormData,
+  age: number,
+) =>
+  calculatePrivatePensionTax(
+    getAgeQualifiedIncomeCategoryMonthly(formData, 'otherPension', age) * 12,
+    age,
+  )
 
 export const calculateRentalIncomeTax = (annualRentalIncome: number) => {
   const normalizedAnnualIncome = Math.max(annualRentalIncome, 0)
@@ -409,7 +438,6 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
   const businessMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
   const freelanceMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'freelance', age)
   const miscMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'misc', age)
-  const otherPensionMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'otherPension', age)
   const rentalAnnual = getAgeQualifiedIncomeCategoryMonthly(formData, 'rental', age) * 12
   const financialThresholdAnnual = policyConfig.comprehensiveIncomeTax.financialIncomeThresholdAnnual
   const rentalSeparateTaxationOption =
@@ -428,9 +456,6 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
     reasons.push('프리랜서 소득은 사업자등록 여부와 필요경비에 따라 실제 세액이 달라질 수 있습니다.')
   }
 
-  if (otherPensionMonthly > 0) {
-    reasons.push('기타연금은 실제 과세 방식과 분리과세 선택 여부를 함께 확인하는 편이 좋습니다.')
-  }
 
   if (breakdown.nationalPensionGrossAnnual > 0) {
     reasons.push(

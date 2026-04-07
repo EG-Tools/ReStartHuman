@@ -220,6 +220,37 @@ export const policyConfig = {
       },
     ],
   },
+  privatePensionTax: {
+    referenceDate: '2026-04-07',
+    ageBands: [
+      {
+        minAge: 0,
+        maxAge: 70,
+        incomeTaxRate: 0.05,
+        localIncomeTaxRate: 0.005,
+        totalRate: 0.055,
+        label: '\u0037\u0030\uC138 \uBBF8\uB9CC',
+      },
+      {
+        minAge: 70,
+        maxAge: 80,
+        incomeTaxRate: 0.04,
+        localIncomeTaxRate: 0.004,
+        totalRate: 0.044,
+        label: '\u0037\u0030\uC138 \uC774\uC0C1 \u0038\u0030\uC138 \uBBF8\uB9CC',
+      },
+      {
+        minAge: 80,
+        maxAge: Number.POSITIVE_INFINITY,
+        incomeTaxRate: 0.03,
+        localIncomeTaxRate: 0.003,
+        totalRate: 0.033,
+        label: '\u0038\u0030\uC138 \uC774\uC0C1',
+      },
+    ],
+    note:
+      '\uAE30\uD0C0\uC5F0\uAE08\uC740 IRP\u00B7\uC5F0\uAE08\uC800\uCD95 \uC218\uB839 \uAE30\uC900\uC73C\uB85C \u0037\u0030\uC138 \uBBF8\uB9CC \u0035\u002E\u0035\u0025, \u0037\u0030\uC138 \uC774\uC0C1 \u0038\u0030\uC138 \uBBF8\uB9CC \u0034\u002E\u0034\u0025, \u0038\u0030\uC138 \uC774\uC0C1 \u0033\u002E\u0033\u0025\uB85C \uB2E8\uC21C \uCD94\uC815\uD569\uB2C8\uB2E4.',
+  },
   rentalIncomeTax: {
     referenceDate: '2026-03-20',
     estimatedExpenseRate: 0.5,
