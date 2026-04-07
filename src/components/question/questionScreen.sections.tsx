@@ -662,7 +662,7 @@ export function renderQuestionContent({
       fields: [
         {
           key: 'miscIncomeMonthly',
-          label: '\uC6D4 \uAE30\uD0C0\uC18C\uB4DD',
+          label: '\uC6D4 \uCD94\uAC00\uC18C\uB4DD',
           value: formData.miscIncomeMonthly,
           onChange: (value: number) =>
             onPatchFormData(
@@ -682,7 +682,7 @@ export function renderQuestionContent({
               }),
             ),
           display: 'number' as const,
-          suffix: '\uC138',
+          suffix: '\uB144',
           min: 1,
           step: 1,
         },
@@ -718,6 +718,27 @@ export function renderQuestionContent({
       </p>
     </section>
   ) : null
+
+  const renderAccessModeGuide = (summary: string, proFeatures: readonly string[]) => (
+    <section className="question-block access-mode-guide">
+      <div className="question-block-header access-mode-guide-header">
+        <div>
+          <p className="eyebrow access-mode-guide-eyebrow">{'\uC77C\uBC18\uD615 \uAE30\uC900'}</p>
+          <h2>{'\uBB34\uB8CC \uBAA8\uB4DC \uC548\uB0B4'}</h2>
+        </div>
+        <span className="meta-pill access-mode-pill">{'\uC77C\uBC18'}</span>
+      </div>
+      <p className="screen-copy access-mode-guide-copy">{summary}</p>
+      <p className="access-mode-feature-label">{'\uD504\uB85C\uC5D0\uC11C \uC5F4\uB9AC\uB294 \uD56D\uBAA9'}</p>
+      <div className="access-mode-feature-row">
+        {proFeatures.map((item) => (
+          <span key={item} className="access-mode-chip">
+            {item}
+          </span>
+        ))}
+      </div>
+    </section>
+  )
 
   const renderIncomeCategoryRows = () => (
     <div className="question-stack question-stack-compact">
@@ -798,6 +819,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 1\uC778 \uAC00\uAD6C \uAE30\uC900\uC73C\uB85C \uD604\uC7AC \uB098\uC774\uB9CC \uBC1B\uC544 \uBE60\uB974\uAC8C \uACC4\uC0B0\uD569\uB2C8\uB2E4.',
+                ['\uBD80\uBD80 \uACC4\uC0B0', '\uACF5\uB3D9\uBA85\uC758', '\uC790\uB140 \uBC18\uC601'],
+              )}
               <QuestionNumberFields
                 fields={[
                   {
@@ -893,6 +918,10 @@ export function renderQuestionContent({
             case 'housingDetails':
         return (
           <div className="question-stack">
+            {isGeneralAccessMode ? renderAccessModeGuide(
+              '\uC77C\uBC18\uD615\uC740 \uD604\uC7AC \uAC70\uC8FC \uC8FC\uD0DD 1\uCC44\uB9CC \uBC18\uC601\uD569\uB2C8\uB2E4.',
+              ['\uCD94\uAC00 \uC8FC\uD0DD', '\uC8FC\uD0DD \uBA85\uC758 \uBD84\uB9AC', '\uB2E4\uC8FC\uD0DD \uBCF4\uC720\uC138'],
+            ) : null}
             <section className="question-block housing-choice-block">
               <div className="question-block-header">
                 <h2>주거 형태</h2>
@@ -1159,6 +1188,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uC77C\uBC18 \uC8FC\uC2DD \uC790\uC0B0\uB9CC \uC785\uB825\uD569\uB2C8\uB2E4.',
+                ['ISA', '\uAE30\uD0C0\uACC4\uC88C', '\uBA85\uC758 \uBD84\uB9AC'],
+              )}
               <QuestionNumberFields
                 fields={[
                   {
@@ -1283,6 +1316,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uAD6D\uBBFC\uC5F0\uAE08\uB9CC \uBE60\uB974\uAC8C \uACC4\uC0B0\uD569\uB2C8\uB2E4.',
+                ['ISA \uBC30\uB2F9', '\uBA85\uC758\uBCC4 \uADC0\uC18D', '\uC5F0\uAE08\uACC4\uC88C \uBC30\uB2F9'],
+              )}
               <ChoiceQuestion
                 value={formData.dividendInputMode}
                 options={dividendModeOptions}
@@ -1541,6 +1578,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uCD94\uAC00 \uC6D4\uC18C\uB4DD \uCD1D\uC561\uB9CC \uBC18\uC601\uD569\uB2C8\uB2E4.',
+                ['\uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uC784\uB300', '\uBC95\uC778\uB300\uD45C', '\uAC74\uBCF4 \uC5F0\uB3D9'],
+              )}
               <QuestionNumberFieldPairs pairs={generalIncomeFieldPairs} />
             </div>
           )
@@ -1570,6 +1611,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uC9C0\uC5ED\uAC00\uC785\uC790 \uAE30\uC900\uC73C\uB85C \uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB97C \uB2E8\uC21C \uCD94\uC815\uD569\uB2C8\uB2E4.',
+                ['\uC9C1\uC7A5\uAC00\uC785\uC790', '\uD53C\uBD80\uC591\uC790', '\uC0AC\uC5C5\uC790 \uC815\uBC00\uD310\uC815'],
+              )}
               <section className="question-block">
                 <div className="question-block-header">
                   <h2>{'\uAC74\uAC15\uBCF4\uD5D8 \uC720\uD615'}</h2>
@@ -1708,6 +1753,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uC6D4 \uACE0\uC815\uC9C0\uCD9C \uCD1D\uC561\uB9CC \uBC18\uC601\uD569\uB2C8\uB2E4.',
+                ['\uBCF4\uD5D8\u00B7\uD1B5\uC2E0 \uBD84\uB9AC', '\uB300\uCD9C\uC774\uC790 \uAE30\uAC04', '\uD56D\uBAA9\uBCC4 \uC870\uC815'],
+              )}
               <QuestionNumberFields
                 fields={[
                   {
@@ -1810,6 +1859,10 @@ export function renderQuestionContent({
         if (isGeneralAccessMode) {
           return (
             <div className="question-stack">
+              {renderAccessModeGuide(
+                '\uC77C\uBC18\uD615\uC740 \uC6D4 \uC0DD\uD65C\uBE44 \uCD1D\uC561\uB9CC \uBC18\uC601\uD569\uB2C8\uB2E4.',
+                ['\uC138\uBD80 \uC0DD\uD65C\uBE44', '\uCC28\uB7C9\uBE44 \uBD84\uB9AC', '\uC790\uB140 \uBE44\uC6A9'],
+              )}
               <QuestionNumberFields
                 fields={[
                   {

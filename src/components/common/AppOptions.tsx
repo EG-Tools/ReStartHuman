@@ -18,45 +18,83 @@ interface AppOptionsModalProps {
 }
 
 const text = {
-  openOptions: '옵션 열기',
-  settings: '설정',
-  options: '옵션',
-  developerSupport: '개발자 후원',
-  activeStatus: '관리자 모드',
-  temporarySupport: '테스트 후원',
-  preparing: '준비 중',
-  usingWithoutAds: '관리자 모드 사용 중',
-  supportPrice: '후원 1년에 3,000원',
-  supportPreparing: '후원 준비 중',
+  openOptions: '\uC635\uC158 \uC5F4\uAE30',
+  settings: '\uC124\uC815',
+  options: '\uC635\uC158',
+  developerSupport: '\uAC1C\uBC1C\uC790 \uD6C4\uC6D0',
+  activeStatus: '\uAD00\uB9AC\uC790 \uBAA8\uB4DC',
+  temporarySupport: '\uD14C\uC2A4\uD2B8 \uD6C4\uC6D0',
+  preparing: '\uC900\uBE44 \uC911',
+  usingWithoutAds: '\uAD00\uB9AC\uC790 \uBAA8\uB4DC \uC0AC\uC6A9 \uC911',
+  supportPrice: '\uD6C4\uC6D0 1\uB144\uC5D0 3,000\uC6D0',
+  supportPreparing: '\uD6C4\uC6D0 \uC900\uBE44 \uC911',
   enabledCopyPro:
-    '후원에 감사드립니다. 이 기기에서는 관리자 모드가 활성화되어 결과 전 광고 없이 전체 기능을 확인할 수 있습니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
+    '\uD6C4\uC6D0\uC5D0 \uAC10\uC0AC\uB4DC\uB9BD\uB2C8\uB2E4. \uC774 \uAE30\uAE30\uC5D0\uC11C\uB294 \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB418\uC5B4 \uAD11\uACE0 \uC5C6\uC774 \uC804\uCCB4 \uAE30\uB2A5\uC744 \uD14C\uC2A4\uD2B8\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4.',
   enabledCopyGeneral:
-    '관리자 모드가 활성화되어 있지만 지금은 일반 보기로 전환해 광고와 일반 사용자 흐름을 테스트하고 있습니다. 필요하면 아래 토글에서 프로 보기로 다시 바꿀 수 있습니다.',
+    '\uAD00\uB9AC\uC790 \uBAA8\uB4DC\uB294 \uD65C\uC131\uD654\uB418\uC5B4 \uC788\uC9C0\uB9CC, \uC9C0\uAE08\uC740 \uC77C\uBC18 \uBCF4\uAE30\uB85C \uC804\uD658\uD574 \uAD11\uACE0\uC640 \uC77C\uBC18 \uC0AC\uC6A9\uC790 \uD750\uB984\uC744 \uD14C\uC2A4\uD2B8\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4. \uC544\uB798\uC5D0\uC11C \uD504\uB85C \uBCF4\uAE30\uB85C \uB2E4\uC2DC \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
   temporaryCopy:
-    '테스트 버전에서는 후원을 확인하면 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다. 지금은 실제 결제 연동 전 테스트 흐름으로 운영합니다.',
+    '\uD14C\uC2A4\uD2B8 \uBC84\uC804\uC5D0\uC11C\uB294 \uD6C4\uC6D0\uC744 \uD655\uC778\uD558\uBA74 \uC774 \uAE30\uAE30\uC5D0\uC11C \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB429\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4. \uC9C0\uAE08\uC740 \uC2E4\uC81C \uACB0\uC81C \uC5F0\uB3D9 \uC5C6\uC774 \uD14C\uC2A4\uD2B8 \uD750\uB984\uC73C\uB85C\uB9CC \uB3D9\uC791\uD569\uB2C8\uB2E4.',
   preparingCopy:
-    '후원 기능은 준비 중입니다. 실제 결제 연동이 완료되기 전까지는 일반 사용자에게 광고 제거를 열지 않습니다.',
-  modeLabel: '테스트 표시 모드',
-  modeGeneral: '일반',
-  modePro: '프로',
+    '\uD6C4\uC6D0 \uAE30\uB2A5\uC740 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4. \uC2E4\uC81C \uACB0\uC81C \uC5F0\uB3D9\uC774 \uB05D\uB098\uAE30 \uC804\uAE4C\uC9C0\uB294 \uC77C\uBC18 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uAD11\uACE0 \uC81C\uAC70\uB97C \uC5F4\uC5B4\uB450\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.',
+  modeLabel: '\uD14C\uC2A4\uD2B8 \uD45C\uC2DC \uBAA8\uB4DC',
+  modeGeneral: '\uC77C\uBC18',
+  modePro: '\uD504\uB85C',
   modeGeneralCopy:
-    '일반 보기는 광고가 포함된 흐름과 일반 사용자 기준 화면을 테스트할 때 쓸 수 있습니다.',
+    '\uC77C\uBC18 \uBCF4\uAE30\uB294 1\uC778 \uAC00\uAD6C \uBE60\uB978 \uCD94\uC815\uACFC \uAD11\uACE0 \uD750\uB984\uC744 \uD14C\uC2A4\uD2B8\uD560 \uB54C \uC0AC\uC6A9\uD569\uB2C8\uB2E4.',
   modeProCopy:
-    '프로 보기는 관리자 모드와 광고 생략 상태를 그대로 테스트할 때 쓸 수 있습니다.',
-  creator: '제작자명',
-  email: '이메일',
-  close: '닫기',
-  confirmSupport: '후원 확인',
-  supportQuestion: '후원하시겠습니까?',
+    '\uD504\uB85C \uBCF4\uAE30\uB294 \uBD80\uBD80, \uACF5\uB3D9\uBA85\uC758, \uB2E4\uC8FC\uD0DD, ISA, \uC138\uAE08\u00B7\uAC74\uBCF4 \uC0C1\uC138 \uACC4\uC0B0\uAE4C\uC9C0 \uBAA8\uB450 \uC5FD\uB2C8\uB2E4.',
+  modeSummaryLabel: '\uBAA8\uB4DC \uBE44\uAD50',
+  generalPlanTitle: '1\uC778 \uAC00\uAD6C \uBE60\uB978 \uCD94\uC815',
+  generalPlanCopy:
+    '\uC77C\uBC18\uC8FC\uC2DD, \uAD6D\uBBFC\uC5F0\uAE08, \uCD1D\uC561 \uC785\uB825 \uC911\uC2EC\uC73C\uB85C \uBE60\uB974\uAC8C \uACC4\uC0B0\uD569\uB2C8\uB2E4.',
+  proPlanTitle: '\uC815\uBC00 \uACC4\uC0B0',
+  proPlanCopy:
+    '\uBD80\uBD80, \uACF5\uB3D9\uBA85\uC758, \uB2E4\uC8FC\uD0DD, ISA, \uC18C\uB4DD \uC720\uD615\uBCC4, \uC138\uAE08\u00B7\uAC74\uBCF4 \uC0C1\uC138 \uACC4\uC0B0\uC744 \uBAA8\uB450 \uC5FD\uB2C8\uB2E4.',
+  creator: '\uC81C\uC791\uC790',
+  email: '\uC774\uBA54\uC77C',
+  close: '\uB2EB\uAE30',
+  confirmSupport: '\uD6C4\uC6D0 \uD655\uC778',
+  supportQuestion: '\uD6C4\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?',
   supportNote:
-    '예를 누르면 후원 감사 메시지 뒤에 이 기기에서 관리자 모드가 활성화됩니다. 구독은 언제든 취소할 수 있고, 결제한 시점부터 1년 동안 유지됩니다.',
-  supportThanks: '후원에 감사드립니다.',
+    '\uC608\uB97C \uB204\uB974\uBA74 \uD6C4\uC6D0 \uAC10\uC0AC \uBA54\uC2DC\uC9C0 \uB4A4\uC5D0 \uC774 \uAE30\uAE30\uC5D0\uC11C \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB429\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C\uD55C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4.',
+  supportThanks: '\uD6C4\uC6D0\uC5D0 \uAC10\uC0AC\uB4DC\uB9BD\uB2C8\uB2E4.',
   supportSuccessNote:
-    '이 기기에서 관리자 모드가 활성화되었습니다. 이제 일반/프로 표시 모드를 바꿔가며 테스트할 수 있습니다.',
-  confirm: '확인',
-  yes: '예',
-  no: '아니오',
+    '\uC774 \uAE30\uAE30\uC5D0\uC11C \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC774\uC81C \uC77C\uBC18/\uD504\uB85C \uD45C\uC2DC \uBAA8\uB4DC\uB97C \uBC14\uAFB8\uBA70 \uD14C\uC2A4\uD2B8\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
+  confirm: '\uD655\uC778',
+  yes: '\uC608',
+  no: '\uC544\uB2C8\uC624',
 } as const
+
+const modeCards = [
+  {
+    key: 'general' as const,
+    eyebrow: text.modeGeneral,
+    title: text.generalPlanTitle,
+    copy: text.generalPlanCopy,
+    features: [
+      '\uC77C\uBC18\uC8FC\uC2DD \uC790\uC0B0/\uBC30\uB2F9',
+      '\uAD6D\uBBFC\uC5F0\uAE08',
+      '\uCD94\uAC00\uC18C\uB4DD \uCD1D\uC561',
+      '\uACE0\uC815\uC9C0\uCD9C \uCD1D\uC561',
+      '\uC0DD\uD65C\uBE44 \uCD1D\uC561',
+      '\uAD11\uACE0 \uD3EC\uD568',
+    ],
+  },
+  {
+    key: 'pro' as const,
+    eyebrow: text.modePro,
+    title: text.proPlanTitle,
+    copy: text.proPlanCopy,
+    features: [
+      '\uBD80\uBD80\u00B7\uACF5\uB3D9\uBA85\uC758',
+      '\uB2E4\uC8FC\uD0DD\u00B7\uD1A0\uC9C0',
+      'ISA\u00B7\uAE30\uD0C0\uACC4\uC88C',
+      '\uC18C\uB4DD \uC720\uD615\uBCC4 \uC785\uB825',
+      '\uAC74\uBCF4\u00B7\uC138\uAE08 \uC0C1\uC138',
+      '\uAD11\uACE0 \uC5C6\uC774 \uD14C\uC2A4\uD2B8',
+    ],
+  },
+]
 
 function SettingsIcon() {
   return (
@@ -212,6 +250,32 @@ export function AppOptionsModal({
               </div>
             </div>
           ) : null}
+
+          <div className="support-option-row support-mode-section">
+            <span>{text.modeSummaryLabel}</span>
+            <div className="access-mode-summary-grid">
+              {modeCards.map((card) => {
+                const isActive = accessMode === card.key
+
+                return (
+                  <article
+                    key={card.key}
+                    className={`access-mode-card ${isActive ? 'is-active' : ''}`.trim()}
+                    aria-current={isActive ? 'true' : undefined}
+                  >
+                    <p className="eyebrow access-mode-card-eyebrow">{card.eyebrow}</p>
+                    <h3>{card.title}</h3>
+                    <p className="support-note">{card.copy}</p>
+                    <ul className="access-mode-feature-list">
+                      {card.features.map((feature) => (
+                        <li key={feature}>{feature}</li>
+                      ))}
+                    </ul>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
 
           <div className="support-actions">
             <PrimaryButton

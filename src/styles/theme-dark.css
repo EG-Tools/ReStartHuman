@@ -195,6 +195,93 @@ body {
   gap: 10px;
 }
 
+
+.access-mode-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.access-mode-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.access-mode-card.is-active {
+  border-color: rgba(87, 209, 219, 0.28);
+  background: linear-gradient(180deg, rgba(15, 53, 59, 0.98), rgba(12, 35, 39, 0.92));
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+
+.access-mode-card-eyebrow {
+  margin-bottom: 0;
+}
+
+.access-mode-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.access-mode-feature-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+}
+
+.access-mode-guide {
+  display: grid;
+  gap: 12px;
+}
+
+.access-mode-guide-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.access-mode-guide-eyebrow {
+  margin-bottom: 8px;
+}
+
+.access-mode-guide-copy {
+  color: var(--muted);
+}
+
+.access-mode-feature-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.access-mode-feature-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.access-mode-chip,
+.access-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 209, 219, 0.18);
+  background: rgba(87, 209, 219, 0.08);
+  color: #bfeff3;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .start-hero-panel {
   position: relative;
   display: flex;
@@ -391,8 +478,10 @@ body {
     width: auto;
   }
 
-  .support-panel-header {
-    flex-direction: column;
+
+
+  .access-mode-summary-grid {
+    grid-template-columns: 1fr;
   }
 
   .question-household .household-choice-block .toggle-group-grid {
