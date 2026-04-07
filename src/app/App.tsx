@@ -1,4 +1,4 @@
-﻿import {
+import {
   Suspense,
   lazy,
   startTransition,
@@ -87,9 +87,10 @@ export default function App() {
     () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
     [],
   )
-
   const flowRoute = flow.route
   const openResult = flow.openResult
+  const deviceFrameClassName =
+    flowRoute === appRoutes.start ? 'device-frame device-frame-start' : 'device-frame'
 
   useViewportCssVars()
 
@@ -208,7 +209,7 @@ export default function App() {
       <div className="aurora aurora-left" aria-hidden="true" />
       <div className="aurora aurora-right" aria-hidden="true" />
       <div className="phone-stage">
-        <div className="device-frame">
+        <div className={deviceFrameClassName}>
           {flow.route === appRoutes.start ? (
             <StartScreen
               onStart={startFresh}

@@ -122,6 +122,13 @@ p {
   overflow: hidden;
 }
 
+@media (min-width: 901px) {
+  .device-frame.device-frame-start {
+    width: min(100%, clamp(600px, calc(var(--app-height) * 0.58), 680px));
+    max-width: min(calc(var(--app-width) - 48px), clamp(600px, calc(var(--app-height) * 0.58), 680px));
+  }
+}
+
 .screen {
   min-height: calc(var(--app-height) - 48px);
   padding: 28px;
