@@ -168,6 +168,32 @@ const formatCashFlowEventDetail = (currentAge: number, yearOffset: number) =>
     ? `${currentAge}${CASHFLOW_TEXT.ageSuffix}`
     : `${currentAge + yearOffset}${CASHFLOW_TEXT.ageSuffix} / ${yearOffset}${CASHFLOW_TEXT.yearsLater}`
 
+const buildCashFlowXTicks = ({
+  chartWidth,
+  currentAge,
+  paddingLeft,
+  totalYears,
+}: {
+  chartWidth: number
+  currentAge: number
+  paddingLeft: number
+  totalYears: number
+}) => {
+  const rawYears = [
+    0,
+    Math.max(1, Math.round(totalYears / 3)),
+    Math.max(1, Math.round((totalYears * 2) / 3)),
+    totalYears,
+  ]
+  const uniqueYears = rawYears.filter((yearOffset, index) => rawYears.indexOf(yearOffset) === index)
+
+  return uniqueYears.map((yearOffset) => ({
+    yearOffset,
+    ageLabel: `${currentAge + yearOffset}${CASHFLOW_TEXT.ageSuffix}`,
+    x: paddingLeft + (Math.min(yearOffset, totalYears) / totalYears) * chartWidth,
+  }))
+}
+
 export const CashFlowChart = memo(function CashFlowChart({
   formData,
   result,
@@ -257,13 +283,13 @@ export const CashFlowChart = memo(function CashFlowChart({
     }),
   )
   const totalYears = Math.max(points[points.length - 1]?.year ?? projectionYears, projectionYears)
-  const midYear1 = Math.max(1, Math.round(totalYears / 3))
-  const midYear2 = Math.max(midYear1 + 1, Math.round((totalYears * 2) / 3))
-  const xTicks = [0, midYear1, midYear2, totalYears].map((yearOffset) => ({
-    yearOffset,
-    ageLabel: `${currentAge + yearOffset}${CASHFLOW_TEXT.ageSuffix}`,
-    x: paddingLeft + (Math.min(yearOffset, totalYears) / totalYears) * chartWidth,
-  }))
+  const xTicks = buildCashFlowXTicks({
+    chartWidth,
+    currentAge,
+    paddingLeft,
+    totalYears,
+  })
+  const chartRenderKey = `cashflow-${currentAge}-${projectionYears}-${points.length}-${points[points.length - 1]?.year ?? 0}`
   const futurePensionStartOffsets = [
     formData.pensionMonthlyAmount > 0 ? formData.pensionStartAge - currentAge : null,
     formData.selectedIncomeCategories.includes('otherPension') && formData.otherPensionMonthly > 0
@@ -362,6 +388,7 @@ export const CashFlowChart = memo(function CashFlowChart({
       </div>
 
       <svg
+        key={chartRenderKey}
         className="cashflow-chart"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
@@ -460,7 +487,7 @@ export const CashFlowChart = memo(function CashFlowChart({
             tick.yearOffset === 0 ? 'start' : tick.yearOffset === totalYears ? 'end' : 'middle'
           const labelY = borderY + borderHeight + xLabelGap + 2
           return (
-            <g key={`x-tick-${tick.yearOffset}`}>
+            <g key={`x-tick-${currentAge}-${projectionYears}-${tick.yearOffset}-${tick.ageLabel}`}>
               <line
                 className="cashflow-year-tick"
                 x1={tick.x}
