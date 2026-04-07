@@ -123,7 +123,7 @@ p {
 }
 
 @media (min-width: 901px) {
-  .device-frame.device-frame-start {
+  .device-frame {
     width: min(100%, clamp(600px, calc(var(--app-height) * 0.58), 680px));
     max-width: min(calc(var(--app-width) - 48px), clamp(600px, calc(var(--app-height) * 0.58), 680px));
   }
