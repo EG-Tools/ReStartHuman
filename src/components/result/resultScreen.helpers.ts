@@ -230,16 +230,16 @@ const getIncomeInterpretationMessage = (result: AlphaResult, formData: AlphaForm
       : ''
   const privatePensionTaxMessage =
     result.privatePensionTaxAnnual > 0
-      ? `기타연금 연금소득세는 연 ${formatCompactCurrency(result.privatePensionTaxAnnual)} 반영했습니다.`
+      ? `개인연금세는 연 ${formatCompactCurrency(result.privatePensionTaxAnnual)} 반영했습니다.`
       : result.projectionPrivatePensionTaxTotal > 0
-        ? '기타연금 연금소득세는 시작 나이와 연령대 변화에 따라 이후 구간부터 반영합니다.'
+        ? '개인연금세는 시작 나이와 연령대 변화에 따라 이후 구간부터 반영합니다.'
         : ''
   const estimatedTaxMessage =
     result.estimatedComprehensiveIncomeTaxAnnual > 0 || result.estimatedLocalIncomeTaxAnnual > 0
-      ? `종합소득세는 연 ${formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual)}, 지방소득세는 연 ${formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual)} 반영했습니다.`
+      ? `소득세는 연 ${formatCompactCurrency(result.estimatedComprehensiveIncomeTaxAnnual)}, 지방세는 연 ${formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual)} 반영했습니다.`
       : result.projectionEstimatedComprehensiveIncomeTaxTotal > 0 ||
           result.projectionEstimatedLocalIncomeTaxTotal > 0
-        ? '종합소득세와 지방소득세 추정값이며 연금 시작 나이와 소득 반영 기간에 따라 이후 구간부터 반영합니다.'
+        ? '소득세와 지방세는 추정값이며 연금 시작 나이와 소득 반영 기간에 따라 이후 구간부터 반영합니다.'
         : ''
   const taxReviewMessage = result.estimatedComprehensiveTaxReviewReasons.join(' ')
 
@@ -864,9 +864,9 @@ export const buildInterpretationItems = ({
         : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
     result.comprehensiveTaxIncluded
       ? result.comprehensiveTaxImpactAnnual > 0
-        ? `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘을 때 반영합니다. 현재 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 추정했습니다.`
-        : `금융소득 종합과세 추가세액은 일반계좌 배당이 인별 연 2,000만원을 넘는 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
-      : '일반계좌 배당이 인별 연 2,000만원 이하라 금융소득 종합과세 추가세액은 제외했습니다.',
+        ? `배당추가세는 일반계좌 배당이 인별 연 2,000만원을 넘을 때 반영합니다. 공식명은 금융소득 종합과세 추가세액이며, 현재 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 추정했습니다.`
+        : `배당추가세는 일반계좌 배당이 인별 연 2,000만원을 넘는 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
+      : '일반계좌 배당이 인별 연 2,000만원 이하라 배당추가세는 제외했습니다.',
     getHealthInsuranceInterpretationMessage(result, formData),
     getIncomeInterpretationMessage(result, formData),
     assetInterpretation,
@@ -1019,12 +1019,12 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·프리랜서·기타소득은 종합소득세 행에서, 기타연금은 연금소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·프리랜서·기타소득은 종합소득세 행에서, 기타연금은 연금소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
   }
 
-  return `금융소득 종합과세는 현재 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타소득은 종합소득세 행에서, 기타연금은 연금소득세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+  return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
 }

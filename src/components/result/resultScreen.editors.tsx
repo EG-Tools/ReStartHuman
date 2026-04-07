@@ -713,7 +713,7 @@ export function buildResultRows({
       ? [
           {
             category: '세금',
-            item: '종합소득세',
+            item: '소득세',
             input:
               result.estimatedComprehensiveTaxBaseAnnual > 0
                 ? `과세표준 연 ${formatCompactCurrency(result.estimatedComprehensiveTaxBaseAnnual)}`
@@ -725,23 +725,23 @@ export function buildResultRows({
             tenYear: formatCompactCurrency(result.projectionEstimatedComprehensiveIncomeTaxTotal),
             note:
               result.estimatedComprehensiveTaxReviewLevel === 'high'
-                ? '추정 · 신고 가능성 높음'
+                ? '추정 · 신고 확인'
                 : result.estimatedComprehensiveTaxReviewLevel === 'review'
                   ? '추정 · 기준 확인'
                   : estimatedComprehensiveTaxStartsLater
                     ? '추정 · 향후 시작 소득 반영'
-                    : '추정 · 국민연금·근로 등 반영',
+                    : '추정 · 근로·사업 등',
             noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·법인대표 급여·사업소득·프리랜서·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',
-            item: '지방소득세',
-            input: '종합소득세의 10%',
+            item: '지방세',
+            input: '소득세의 10%',
             monthly: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual / 12),
             annual: formatCompactCurrency(result.estimatedLocalIncomeTaxAnnual),
             tenYear: formatCompactCurrency(result.projectionEstimatedLocalIncomeTaxTotal),
-            note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 시작 소득 반영' : '추정 · 종합소득세 연동',
-            noteDetail: '종합소득세 추정액의 10%를 지방소득세로 반영했습니다.',
+            note: estimatedComprehensiveTaxStartsLater ? '추정 · 향후 반영' : '추정 · 소득세 연동',
+            noteDetail: '소득세 추정액의 10%를 지방세로 반영했습니다.',
           },
         ]
       : []),
@@ -749,7 +749,7 @@ export function buildResultRows({
       ? [
           {
             category: '세금',
-            item: '연금소득세',
+            item: '개인연금세',
             input: otherPensionIncomeItem
               ? otherPensionStartsLater
                 ? `${otherPensionIncomeItem.label} ${formatCompactCurrency(otherPensionIncomeItem.inputMonthly)} / ${formData.otherPensionStartAge}세 시작`
@@ -765,12 +765,12 @@ export function buildResultRows({
       : []),
     {
       category: '세금',
-      item: '금융종합과세',
+      item: '배당추가세',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
       tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
-      note: '금융소득 종합과세 추가세액',
+      note: '일반계좌 배당 기준',
       noteDetail: getComprehensiveTaxNote(result),
     },
   )

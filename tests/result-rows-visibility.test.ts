@@ -134,8 +134,8 @@ test('estimated comprehensive and local tax rows appear for taxable structured i
     healthInsuranceType: 'dependent',
   })
 
-  assert.ok(rows.some((row) => row.item === '종합소득세'))
-  assert.ok(rows.some((row) => row.item === '지방소득세'))
+  assert.ok(rows.some((row) => row.item === '소득세'))
+  assert.ok(rows.some((row) => row.item === '지방세'))
 })
 test('business rows explain tax and health insurance bases', () => {
   const rows = buildRows({
@@ -147,7 +147,7 @@ test('business rows explain tax and health insurance bases', () => {
   })
 
   const healthInsuranceRow = rows.find((row) => row.item === '건강보험료')
-  const comprehensiveTaxRow = rows.find((row) => row.item === '종합소득세')
+  const comprehensiveTaxRow = rows.find((row) => row.item === '소득세')
 
   assert.ok(healthInsuranceRow?.noteDetail?.includes('직전년도 신고 사업소득금액'))
   assert.ok(comprehensiveTaxRow?.noteDetail?.includes('업종군과 필요경비에 따라 실제 세액은 달라질 수 있습니다'))
@@ -177,10 +177,29 @@ test('임대소득만 있어도 종합소득세 행은 추정 기준 안내 문�
     dependentRentalIncomeType: 'housing',
   })
 
-  const comprehensiveTaxRow = rows.find((row) => row.item === '종합소득세')
-  const localTaxRow = rows.find((row) => row.item === '지방소득세')
+  const comprehensiveTaxRow = rows.find((row) => row.item === '소득세')
+  const localTaxRow = rows.find((row) => row.item === '지방세')
 
   assert.equal(comprehensiveTaxRow?.input, '추정 기준 안내')
   assert.equal(comprehensiveTaxRow?.note, '추정 · 기준 확인')
   assert.ok(localTaxRow)
+})
+
+test('result table uses simplified tax row labels for readability', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    currentAge: 65,
+    healthInsuranceType: 'dependent',
+    pensionMonthlyAmount: 1_000_000,
+    pensionStartAge: 65,
+    selectedIncomeCategories: ['otherPension'],
+    otherPensionMonthly: 1_000_000,
+    otherPensionStartAge: 65,
+    taxableAccountDividendAnnual: 30_000_000,
+  })
+
+  assert.ok(rows.some((row) => row.item === '소득세'))
+  assert.ok(rows.some((row) => row.item === '지방세'))
+  assert.ok(rows.some((row) => row.item === '개인연금세'))
+  assert.ok(rows.some((row) => row.item === '배당추가세'))
 })
