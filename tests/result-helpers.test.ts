@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
@@ -125,6 +125,61 @@ test('jeonse advice moves released housing cash into starting reserve', () => {
   assert.equal(jeonseAdvice.patch?.housingType, 'jeonse')
   assert.equal(jeonseAdvice.patch?.jeonseDeposit, 600_000_000)
   assert.equal(jeonseAdvice.patch?.startingCashReserve, 500_000_000)
+})
+
+test('cheaper home advice keeps ownership and releases cash', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    housingType: 'own' as const,
+    homeMarketValue: 1_000_000_000,
+    homeOfficialValue: 600_000_000,
+    startingCashReserve: 100_000_000,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 3_000_000,
+    taxableAccountDividendAnnual: 0,
+    isaDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+    otherIncomeType: 'none' as const,
+    healthInsuranceType: 'regional' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+  const items = buildDeficitAdviceItems(formData, result)
+  const cheaperHomeAdvice = items.find((item) => item.id.startsWith('cheaper-home-'))
+
+  assert.ok(cheaperHomeAdvice)
+  assert.ok((cheaperHomeAdvice.patch?.homeMarketValue ?? 0) < formData.homeMarketValue)
+  assert.ok((cheaperHomeAdvice.patch?.homeOfficialValue ?? 0) < formData.homeOfficialValue)
+  assert.ok((cheaperHomeAdvice.patch?.startingCashReserve ?? 0) > formData.startingCashReserve)
+})
+
+test('own-home deficit advice includes both cheaper-home and jeonse options', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    housingType: 'own' as const,
+    homeMarketValue: 1_000_000_000,
+    homeOfficialValue: 600_000_000,
+    startingCashReserve: 100_000_000,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 3_000_000,
+    taxableAccountDividendAnnual: 0,
+    isaDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+    otherIncomeType: 'none' as const,
+    healthInsuranceType: 'regional' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+  const items = buildDeficitAdviceItems(formData, result)
+
+  assert.ok(items.some((item) => item.id.startsWith('cheaper-home-')))
+  assert.ok(items.some((item) => item.id === 'jeonse-shift'))
 })
 
 test('non-deficit scenarios keep only the base interpretation items', () => {

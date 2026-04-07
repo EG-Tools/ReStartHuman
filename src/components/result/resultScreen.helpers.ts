@@ -488,6 +488,56 @@ const buildJeonseShiftFormData = (formData: AlphaFormData): AlphaFormData => {
   }
 }
 
+const getOwnedHomeBaseValue = (formData: AlphaFormData) =>
+  Math.max(formData.homeMarketValue, formData.homeOfficialValue)
+
+const getOwnedHomeOfficialRatio = (
+  formData: AlphaFormData,
+  currentHomeValue: number,
+) => {
+  if (currentHomeValue <= 0) {
+    return 0.6
+  }
+
+  if (formData.homeMarketValue > 0 && formData.homeOfficialValue > 0) {
+    return Math.min(formData.homeOfficialValue / formData.homeMarketValue, 1)
+  }
+
+  if (formData.homeOfficialValue > 0) {
+    return Math.min(formData.homeOfficialValue / currentHomeValue, 1)
+  }
+
+  return 0.6
+}
+
+const getCheaperHomeMinimumValue = (currentHomeValue: number) =>
+  Math.min(currentHomeValue, Math.max(100_000_000, Math.round(currentHomeValue * 0.5)))
+
+const buildCheaperHomeFormData = (
+  formData: AlphaFormData,
+  reductionAmount: number,
+): AlphaFormData => {
+  const currentHomeValue = getOwnedHomeBaseValue(formData)
+  const nextHomeValue = Math.max(
+    getCheaperHomeMinimumValue(currentHomeValue),
+    currentHomeValue - reductionAmount,
+  )
+  const releasedHousingCash = Math.max(0, currentHomeValue - nextHomeValue)
+  const officialRatio = getOwnedHomeOfficialRatio(formData, currentHomeValue)
+  const nextOfficialValue = Math.min(nextHomeValue, Math.round(nextHomeValue * officialRatio))
+
+  return {
+    ...formData,
+    housingType: 'own',
+    homeMarketValue: nextHomeValue,
+    homeOfficialValue: nextOfficialValue,
+    startingCashReserve: formData.startingCashReserve + releasedHousingCash,
+    jeonseDeposit: 0,
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+  }
+}
+
 const buildLoanFreeFormData = (formData: AlphaFormData): AlphaFormData => ({
   ...formData,
   hasLoan: false,
@@ -674,6 +724,61 @@ const findDividendAdvice = (
   })
 }
 
+const findCheaperHomeAdvice = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+): AdviceCandidate | null => {
+  if (
+    formData.housingType !== 'own' ||
+    (formData.homeMarketValue <= 0 && formData.homeOfficialValue <= 0)
+  ) {
+    return null
+  }
+
+  const currentHomeValue = getOwnedHomeBaseValue(formData)
+  const maxReduction = currentHomeValue - getCheaperHomeMinimumValue(currentHomeValue)
+
+  if (maxReduction < ADVICE_FINE_STEP) {
+    return null
+  }
+
+  return buildSteppedAdviceCandidate({
+    maxAmount: maxReduction,
+    evaluateCandidate: (reductionAmount) => {
+      const nextFormData = buildCheaperHomeFormData(formData, reductionAmount)
+      const nextResult = calculateAlphaScenario(nextFormData)
+
+      if (!improvesEnough(result, nextResult)) {
+        return null
+      }
+
+      const releasedHousingCash = Math.max(
+        0,
+        nextFormData.startingCashReserve - formData.startingCashReserve,
+      )
+      const currentHomeValueLabel = formatCompactCurrency(currentHomeValue)
+      const nextHomeValueLabel = formatCompactCurrency(nextFormData.homeMarketValue)
+      const releasedHousingCashMessage =
+        releasedHousingCash > 0
+          ? ` 현재 보유 현금을 +${formatCompactCurrency(releasedHousingCash)} 확보할 수 있습니다.`
+          : ''
+      const message = resolvesDeficit(nextResult)
+        ? `현재 자가를 ${currentHomeValueLabel}에서 ${nextHomeValueLabel} 수준으로 낮추면${releasedHousingCashMessage} 보유세와 건강보험료 부담이 줄어 ${formData.simulationYears}년 후 현금잔액이 마이너스로 내려가지 않습니다.`
+        : `현재 자가를 ${currentHomeValueLabel}에서 ${nextHomeValueLabel} 수준으로 낮추면${releasedHousingCashMessage} 월 적자 폭이 ${formatCompactCurrency(nextResult.monthlySurplusOrDeficit - result.monthlySurplusOrDeficit)} 개선됩니다.`
+
+      return createAdviceCandidate({
+        id: `cheaper-home-${reductionAmount}`,
+        message,
+        actionLabel: '자가 조정 적용',
+        beforeResult: result,
+        currentFormData: formData,
+        afterFormData: nextFormData,
+        afterResult: nextResult,
+      })
+    },
+  })
+}
+
 const findJeonseAdvice = (
   formData: AlphaFormData,
   result: AlphaResult,
@@ -791,17 +896,22 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): D
     return []
   }
 
-  const scenarioCandidates = [
+  const housingCandidates = [
+    findCheaperHomeAdvice(formData, result),
+    findJeonseAdvice(formData, result),
+  ].filter((candidate): candidate is AdviceCandidate => candidate !== null)
+  const nonHousingCandidates = [
     findLivingCostAdvice(formData, result),
     findDividendAdvice(formData, result),
-    findJeonseAdvice(formData, result),
     findLoanAdvice(formData, result),
     findCarCostAdvice(formData, result),
   ].filter((candidate): candidate is AdviceCandidate => candidate !== null)
 
-  const actionAdvice: DeficitAdviceItem[] = scenarioCandidates
-    .sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left))
-    .slice(0, 2)
+  const actionAdvice: DeficitAdviceItem[] = [
+    ...housingCandidates.sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left)),
+    ...nonHousingCandidates.sort((left, right) => rankAdviceCandidate(right) - rankAdviceCandidate(left)),
+  ]
+    .slice(0, 3)
     .map(({ id, message, actionLabel, patch }) => ({ id, message, actionLabel, patch }))
 
   const healthInsuranceAdvice = buildHealthInsuranceAdvice(formData, result)
