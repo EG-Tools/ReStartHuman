@@ -261,7 +261,7 @@ export const CashFlowChart = memo(function CashFlowChart({
   const gridColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.14)' : 'rgba(227, 236, 240, 0.12)'
   const labelColor = isWhiteTheme ? 'rgba(60, 75, 80, 0.96)' : 'rgba(214, 225, 229, 0.82)'
   const tickColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.18)' : 'rgba(227, 236, 240, 0.16)'
-  const frameColor = isWhiteTheme ? 'rgba(39, 58, 61, 0.34)' : 'rgba(227, 236, 240, 0.18)'
+  const frameColor = isWhiteTheme ? 'rgba(39, 58, 61, 0.24)' : 'rgba(227, 236, 240, 0.18)'
   const getX = (index: number) =>
     paddingLeft + (index * chartWidth) / Math.max(points.length - 1, 1)
   const getY = (balance: number) =>
