@@ -468,3 +468,7 @@ body.theme-white .question-number-conversion {
   color: #304246;
   font-weight: 700;
 }
+body.theme-white .question-number-conversion {
+  color: #55686d;
+  font-weight: 600;
+}
