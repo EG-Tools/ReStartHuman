@@ -428,3 +428,28 @@ body.theme-white .cashflow-event-marker.tone-expense .cashflow-event-line,
 body.theme-white .cashflow-event-marker.tone-expense .cashflow-event-dot {
   stroke: #3a8268;
 }
+body.theme-white .projection-inline-field-label {
+  color: #43555a;
+}
+
+body.theme-white .projection-panel .input-suffix,
+body.theme-white .projection-panel .input-preview,
+body.theme-white .inflation-toggle-copy {
+  color: #3b4d52;
+  font-weight: 700;
+}
+
+body.theme-white .cashflow-hero-status {
+  color: #44565b;
+}
+
+body.theme-white .cashflow-axis span {
+  color: #46585d;
+}
+
+body.theme-white .cashflow-axis span em,
+body.theme-white .cashflow-grid-label {
+  color: #43555a;
+  fill: #43555a;
+  font-weight: 700;
+}

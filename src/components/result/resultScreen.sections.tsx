@@ -258,9 +258,9 @@ export const CashFlowChart = memo(function CashFlowChart({
           }
   const gradientId = `cashflow-area-${result.riskLevel}`
   const isWhiteTheme = typeof document !== 'undefined' && document.documentElement.classList.contains('theme-white')
-  const gridColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.12)' : 'rgba(227, 236, 240, 0.12)'
-  const labelColor = isWhiteTheme ? 'rgba(73, 88, 93, 0.9)' : 'rgba(214, 225, 229, 0.82)'
-  const tickColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.16)' : 'rgba(227, 236, 240, 0.16)'
+  const gridColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.14)' : 'rgba(227, 236, 240, 0.12)'
+  const labelColor = isWhiteTheme ? 'rgba(60, 75, 80, 0.96)' : 'rgba(214, 225, 229, 0.82)'
+  const tickColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.18)' : 'rgba(227, 236, 240, 0.16)'
   const getX = (index: number) =>
     paddingLeft + (index * chartWidth) / Math.max(points.length - 1, 1)
   const getY = (balance: number) =>
@@ -503,7 +503,7 @@ export const CashFlowChart = memo(function CashFlowChart({
                 textAnchor={textAnchor}
                 dominantBaseline="hanging"
                 style={{
-                  fill: '#d6e1e5',
+                  fill: labelColor,
                   fontSize: 13,
                   fontWeight: 800,
                 }}
