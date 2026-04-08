@@ -494,3 +494,12 @@ body.theme-white .question-number-conversion {
   color: #7a8f94;
   font-weight: 500;
 }
+body.theme-white .result-panel.cashflow-hero {
+  border-color: transparent;
+  border-width: 0;
+}
+
+body.theme-white .question-number-conversion {
+  color: #87989c;
+  font-weight: 500;
+}
