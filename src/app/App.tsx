@@ -13,6 +13,7 @@ import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateAlphaScenario } from '../engine/calculator'
 import { useAdSupport } from '../hooks/useAdSupport'
+import { useThemeMode } from '../hooks/useThemeMode'
 import { getAccessModeFormData } from '../utils/accessMode'
 import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
@@ -62,6 +63,7 @@ export default function App() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
   const adSupport = useAdSupport()
+  const theme = useThemeMode()
   const effectiveFormData = useMemo(
     () => getAccessModeFormData(formData, adSupport.accessMode),
     [adSupport.accessMode, formData],
@@ -283,6 +285,8 @@ export default function App() {
           isAdminModeEnabled={adSupport.isAdminModeEnabled}
           canEnableAdminMode={adSupport.canEnableAdminMode}
           onEnableAdminMode={adSupport.enableAdminMode}
+          themeMode={theme.themeMode}
+          onChangeThemeMode={theme.setThemeMode}
           accessMode={adSupport.accessMode}
           canToggleAccessMode={adSupport.canToggleAccessMode}
           onChangeAccessMode={adSupport.setAccessMode}

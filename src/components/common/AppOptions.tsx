@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_VERSION_LABEL } from '../../config/appMeta'
+import type { ThemeMode } from '../../hooks/useThemeMode'
 import type { AppAccessMode } from '../../types/alpha'
 import { PrimaryButton } from './Ui'
 
@@ -12,6 +13,8 @@ interface AppOptionsModalProps {
   isAdminModeEnabled: boolean
   canEnableAdminMode: boolean
   onEnableAdminMode: () => boolean
+  themeMode: ThemeMode
+  onChangeThemeMode: (mode: ThemeMode) => boolean
   accessMode: AppAccessMode
   canToggleAccessMode: boolean
   onChangeAccessMode: (mode: AppAccessMode) => boolean
@@ -50,6 +53,13 @@ const text = {
   proPlanTitle: '\uC815\uBC00 \uACC4\uC0B0',
   proPlanCopy:
     '\uBD80\uBD80, \uACF5\uB3D9\uBA85\uC758, \uB2E4\uC8FC\uD0DD, ISA, \uC18C\uB4DD \uC720\uD615\uBCC4, \uC138\uAE08\u00B7\uAC74\uBCF4 \uC0C1\uC138 \uACC4\uC0B0\uC744 \uBAA8\uB450 \uC5FD\uB2C8\uB2E4.',
+  themeLabel: '\uCEEC\uB7EC \uD14C\uB9C8',
+  themeWhite: 'White',
+  themeDark: 'Dark',
+  themeWhiteCopy:
+    '\uBC1D\uC740 \uBC30\uACBD\uACFC \uC5F0\uD55C \uC885\uC774 \uD1A4\uC73C\uB85C \uBCF4\uB294 \uD14C\uB9C8\uC785\uB2C8\uB2E4.',
+  themeDarkCopy:
+    '\uC9C0\uAE08\uCC98\uB7FC \uC5B4\uB450\uC6B4 \uBC30\uACBD \uAE30\uC900\uC758 \uB2E4\uD06C \uD14C\uB9C8\uC785\uB2C8\uB2E4.',
   creator: '\uC81C\uC791\uC790',
   email: '\uC774\uBA54\uC77C',
   close: '\uB2EB\uAE30',
@@ -129,6 +139,8 @@ export function AppOptionsModal({
   isAdminModeEnabled,
   canEnableAdminMode,
   onEnableAdminMode,
+  themeMode,
+  onChangeThemeMode,
   accessMode,
   canToggleAccessMode,
   onChangeAccessMode,
@@ -194,6 +206,8 @@ export function AppOptionsModal({
 
   const currentModeLabel = accessMode === 'pro' ? text.modePro : text.modeGeneral
   const currentModeCopy = accessMode === 'pro' ? text.modeProCopy : text.modeGeneralCopy
+  const currentThemeLabel = themeMode === 'white' ? text.themeWhite : text.themeDark
+  const currentThemeCopy = themeMode === 'white' ? text.themeWhiteCopy : text.themeDarkCopy
 
   return (
     <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
@@ -222,6 +236,32 @@ export function AppOptionsModal({
           </div>
 
           <p className="support-copy">{supportCopy}</p>
+
+          <div className="support-option-row support-mode-section">
+            <span>{text.themeLabel}</span>
+            <strong>{currentThemeLabel}</strong>
+            <p className="support-note support-mode-copy">{currentThemeCopy}</p>
+            <div className="slot-mode-switch support-mode-toggle" role="tablist" aria-label={text.themeLabel}>
+              <button
+                type="button"
+                className={`slot-mode-button ${themeMode === 'white' ? 'is-active' : ''}`.trim()}
+                role="tab"
+                aria-selected={themeMode === 'white'}
+                onClick={() => onChangeThemeMode('white')}
+              >
+                {text.themeWhite}
+              </button>
+              <button
+                type="button"
+                className={`slot-mode-button ${themeMode === 'dark' ? 'is-active' : ''}`.trim()}
+                role="tab"
+                aria-selected={themeMode === 'dark'}
+                onClick={() => onChangeThemeMode('dark')}
+              >
+                {text.themeDark}
+              </button>
+            </div>
+          </div>
 
           {canToggleAccessMode ? (
             <div className="support-option-row support-mode-section">
