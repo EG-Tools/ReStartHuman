@@ -53,9 +53,9 @@ const text = {
   proPlanTitle: '\uC815\uBC00 \uACC4\uC0B0',
   proPlanCopy:
     '\uBD80\uBD80, \uACF5\uB3D9\uBA85\uC758, \uB2E4\uC8FC\uD0DD, ISA, \uC18C\uB4DD \uC720\uD615\uBCC4, \uC138\uAE08\u00B7\uAC74\uBCF4 \uC0C1\uC138 \uACC4\uC0B0\uC744 \uBAA8\uB450 \uC5FD\uB2C8\uB2E4.',
-  themeLabel: '\uCEEC\uB7EC \uD14C\uB9C8',
-  themeWhite: 'White',
-  themeDark: 'Dark',
+  themeLabel: '\uCEEC\uB7EC\uBAA8\uB4DC',
+  themeWhite: '\uD654\uC774\uD2B8',
+  themeDark: '\uB2E4\uD06C',
   themeWhiteCopy:
     '\uBC1D\uC740 \uBC30\uACBD\uACFC \uC5F0\uD55C \uC885\uC774 \uD1A4\uC73C\uB85C \uBCF4\uB294 \uD14C\uB9C8\uC785\uB2C8\uB2E4.',
   themeDarkCopy:

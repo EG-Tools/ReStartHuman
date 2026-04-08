@@ -257,9 +257,10 @@ export const CashFlowChart = memo(function CashFlowChart({
             line: '#78d5b0',
           }
   const gradientId = `cashflow-area-${result.riskLevel}`
-  const gridColor = 'rgba(227, 236, 240, 0.12)'
-  const labelColor = 'rgba(214, 225, 229, 0.82)'
-  const tickColor = 'rgba(227, 236, 240, 0.16)'
+  const isWhiteTheme = typeof document !== 'undefined' && document.documentElement.classList.contains('theme-white')
+  const gridColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.12)' : 'rgba(227, 236, 240, 0.12)'
+  const labelColor = isWhiteTheme ? 'rgba(73, 88, 93, 0.9)' : 'rgba(214, 225, 229, 0.82)'
+  const tickColor = isWhiteTheme ? 'rgba(57, 72, 78, 0.16)' : 'rgba(227, 236, 240, 0.16)'
   const getX = (index: number) =>
     paddingLeft + (index * chartWidth) / Math.max(points.length - 1, 1)
   const getY = (balance: number) =>
