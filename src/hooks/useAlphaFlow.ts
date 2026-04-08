@@ -49,7 +49,12 @@ export const useAlphaFlow = (
   }, [boundedQuestionIndex, shouldBypassAd, visibleQuestions.length])
 
   const previousQuestion = useCallback(() => {
-    setQuestionIndex(Math.max(boundedQuestionIndex - 1, 0))
+    if (boundedQuestionIndex <= 0) {
+      setRoute(appRoutes.start)
+      return
+    }
+
+    setQuestionIndex(boundedQuestionIndex - 1)
   }, [boundedQuestionIndex])
 
   const goToQuestion = useCallback(

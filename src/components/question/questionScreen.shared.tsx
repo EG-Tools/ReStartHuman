@@ -118,7 +118,7 @@ export function QuestionLayout({
       <div ref={bodyRef} className="question-body">{children}</div>
 
       <div className="footer-actions sticky-footer">
-        <PrimaryButton variant="ghost" onClick={onBack} disabled={questionIndex === 0}>
+        <PrimaryButton variant="ghost" onClick={onBack}>
           이전
         </PrimaryButton>
         <PrimaryButton onClick={onNext}>
