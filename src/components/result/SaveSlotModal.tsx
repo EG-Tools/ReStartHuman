@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { normalizeSaveSlotName } from '../../utils/saveSlots'
 import type { SaveSlotRecord } from '../../types/alpha'
@@ -71,6 +71,39 @@ function SaveSlotCard({
   onLoad,
   onDelete,
 }: SaveSlotCardProps) {
+  const caretMoveTimeoutRef = useRef<number | null>(null)
+
+  const clearPendingCaretMove = () => {
+    if (caretMoveTimeoutRef.current !== null) {
+      window.clearTimeout(caretMoveTimeoutRef.current)
+      caretMoveTimeoutRef.current = null
+    }
+  }
+
+  const scheduleCaretMoveToEnd = (input: HTMLInputElement) => {
+    clearPendingCaretMove()
+    caretMoveTimeoutRef.current = window.setTimeout(() => {
+      caretMoveTimeoutRef.current = null
+
+      if (document.activeElement !== input) {
+        return
+      }
+
+      if (input.selectionStart !== input.selectionEnd) {
+        return
+      }
+
+      moveCaretToInputEnd(input)
+    }, 180)
+  }
+
+  useEffect(
+    () => () => {
+      clearPendingCaretMove()
+    },
+    [],
+  )
+
   return (
     <article className="slot-card">
       <div className="slot-card-main">
@@ -85,17 +118,27 @@ function SaveSlotCard({
               maxLength={24}
               autoComplete="off"
               spellCheck={false}
-              onFocus={(event) => {
-                moveCaretToInputEnd(event.currentTarget)
-              }}
-              onClick={(event) => {
-                moveCaretToInputEnd(event.currentTarget)
+              onMouseUp={(event) => {
+                if (event.detail === 1) {
+                  scheduleCaretMoveToEnd(event.currentTarget)
+                  return
+                }
+
+                clearPendingCaretMove()
               }}
               onPointerUp={(event) => {
-                moveCaretToInputEnd(event.currentTarget)
+                if (event.pointerType !== 'mouse') {
+                  scheduleCaretMoveToEnd(event.currentTarget)
+                }
               }}
               onTouchEnd={(event) => {
-                moveCaretToInputEnd(event.currentTarget)
+                scheduleCaretMoveToEnd(event.currentTarget)
+              }}
+              onDoubleClick={() => {
+                clearPendingCaretMove()
+              }}
+              onBlur={() => {
+                clearPendingCaretMove()
               }}
               onChange={(event) => {
                 onChangeSlotName(slotId, event.target.value)

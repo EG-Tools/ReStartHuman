@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 
 const MANWON = 10_000
@@ -49,8 +49,16 @@ function useNumericDraftController({
 }: UseNumericDraftControllerProps) {
   const displayValue = Number.isFinite(value) ? toDisplayValue(value, display) : 0
   const [editBuffer, setEditBuffer] = useState<string | null>(null)
+  const caretMoveTimeoutRef = useRef<number | null>(null)
 
   const draftValue = editBuffer ?? formatDraftValue(displayValue, idleZeroDisplay)
+
+  const clearPendingCaretMove = () => {
+    if (caretMoveTimeoutRef.current !== null) {
+      window.clearTimeout(caretMoveTimeoutRef.current)
+      caretMoveTimeoutRef.current = null
+    }
+  }
 
   const moveCaretToInputEnd = (input: HTMLInputElement) => {
     requestAnimationFrame(() => {
@@ -59,6 +67,29 @@ function useNumericDraftController({
     })
   }
 
+  const scheduleCaretMoveToEnd = (input: HTMLInputElement) => {
+    clearPendingCaretMove()
+    caretMoveTimeoutRef.current = window.setTimeout(() => {
+      caretMoveTimeoutRef.current = null
+
+      if (document.activeElement !== input) {
+        return
+      }
+
+      if (input.selectionStart !== input.selectionEnd) {
+        return
+      }
+
+      moveCaretToInputEnd(input)
+    }, 180)
+  }
+
+  useEffect(
+    () => () => {
+      clearPendingCaretMove()
+    },
+    [],
+  )
   const commitRawValue = (rawValue: string) => {
     const nextValue = parseDraftValue(rawValue, min)
     onChange(toCommitValue(nextValue, display))
@@ -74,26 +105,32 @@ function useNumericDraftController({
       return nextValue
     },
     inputHandlers: {
-      onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+      onFocus: () => {
         setEditBuffer((currentValue) =>
           currentValue ?? formatDraftValue(displayValue, idleZeroDisplay),
         )
-
-        moveCaretToInputEnd(event.currentTarget)
       },
       onMouseUp: (event: React.MouseEvent<HTMLInputElement>) => {
-        moveCaretToInputEnd(event.currentTarget)
-      },
-      onClick: (event: React.MouseEvent<HTMLInputElement>) => {
-        moveCaretToInputEnd(event.currentTarget)
+        if (event.detail === 1) {
+          scheduleCaretMoveToEnd(event.currentTarget)
+          return
+        }
+
+        clearPendingCaretMove()
       },
       onPointerUp: (event: React.PointerEvent<HTMLInputElement>) => {
-        moveCaretToInputEnd(event.currentTarget)
+        if (event.pointerType !== 'mouse') {
+          scheduleCaretMoveToEnd(event.currentTarget)
+        }
       },
       onTouchEnd: (event: React.TouchEvent<HTMLInputElement>) => {
-        moveCaretToInputEnd(event.currentTarget)
+        scheduleCaretMoveToEnd(event.currentTarget)
+      },
+      onDoubleClick: () => {
+        clearPendingCaretMove()
       },
       onBlur: () => {
+        clearPendingCaretMove()
         if (commitMode === 'blur') {
           commitRawValue(draftValue)
         }
