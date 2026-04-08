@@ -206,8 +206,6 @@ export function AppOptionsModal({
 
   const currentModeLabel = accessMode === 'pro' ? text.modePro : text.modeGeneral
   const currentModeCopy = accessMode === 'pro' ? text.modeProCopy : text.modeGeneralCopy
-  const currentThemeLabel = themeMode === 'white' ? text.themeWhite : text.themeDark
-  const currentThemeCopy = themeMode === 'white' ? text.themeWhiteCopy : text.themeDarkCopy
 
   return (
     <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
@@ -239,8 +237,6 @@ export function AppOptionsModal({
 
           <div className="support-option-row support-mode-section">
             <span>{text.themeLabel}</span>
-            <strong>{currentThemeLabel}</strong>
-            <p className="support-note support-mode-copy">{currentThemeCopy}</p>
             <div className="slot-mode-switch support-mode-toggle" role="tablist" aria-label={text.themeLabel}>
               <button
                 type="button"
