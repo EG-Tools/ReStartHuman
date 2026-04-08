@@ -481,3 +481,16 @@ body.theme-white .question-number-conversion {
   color: #66797e;
   font-weight: 500;
 }
+body.theme-white .cashflow-hero {
+  border: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+body.theme-white .question-number-conversion {
+  color: #708489;
+  font-weight: 500;
+}
+body.theme-white .question-number-conversion {
+  color: #7a8f94;
+  font-weight: 500;
+}
