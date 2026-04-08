@@ -1,37 +1,38 @@
 :root.theme-white {
   color-scheme: light;
-  color: #1b2a2d;
-  background: #f6f1e7;
-  --bg: #f6f1e7;
-  --paper: rgba(255, 251, 244, 0.88);
-  --paper-strong: #fffaf1;
-  --ink: #1b2a2d;
-  --muted: #5f6f73;
-  --line: rgba(27, 42, 45, 0.12);
-  --brand: #0d6f73;
-  --brand-soft: rgba(13, 111, 115, 0.1);
-  --accent: #d9622b;
-  --accent-soft: rgba(217, 98, 43, 0.14);
-  --good: #1d7a50;
-  --good-soft: rgba(29, 122, 80, 0.12);
-  --bad: #b53a2d;
-  --bad-soft: rgba(181, 58, 45, 0.12);
-  --neutral: #6f5d2e;
-  --neutral-soft: rgba(111, 93, 46, 0.12);
-  --shadow: 0 24px 80px rgba(61, 51, 30, 0.18);
+  color: #213134;
+  background: #f3efe7;
+  --bg: #f3efe7;
+  --paper: rgba(255, 252, 246, 0.84);
+  --paper-strong: #fffdf8;
+  --ink: #213134;
+  --muted: #63757a;
+  --line: rgba(39, 58, 61, 0.12);
+  --brand: #1f7a7b;
+  --brand-soft: rgba(31, 122, 123, 0.1);
+  --accent: #be6b3f;
+  --accent-soft: rgba(190, 107, 63, 0.14);
+  --good: #2e7a63;
+  --good-soft: rgba(46, 122, 99, 0.12);
+  --bad: #b6544b;
+  --bad-soft: rgba(182, 84, 75, 0.12);
+  --neutral: #8a7442;
+  --neutral-soft: rgba(138, 116, 66, 0.12);
+  --shadow: 0 24px 64px rgba(78, 62, 39, 0.14);
 }
 
 body.theme-white {
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(255, 214, 171, 0.55), transparent 36%),
-    radial-gradient(circle at top right, rgba(98, 170, 162, 0.32), transparent 30%),
-    linear-gradient(180deg, #f8f2e7 0%, #f3ede2 100%);
+    radial-gradient(circle at top left, rgba(226, 176, 126, 0.2), transparent 34%),
+    radial-gradient(circle at top right, rgba(116, 173, 167, 0.18), transparent 30%),
+    linear-gradient(180deg, #f7f3ec 0%, #eee7db 100%);
 }
 
 body.theme-white .device-frame {
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 248, 239, 0.78);
+  border-color: rgba(255, 255, 255, 0.68);
+  background: rgba(249, 244, 236, 0.78);
+  box-shadow: var(--shadow);
 }
 
 body.theme-white .hero-panel,
@@ -45,45 +46,120 @@ body.theme-white .slot-card,
 body.theme-white .modal-panel,
 body.theme-white .input-card,
 body.theme-white .toggle-card {
-  box-shadow: 0 12px 40px rgba(64, 50, 29, 0.08);
+  border-color: rgba(39, 58, 61, 0.1);
+  background: rgba(255, 252, 246, 0.84);
+  box-shadow: 0 12px 36px rgba(82, 65, 39, 0.08);
+}
+
+body.theme-white .button-primary,
+body.theme-white .slot-mode-button.is-active {
+  background: linear-gradient(135deg, #1f7a7b, #296c80);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(31, 122, 123, 0.18);
+}
+
+body.theme-white .button-secondary {
+  background: rgba(255, 252, 246, 0.92);
+  color: var(--ink);
+  border-color: rgba(39, 58, 61, 0.12);
 }
 
 body.theme-white .button-ghost,
 body.theme-white .icon-button {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   color: var(--muted);
-  border-color: var(--line);
+  border-color: rgba(39, 58, 61, 0.12);
+}
+
+body.theme-white .version-badge,
+body.theme-white .support-status-pill,
+body.theme-white .support-option-row,
+body.theme-white .access-mode-card,
+body.theme-white .support-confirm-dialog {
+  border-color: rgba(39, 58, 61, 0.12);
 }
 
 body.theme-white .version-badge,
 body.theme-white .support-status-pill,
 body.theme-white .support-option-row,
 body.theme-white .access-mode-card {
-  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.74);
 }
 
-body.theme-white .version-badge {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--muted);
-}
-
-body.theme-white .support-status-pill,
-body.theme-white .support-option-row,
-body.theme-white .access-mode-card {
-  background: rgba(255, 255, 255, 0.72);
-}
-
-body.theme-white .access-mode-card.is-active {
-  border-color: rgba(13, 111, 115, 0.18);
-  background: linear-gradient(180deg, rgba(244, 250, 249, 0.98), rgba(236, 246, 244, 0.95));
-  box-shadow: 0 12px 28px rgba(61, 51, 30, 0.12);
-}
-
-body.theme-white .slot-mode-button.is-active,
-body.theme-white .table-edit-reset,
-body.theme-white .slot-index-badge {
-  background: rgba(13, 111, 115, 0.1);
+body.theme-white .support-status-pill.is-active {
+  background: rgba(31, 122, 123, 0.1);
   color: var(--brand);
+}
+
+body.theme-white .access-mode-card {
+  box-shadow: 0 10px 24px rgba(82, 65, 39, 0.06);
+}
+
+body.theme-white .access-mode-card.is-active,
+body.theme-white .toggle-card.is-active {
+  border-color: rgba(31, 122, 123, 0.22);
+  background: linear-gradient(180deg, rgba(252, 255, 253, 0.98), rgba(240, 247, 246, 0.95));
+  box-shadow: 0 14px 28px rgba(31, 122, 123, 0.1);
+}
+
+body.theme-white .access-mode-feature-list {
+  color: var(--ink);
+}
+
+body.theme-white .access-mode-chip,
+body.theme-white .access-mode-pill,
+body.theme-white .slot-index-badge,
+body.theme-white .table-edit-reset {
+  background: rgba(31, 122, 123, 0.08);
+  border-color: rgba(31, 122, 123, 0.14);
+  color: var(--brand);
+}
+
+body.theme-white .start-hero-panel {
+  background: linear-gradient(180deg, rgba(245, 239, 228, 0.96), rgba(236, 228, 214, 0.98));
+  border: 1px solid rgba(39, 58, 61, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+body.theme-white .start-hero-image {
+  filter: saturate(0.98) contrast(1.01) brightness(0.99);
+  transform: scale(1);
+}
+
+body.theme-white .start-hero-overlay {
+  background: linear-gradient(180deg, rgba(247, 242, 234, 0) 42%, rgba(247, 242, 234, 0.1) 66%, rgba(244, 237, 227, 0.82) 100%);
+}
+
+body.theme-white .start-hero-panel .hero-title {
+  color: #1f3134;
+  text-shadow: 0 6px 18px rgba(255, 255, 255, 0.24);
+}
+
+body.theme-white .start-hero-panel .hero-copy,
+body.theme-white .help-drawer-toggle-copy {
+  color: #5e7074;
+}
+
+body.theme-white .help-drawer-toggle {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 237, 226, 0.94)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(190, 107, 63, 0.035) 0,
+      rgba(190, 107, 63, 0.035) 18px,
+      rgba(31, 122, 123, 0.035) 18px,
+      rgba(31, 122, 123, 0.035) 36px
+    );
+}
+
+body.theme-white .modal-backdrop,
+body.theme-white .support-confirm-backdrop {
+  background: rgba(104, 88, 64, 0.22);
+}
+
+body.theme-white .support-confirm-dialog {
+  background: rgba(255, 252, 246, 0.98);
+  box-shadow: 0 24px 40px rgba(74, 57, 30, 0.16);
 }
 
 body.theme-white .slot-name-input,
@@ -92,68 +168,69 @@ body.theme-white .projection-panel .table-edit-field,
 body.theme-white .result-screen .table-edit-field,
 body.theme-white .table-edit-field,
 body.theme-white .inflation-toggle {
-  background: rgba(255, 250, 241, 0.92);
-  border-color: rgba(27, 42, 45, 0.12);
+  background: rgba(255, 252, 246, 0.94);
+  border-color: rgba(39, 58, 61, 0.12);
   color: var(--ink);
+}
+
+body.theme-white .slot-name-input:focus,
+body.theme-white .table-edit-field:focus-within,
+body.theme-white .table-edit-field:focus,
+body.theme-white .inflation-toggle:focus {
+  border-color: rgba(31, 122, 123, 0.34);
+  box-shadow: 0 0 0 4px rgba(31, 122, 123, 0.1);
 }
 
 body.theme-white .slot-actions .slot-load-button.button-secondary {
-  background: rgba(95, 111, 115, 0.08);
-  border-color: rgba(27, 42, 45, 0.1);
+  background: rgba(101, 117, 122, 0.08);
+  border-color: rgba(39, 58, 61, 0.12);
   color: var(--ink);
 }
 
+body.theme-white .result-table {
+  --result-row-divider-shadow: inset 0 -1px 0 rgba(168, 155, 139, 0.34);
+  --result-row-sticky-divider-shadow: inset -1px 0 0 rgba(168, 155, 139, 0.24);
+}
+
 body.theme-white .result-table thead {
-  background: rgba(13, 111, 115, 0.08);
+  background: rgba(31, 122, 123, 0.08);
 }
 
 body.theme-white .result-table th:first-child,
 body.theme-white .result-table td:first-child {
-  background: rgba(255, 250, 241, 0.98);
+  background: rgba(255, 251, 245, 0.98);
 }
 
 body.theme-white .result-table thead th:first-child {
-  background: rgba(247, 240, 226, 0.98);
+  background: rgba(244, 236, 223, 0.98);
 }
 
-body.theme-white .result-table tbody tr.result-category-tax td,
-body.theme-white .result-table tbody tr.result-category-expense td,
-body.theme-white .result-table tbody tr.result-category-outcome td {
-  box-shadow: inset 0 -1px 0 rgba(161, 143, 125, 0.28);
+body.theme-white .result-table tbody tr.result-category-tax {
+  --result-row-bg: #f7ece8;
+  --result-row-color: #7f433d;
 }
 
-body.theme-white .result-table tbody tr.result-category-tax td {
-  background: #fbefed;
-  color: #7d3d35;
+body.theme-white .result-table tbody tr.result-category-expense {
+  --result-row-bg: #f2eef8;
+  --result-row-color: #5f5476;
 }
 
-body.theme-white .result-table tbody tr.result-category-expense td {
-  background: #f4eef9;
-  color: #5d476f;
-}
-
-body.theme-white .result-table tbody tr.result-category-outcome td {
-  background: #edf7f2;
-  color: #2f6952;
-}
-
-body.theme-white .result-table tbody tr.result-category-tax td:first-child,
-body.theme-white .result-table tbody tr.result-category-expense td:first-child,
-body.theme-white .result-table tbody tr.result-category-outcome td:first-child,
-body.theme-white .result-table thead th:first-child {
-  box-shadow: inset -1px 0 0 rgba(161, 143, 125, 0.2);
+body.theme-white .result-table tbody tr.result-category-outcome {
+  --result-row-bg: #eaf4ef;
+  --result-row-color: #2f6952;
 }
 
 body.theme-white .cashflow-hero {
-  background: linear-gradient(145deg, #fffaf2, #f7efe4);
+  background: linear-gradient(145deg, #fffaf4, #f3ece2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
 body.theme-white .cashflow-hero.tone-deficit {
-  background: linear-gradient(145deg, #fff2ef, #f8ece8);
+  background: linear-gradient(145deg, #fcf0ed, #f5e8e3);
 }
 
 body.theme-white .cashflow-hero.tone-neutral {
-  background: linear-gradient(145deg, #fff7eb, #f6efe0);
+  background: linear-gradient(145deg, #fbf4e7, #f0e7d6);
 }
 
 body.theme-white .cashflow-hero-eyebrow,
@@ -172,24 +249,37 @@ body.theme-white .cashflow-hero-meta-pill {
 }
 
 body.theme-white .cashflow-hero-meta-pill {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(39, 58, 61, 0.08);
+}
+
+body.theme-white .cashflow-chart-area {
+  fill: rgba(31, 122, 123, 0.12);
+}
+
+body.theme-white .cashflow-hero.tone-deficit .cashflow-chart-area {
+  fill: rgba(182, 84, 75, 0.12);
+}
+
+body.theme-white .cashflow-hero.tone-neutral .cashflow-chart-area {
+  fill: rgba(138, 116, 66, 0.12);
 }
 
 body.theme-white .cashflow-grid-line {
-  stroke: rgba(27, 42, 45, 0.1);
+  stroke: rgba(39, 58, 61, 0.08);
 }
 
 body.theme-white .cashflow-year-tick {
-  stroke: rgba(27, 42, 45, 0.14);
+  stroke: rgba(39, 58, 61, 0.1);
 }
 
 body.theme-white .cashflow-chart-dot {
-  fill: #fffaf1;
+  fill: #fffdf8;
 }
 
 body.theme-white .cashflow-event-pill {
-  fill: rgba(255, 250, 241, 0.96);
-  stroke: rgba(27, 42, 45, 0.16);
+  fill: rgba(255, 251, 245, 0.96);
+  stroke: rgba(39, 58, 61, 0.12);
 }
 
 body.theme-white .cashflow-event-text {
