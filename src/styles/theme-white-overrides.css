@@ -453,3 +453,10 @@ body.theme-white .cashflow-grid-label {
   fill: #43555a;
   font-weight: 700;
 }
+body.theme-white .input-preview,
+body.theme-white .question-screen .input-preview,
+body.theme-white .projection-panel .input-preview,
+body.theme-white .input-card.is-disabled .input-preview {
+  color: #304246 !important;
+  font-weight: 700;
+}
