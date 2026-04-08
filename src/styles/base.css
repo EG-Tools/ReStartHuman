@@ -1082,14 +1082,16 @@ p {
 }
 
 .input-control::selection,
-.table-edit-input::selection {
-  background: transparent;
+.table-edit-input::selection,
+.slot-name-input::selection {
+  background: rgba(52, 179, 181, 0.32);
   color: inherit;
 }
 
 .input-control::-moz-selection,
-.table-edit-input::-moz-selection {
-  background: transparent;
+.table-edit-input::-moz-selection,
+.slot-name-input::-moz-selection {
+  background: rgba(52, 179, 181, 0.32);
   color: inherit;
 }
 
