@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { PrimaryButton } from '../common/Ui'
 import { normalizeSaveSlotName } from '../../utils/saveSlots'
 import type { SaveSlotRecord } from '../../types/alpha'
@@ -25,13 +25,6 @@ interface SaveSlotCardProps {
   onSave: (slotId: number) => void
   onLoad: (slot: SaveSlotRecord) => void
   onDelete: (slotId: number) => void
-}
-
-const moveCaretToInputEnd = (input: HTMLInputElement) => {
-  requestAnimationFrame(() => {
-    const caretPosition = input.value.length
-    input.setSelectionRange(caretPosition, caretPosition)
-  })
 }
 
 function SaveSlotModeTabs({ activeMode, canSave, onModeChange }: SaveSlotModeTabsProps) {
@@ -71,39 +64,6 @@ function SaveSlotCard({
   onLoad,
   onDelete,
 }: SaveSlotCardProps) {
-  const caretMoveTimeoutRef = useRef<number | null>(null)
-
-  const clearPendingCaretMove = () => {
-    if (caretMoveTimeoutRef.current !== null) {
-      window.clearTimeout(caretMoveTimeoutRef.current)
-      caretMoveTimeoutRef.current = null
-    }
-  }
-
-  const scheduleCaretMoveToEnd = (input: HTMLInputElement) => {
-    clearPendingCaretMove()
-    caretMoveTimeoutRef.current = window.setTimeout(() => {
-      caretMoveTimeoutRef.current = null
-
-      if (document.activeElement !== input) {
-        return
-      }
-
-      if (input.selectionStart !== input.selectionEnd) {
-        return
-      }
-
-      moveCaretToInputEnd(input)
-    }, 180)
-  }
-
-  useEffect(
-    () => () => {
-      clearPendingCaretMove()
-    },
-    [],
-  )
-
   return (
     <article className="slot-card">
       <div className="slot-card-main">
@@ -118,28 +78,6 @@ function SaveSlotCard({
               maxLength={24}
               autoComplete="off"
               spellCheck={false}
-              onMouseUp={(event) => {
-                if (event.detail === 1) {
-                  scheduleCaretMoveToEnd(event.currentTarget)
-                  return
-                }
-
-                clearPendingCaretMove()
-              }}
-              onPointerUp={(event) => {
-                if (event.pointerType !== 'mouse') {
-                  scheduleCaretMoveToEnd(event.currentTarget)
-                }
-              }}
-              onTouchEnd={(event) => {
-                scheduleCaretMoveToEnd(event.currentTarget)
-              }}
-              onDoubleClick={() => {
-                clearPendingCaretMove()
-              }}
-              onBlur={() => {
-                clearPendingCaretMove()
-              }}
               onChange={(event) => {
                 onChangeSlotName(slotId, event.target.value)
               }}
