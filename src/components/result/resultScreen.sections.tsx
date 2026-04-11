@@ -133,7 +133,7 @@ const formatYAxisEok = (value: number) => {
   return `${eokValue.toFixed(2)}억`
 }
 
-type CashFlowEventTone = 'pension' | 'insurance' | 'expense'
+type CashFlowEventTone = 'pension' | 'insurance' | 'expense' | 'isa'
 
 type CashFlowEventMarker = {
   key: string
@@ -149,6 +149,8 @@ const CASHFLOW_TEXT = {
   yearsLater: '\uB144 \uD6C4',
   pensionStart: '\uC5F0\uAE08 \uC2DC\uC791',
   pensionShort: '\uC5F0\uAE08',
+  isaLiquidation: 'ISA \uD604\uAE08 \uC774\uC804',
+  isaShort: 'ISA',
   healthInsuranceReflect: '\uAC74\uBCF4 \uBC18\uC601',
   healthInsuranceShort: '\uAC74\uBCF4',
   insuranceEnd: '\uBCF4\uD5D8 \uC885\uB8CC',
@@ -310,6 +312,18 @@ export const CashFlowChart = memo(function CashFlowChart({
             detail: formatCashFlowEventDetail(currentAge, earliestPensionStartOffset),
             yearOffset: earliestPensionStartOffset,
             tone: 'pension' as const,
+          },
+        ]
+      : []),
+    ...(result.isaLiquidationYear !== null && result.isaLiquidationYear > 0 && result.isaLiquidationYear <= totalYears
+      ? [
+          {
+            key: 'isa-liquidation',
+            label: CASHFLOW_TEXT.isaLiquidation,
+            shortLabel: CASHFLOW_TEXT.isaShort,
+            detail: formatCashFlowEventDetail(currentAge, result.isaLiquidationYear),
+            yearOffset: result.isaLiquidationYear,
+            tone: 'isa' as const,
           },
         ]
       : []),

@@ -31,3 +31,33 @@ test('cashflow chart shows the start and end age labels only once after long pro
   assert.equal(startMatches.length, 1)
   assert.equal(endMatches.length, 1)
 })
+test('cashflow chart shows an ISA marker when ISA dividends convert to cash', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    isaAssets: 100_000_000,
+    isaDividendAnnual: 5_000_000,
+    housingType: 'monthlyRent' as const,
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    healthInsuranceType: 'employee' as const,
+    startingCashReserve: 0,
+  }
+  const result = calculateAlphaScenario(formData)
+
+  const markup = renderToStaticMarkup(
+    createElement(CashFlowChart, {
+      currentAge: formData.currentAge,
+      formData,
+      inflationEnabled: formData.inflationEnabled,
+      inflationRateAnnual: formData.inflationRateAnnual,
+      projectionYears: formData.simulationYears,
+      result,
+    }),
+  )
+
+  const isaMatches = markup.match(/ISA/g) ?? []
+
+  assert.ok(isaMatches.length >= 2)
+})

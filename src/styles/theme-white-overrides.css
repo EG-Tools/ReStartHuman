@@ -325,6 +325,11 @@ body.theme-white .cashflow-event-marker.tone-expense .cashflow-event-dot {
   stroke: #429274;
 }
 
+body.theme-white .cashflow-event-marker.tone-isa .cashflow-event-line,
+body.theme-white .cashflow-event-marker.tone-isa .cashflow-event-dot {
+  stroke: #6f63cf;
+}
+
 body.theme-white .cashflow-event-pill {
   fill: rgba(255, 251, 245, 0.96);
   stroke: rgba(39, 58, 61, 0.12);
@@ -350,6 +355,10 @@ body.theme-white .cashflow-event-legend-item.tone-insurance {
 
 body.theme-white .cashflow-event-legend-item.tone-expense {
   color: #2f7b64;
+}
+
+body.theme-white .cashflow-event-legend-item.tone-isa {
+  color: #5c51bb;
 }
 body.theme-white .projection-inline-field-label {
   color: #4b5d62;
@@ -427,6 +436,11 @@ body.theme-white .cashflow-event-marker.tone-insurance .cashflow-event-dot {
 body.theme-white .cashflow-event-marker.tone-expense .cashflow-event-line,
 body.theme-white .cashflow-event-marker.tone-expense .cashflow-event-dot {
   stroke: #3a8268;
+}
+
+body.theme-white .cashflow-event-marker.tone-isa .cashflow-event-line,
+body.theme-white .cashflow-event-marker.tone-isa .cashflow-event-dot {
+  stroke: #6255c6;
 }
 body.theme-white .projection-inline-field-label {
   color: #43555a;

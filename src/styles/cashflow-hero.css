@@ -254,6 +254,11 @@
   stroke: #68c4a4;
 }
 
+.cashflow-event-marker.tone-isa .cashflow-event-line,
+.cashflow-event-marker.tone-isa .cashflow-event-dot {
+  stroke: #8d7cff;
+}
+
 .cashflow-event-legend {
   display: flex;
   gap: 8px;
@@ -289,6 +294,10 @@
 
 .cashflow-event-legend-item.tone-expense {
   color: #2f7b64;
+}
+
+.cashflow-event-legend-item.tone-isa {
+  color: #6a59d3;
 }
 
 .cashflow-event-legend-swatch {
