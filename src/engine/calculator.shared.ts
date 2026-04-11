@@ -36,6 +36,7 @@ export interface CashProjection {
   cumulativePensionIncome: number
   cumulativeOtherIncome: number
   cumulativeTotalIncome: number
+  cumulativeCashInterest: number
   cumulativeUsableCash: number
   cumulativePrivatePensionTax: number
   cumulativeRentalIncomeTax: number

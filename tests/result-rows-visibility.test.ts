@@ -24,6 +24,7 @@ const buildRows = (formData = defaultFormData) => {
 test('total income row shows an empty-income message when nothing is entered', () => {
   const rows = buildRows({
     ...defaultFormData,
+    startingCashReserve: 0,
     taxableAccountDividendAnnual: 0,
     isaDividendAnnual: 0,
     pensionMonthlyAmount: 0,
@@ -196,6 +197,7 @@ test('business rows explain tax and health insurance bases', () => {
 test('deferred national pension stays visible without being added to current total income', () => {
   const rows = buildRows({
     ...defaultFormData,
+    startingCashReserve: 0,
     currentAge: 50,
     pensionStartAge: 65,
     pensionMonthlyAmount: 1_000_000,

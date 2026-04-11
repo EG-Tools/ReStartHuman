@@ -491,17 +491,28 @@ export function buildResultRows({
 
   const totalIncomePieces = [
     result.totalDividendMonthlyNet > 0
-      ? `${formatCompactCurrency(result.totalDividendMonthlyNet)} 세후 배당`
+      ? `${formatCompactCurrency(result.totalDividendMonthlyNet)} \uC138\uD6C4 \uBC30\uB2F9`
       : null,
     ...visibleIncomeBreakdown.map(
       (item) => `${formatCompactCurrency(item.appliedMonthly)} ${item.label}`,
     ),
     shouldShowPensionRow
       ? pensionStartsLater
-        ? `국민연금 ${formData.pensionStartAge}세 이후 반영`
-        : `${formatCompactCurrency(result.pensionMonthlyApplied)} 국민연금`
+        ? `\uAD6D\uBBFC\uC5F0\uAE08 ${formData.pensionStartAge}\uC138 \uC774\uD6C4 \uBC18\uC601`
+        : `${formatCompactCurrency(result.pensionMonthlyApplied)} \uAD6D\uBBFC\uC5F0\uAE08`
+      : null,
+    result.cashInterestMonthly > 0
+      ? `${formatCompactCurrency(result.cashInterestMonthly)} \uC608\uAE08\uC774\uC790`
       : null,
   ].filter((value): value is string => Boolean(value))
+  const totalIncomeNoteDetail =
+    result.cashInterestAnnual > 0
+      ? `\uD604\uC7AC \uBCF4\uC720 \uD604\uAE08 ${formatCompactCurrency(formData.startingCashReserve)}\uC5D0\uB294 \uC5F0 ${formData.cashInterestRatePercent}% \uC608\uAE08\uC774\uC790\uC728\uACFC \uC774\uC790\uC18C\uB4DD \uC6D0\uCC9C\uC9D5\uC218 15.4%\uB97C \uBC18\uC601\uD574 \uC138\uD6C4 \uC5F0 ${formatCompactCurrency(result.cashInterestAnnual)}, \uC6D4 ${formatCompactCurrency(result.cashInterestMonthly)} \uC608\uAE08\uC774\uC790\uB97C \uB354\uD588\uC2B5\uB2C8\uB2E4.${result.isaLiquidationYear !== null && result.isaLiquidationTransferAmount > 0 ? ` ISA\uC5D0\uC11C \uD604\uAE08\uC73C\uB85C \uC62E\uAE34 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}\uB3C4 \uB2E4\uC74C \uD574\uBD80\uD130 \uAC19\uC740 \uAE30\uC900 \uC608\uAE08\uC774\uC790\uB97C \uBC18\uC601\uD569\uB2C8\uB2E4.` : ''}`
+      : result.isaLiquidationYear !== null &&
+          result.isaLiquidationTransferAmount > 0 &&
+          formData.cashInterestRatePercent > 0
+        ? `ISA\uC5D0\uC11C \uD604\uAE08\uC73C\uB85C \uC62E\uAE34 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}\uB294 \uB2E4\uC74C \uD574\uBD80\uD130 \uC5F0 ${formData.cashInterestRatePercent}% \uC608\uAE08\uC774\uC790\uC728\uC744 \uAE30\uC900\uC73C\uB85C \uC138\uD6C4 \uC608\uAE08\uC774\uC790\uB97C \uBC18\uC601\uD569\uB2C8\uB2E4.`
+        : undefined
 
   const rows: ResultRow[] = [
     {
@@ -697,8 +708,10 @@ export function buildResultRows({
       monthly: formatCompactCurrency(result.totalIncomeMonthly),
       annual: formatCompactCurrency(result.totalIncomeMonthly * 12),
       tenYear: formatCompactCurrency(result.projectionTotalIncomeTotal),
-      note: '세금 차감 전',
+      note: '\uC138\uAE08 \uCC28\uAC10 \uC804',
+      noteDetail: totalIncomeNoteDetail,
     },
+
     {
       category: '세금',
       item: '건강보험료',

@@ -3,6 +3,7 @@ import type { AlphaFormData, AlphaResult, AdditionalHome } from '../types/alpha'
 import {
   calculateCashProjection,
   calculateExpenses,
+  calculateNetCashInterestAnnual,
   estimateHealthInsurance,
   estimateHoldingTax,
   getDependentHealthInsuranceAssessment,
@@ -48,6 +49,9 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
   const normalizedCorporateExecutiveSalaryMonthly = sanitizeMoney(
     formData.corporateExecutiveSalaryMonthly,
   )
+  const normalizedCashInterestRatePercent = Number.isFinite(formData.cashInterestRatePercent)
+    ? Math.min(Math.max(Math.round(formData.cashInterestRatePercent), 0), 100)
+    : policyConfig.cashInterest.defaultAnnualRatePercent
   const nextHealthInsuranceType = hasCorporateExecutiveIncome
     ? 'employee'
     : hasBusinessIncome
@@ -157,6 +161,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
     otherLivingMonthly: sanitizeMoney(formData.otherLivingMonthly),
     inflationRateAnnual: clampRate(formData.inflationRateAnnual, policyConfig.inflation.defaultAnnualRate),
     startingCashReserve: sanitizeMoney(formData.startingCashReserve),
+    cashInterestRatePercent: normalizedCashInterestRatePercent,
     currentAge: Math.max(1, sanitizeMoney(formData.currentAge) || 50),
   }
 }
@@ -247,8 +252,16 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     nationalPensionMonthly: pensionMonthlyApplied,
     totalFinancialIncomeAnnual: taxableDividend.annualGross,
   })
+  const currentCashInterestAnnual = calculateNetCashInterestAnnual(
+    formData.startingCashReserve,
+    formData.cashInterestRatePercent,
+  )
+  const currentCashInterestMonthly = roundCurrency(currentCashInterestAnnual / 12)
   const totalIncomeMonthly =
-    totalDividend.monthlyNet + otherIncomeMonthlyApplied + pensionMonthlyApplied
+    totalDividend.monthlyNet +
+    otherIncomeMonthlyApplied +
+    pensionMonthlyApplied +
+    currentCashInterestMonthly
   const monthlyUsableCash = roundCurrency(
     totalIncomeMonthly -
       healthInsuranceMonthly -
@@ -353,6 +366,9 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     totalExpenseMonthly: expenses.totalExpenseMonthly,
     totalIncomeMonthly,
     projectionTotalIncomeTotal: cashProjection.cumulativeTotalIncome,
+    cashInterestAnnual: currentCashInterestAnnual,
+    cashInterestMonthly: currentCashInterestMonthly,
+    projectionCashInterestTotal: cashProjection.cumulativeCashInterest,
     monthlyUsableCash,
     projectionUsableCashTotal: cashProjection.cumulativeUsableCash,
     monthlySurplusOrDeficit,

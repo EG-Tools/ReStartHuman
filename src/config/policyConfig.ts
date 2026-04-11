@@ -260,6 +260,13 @@ export const policyConfig = {
     note:
       '월세소득은 필요경비 50%와 기본공제 400만원을 적용한 단순 추정이며, 다주택 보유 여부에 따른 실제 신고 방식과는 차이가 있을 수 있습니다.',
   },
+  cashInterest: {
+    referenceDate: '2026-04-11',
+    defaultAnnualRatePercent: 1,
+    withholdingRate: 0.154,
+    note:
+      '\uC608\uAE08 \uC774\uC790\uB294 \uC785\uB825\uD55C \uC5F0 \uC774\uC790\uC728\uC5D0\uC11C \uC774\uC790\uC18C\uB4DD \uC6D0\uCC9C\uC9D5\uC218 15.4%\uB97C \uC81C\uC678\uD55C \uC138\uD6C4 \uAE30\uC900\uC73C\uB85C \uBC18\uC601\uD569\uB2C8\uB2E4.',
+  },
   privacyStorageNotice:
     '입력한 모든 정보와 계산 결과는 사용자의 현재 기기에만 저장되며 서버로 전송되지 않습니다.',
   inflation: {

@@ -149,6 +149,7 @@ export interface AlphaFormData {
   inflationEnabled: boolean
   inflationRateAnnual: number
   startingCashReserve: number
+  cashInterestRatePercent: number
   currentAge: number
 }
 
@@ -284,6 +285,9 @@ export interface AlphaResult {
   totalExpenseMonthly: number
   totalIncomeMonthly: number
   projectionTotalIncomeTotal: number
+  cashInterestAnnual: number
+  cashInterestMonthly: number
+  projectionCashInterestTotal: number
 
   monthlyUsableCash: number
   projectionUsableCashTotal: number

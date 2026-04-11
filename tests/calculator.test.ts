@@ -64,6 +64,7 @@ test('national pension starts only from the configured age', () => {
     otherIncomeType: 'none',
     pensionMonthlyAmount: 1_000_000,
     pensionStartAge: 65,
+    cashInterestRatePercent: 0,
   })
 
   assert.equal(result.pensionMonthlyApplied, 0)
@@ -93,6 +94,7 @@ test('other pension income starts only from the configured age', () => {
     healthInsuranceType: 'dependent',
     otherIncomeType: 'pension',
     otherIncomeMonthly: 500_000,
+    cashInterestRatePercent: 0,
     otherIncomeStartAge: 65,
   })
 
@@ -176,10 +178,42 @@ test('ISA dividends stop after principal recovery and transfer ISA assets to cas
   assert.equal(result.isaLiquidationYear, 20)
   assert.equal(result.isaLiquidationAge, 70)
   assert.equal(result.isaLiquidationTransferAmount, 100_000_000)
-  assert.equal(result.projectionTotalIncomeTotal, 100_000_000)
-  assert.equal(result.cashBalanceTimeline[20]?.balance, 200_000_000)
-  assert.equal(result.cashBalanceTimeline[21]?.balance, 200_000_000)
-  assert.equal(result.cashBalanceTimeline[30]?.balance, 200_000_000)
+  assert.ok(result.projectionTotalIncomeTotal > 100_000_000)
+  assert.ok(result.projectionCashInterestTotal > 0)
+  assert.ok((result.cashBalanceTimeline[20]?.balance ?? 0) > 200_000_000)
+  assert.ok((result.cashBalanceTimeline[21]?.balance ?? 0) > (result.cashBalanceTimeline[20]?.balance ?? 0))
+  assert.ok((result.cashBalanceTimeline[30]?.balance ?? 0) > (result.cashBalanceTimeline[21]?.balance ?? 0))
+})
+
+test('cash reserve adds net deposit interest to current and projected income', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 3,
+    inflationEnabled: false,
+    startingCashReserve: 100_000_000,
+    cashInterestRatePercent: 1,
+    housingType: 'monthlyRent',
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    healthInsuranceType: 'dependent',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    taxableAccountDividendAnnual: 0,
+    isaDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+  })
+
+  assert.equal(result.cashInterestAnnual, 846_000)
+  assert.equal(result.cashInterestMonthly, 70_500)
+  assert.equal(result.totalIncomeMonthly, 70_500)
+  assert.equal(result.cashBalanceTimeline[1]?.balance, 100_846_000)
+  assert.ok(result.projectionCashInterestTotal > result.cashInterestAnnual)
 })
 
 test('additional homes increase holding tax and health insurance property base', () => {
@@ -454,6 +488,7 @@ test('corporate executive salary uses employee insurance assumptions', () => {
     otherFixedMonthly: 0,
     pensionMonthlyAmount: 0,
     selectedIncomeCategories: ['corporateExecutive'],
+    startingCashReserve: 0,
     corporateExecutiveSalaryMonthly: 4_000_000,
     corporateExecutiveDurationYears: 10,
   })

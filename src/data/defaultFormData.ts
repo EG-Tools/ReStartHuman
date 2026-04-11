@@ -106,5 +106,6 @@ export const defaultFormData: AlphaFormData = {
   inflationEnabled: true,
   inflationRateAnnual: 0.02,
   startingCashReserve: 100_000_000,
+  cashInterestRatePercent: 1,
   currentAge: 50,
 }

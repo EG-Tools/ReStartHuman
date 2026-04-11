@@ -36,6 +36,7 @@ test('현금흐름은 대출이자 반영 기간이 끝나면 그 이후 해부�
     {
       ...defaultFormData,
       inflationEnabled: false,
+      cashInterestRatePercent: 0,
       loanInterestMonthly: 100_000,
       loanInterestYears: 2,
       startingCashReserve: 0,
@@ -142,6 +143,7 @@ test('피부양자는 추가 소득이 기준을 넘으면 지역가입자 방�
 test('근로소득 입력은 월 추가소득과 급여 중 큰 값을 사용한다', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
+    startingCashReserve: 0,
     otherIncomeType: 'earned',
     otherIncomeMonthly: 1_500_000,
     salaryMonthly: 3_000_000,
@@ -169,6 +171,7 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
       ...defaultFormData,
       inflationEnabled: false,
       healthInsuranceType: 'dependent',
+      cashInterestRatePercent: 0,
       insuranceMonthly: 100_000,
       insurancePaymentYears: 2,
       startingCashReserve: 0,

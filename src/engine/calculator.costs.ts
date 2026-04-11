@@ -85,6 +85,17 @@ export const getAgeQualifiedPensionMonthly = (formData: AlphaFormData, age: numb
 export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) =>
   roundCurrency(getStructuredAgeQualifiedOtherIncomeMonthly(formData, age))
 
+export const calculateNetCashInterestAnnual = (balance: number, annualRatePercent: number) => {
+  if (balance <= 0 || annualRatePercent <= 0) {
+    return 0
+  }
+
+  const grossAnnualRate = annualRatePercent / 100
+  const netAnnualRate = grossAnnualRate * (1 - policyConfig.cashInterest.withholdingRate)
+
+  return roundCurrency(balance * netAnnualRate)
+}
+
 const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   const landTotal = formData.hasLandOrOtherProperty ? formData.landValue : 0
   const otherPropertyTotal = formData.hasLandOrOtherProperty
@@ -665,6 +676,7 @@ export const calculateCashProjection = (
   let cumulativePensionIncome = 0
   let cumulativeOtherIncome = 0
   let cumulativeTotalIncome = 0
+  let cumulativeCashInterest = 0
   let cumulativeUsableCash = 0
   let cumulativePrivatePensionTax = 0
   let cumulativeRentalIncomeTax = 0
@@ -717,7 +729,10 @@ export const calculateCashProjection = (
       formData,
       projectedAge,
     ).totalTaxAnnual
-
+    const projectedCashInterestAnnual = calculateNetCashInterestAnnual(
+      balance,
+      formData.cashInterestRatePercent,
+    )
     let projectedIsaDividendAnnual = 0
     let projectedIsaTransferAmount = 0
 
@@ -747,7 +762,8 @@ export const calculateCashProjection = (
         projectedIsaDividendAnnual +
         dividendInputs.pensionDividendAnnualNet +
         projectedOtherIncomeMonthly * 12 +
-        projectedPensionMonthly * 12,
+        projectedPensionMonthly * 12 +
+        projectedCashInterestAnnual,
     )
     const projectedUsableCashAnnual = roundCurrency(
       projectedTotalIncomeAnnual -
@@ -781,6 +797,7 @@ export const calculateCashProjection = (
     cumulativePensionIncome += roundCurrency(projectedPensionMonthly * 12)
     cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
     cumulativeTotalIncome += projectedTotalIncomeAnnual
+    cumulativeCashInterest += projectedCashInterestAnnual
     cumulativeUsableCash += projectedUsableCashAnnual
     cumulativePrivatePensionTax += projectedPrivatePensionTaxAnnual
     cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
@@ -803,6 +820,7 @@ export const calculateCashProjection = (
     cumulativePensionIncome: roundCurrency(cumulativePensionIncome),
     cumulativeOtherIncome: roundCurrency(cumulativeOtherIncome),
     cumulativeTotalIncome: roundCurrency(cumulativeTotalIncome),
+    cumulativeCashInterest: roundCurrency(cumulativeCashInterest),
     cumulativeUsableCash: roundCurrency(cumulativeUsableCash),
     cumulativePrivatePensionTax: roundCurrency(cumulativePrivatePensionTax),
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),

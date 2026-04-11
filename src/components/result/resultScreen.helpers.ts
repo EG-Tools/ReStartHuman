@@ -1090,7 +1090,7 @@ export const getIsaDividendNote = (result: AlphaResult) => {
   const baseNote = `${policyConfig.isa.note} 반영`
   const liquidationNote =
     result.isaLiquidationYear !== null && result.isaLiquidationTransferAmount > 0
-      ? `, 누적 ISA 순배당이 원금에 도달하는 ${result.isaLiquidationYear}년차(만 ${result.isaLiquidationAge}세)에 현재 ISA 자산 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}를 현금으로 옮기고 이후 배당은 0원으로 봅니다.`
+      ? `, \uB204\uC801 ISA \uC21C\uBC30\uB2F9\uC774 \uC6D0\uAE08\uC5D0 \uB3C4\uB2EC\uD558\uB294 ${result.isaLiquidationYear}\uB144\uCC28(\uB9CC ${result.isaLiquidationAge}\uC138)\uC5D0 \uD604\uC7AC ISA \uC790\uC0B0 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}\uB97C \uD604\uAE08\uC73C\uB85C \uC62E\uAE30\uACE0 \uC774\uD6C4 \uBC30\uB2F9\uC740 0\uC6D0\uC73C\uB85C \uBD05\uB2C8\uB2E4. \uC62E\uAE34 \uD604\uAE08\uC740 \uB2E4\uC74C \uD574\uBD80\uD130 ${policyConfig.cashInterest.note}`
       : ''
 
   if (result.isaTaxAnnual === 0) {

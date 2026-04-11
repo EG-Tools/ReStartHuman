@@ -1975,19 +1975,33 @@ export function renderQuestionContent({
         return (
           <div className="question-stack">
             <QuestionNumberFields
+              columns={2}
               fields={[
                 {
                   key: 'startingCashReserve',
-                  label: '현재 보유한 현금',
+                  label: '\uD604\uC7AC \uBCF4\uC720 \uD604\uAE08',
                   value: formData.startingCashReserve,
                   onChange: (value) => update('startingCashReserve', value),
-                  helperText: '현금흐름 그래프의 시작 금액이며 결과 해석의 유동자산에도 함께 반영합니다.',
+                  helperText:
+                    '\uD604\uAE08\uD750\uB984 \uADF8\uB798\uD504\uC758 \uC2DC\uC791 \uAE08\uC561\uC774\uACE0 \uACB0\uACFC \uD574\uC11D\uC758 \uC720\uB3D9\uC790\uC0B0\uC5D0\uB3C4 \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4.',
+                },
+                {
+                  key: 'cashInterestRatePercent',
+                  label: '\uC5F0 \uC608\uAE08\uC774\uC790\uC728',
+                  value: formData.cashInterestRatePercent,
+                  onChange: (value) => update('cashInterestRatePercent', value),
+                  display: 'number' as const,
+                  suffix: '%',
+                  min: 0,
+                  step: 1,
+                  helperText:
+                    '\uAE30\uBCF8\uAC12\uC740 1%\uC774\uBA70 \uD604\uC7AC \uBCF4\uC720 \uD604\uAE08\uACFC ISA \uD604\uAE08 \uC774\uC804\uBD84\uC5D0 \uB300\uD574 \uC774\uC790\uC18C\uB4DD \uC6D0\uCC9C\uC9D5\uC218 15.4%\uB97C \uC81C\uC678\uD55C \uC138\uD6C4 \uC608\uAE08\uC774\uC790\uB9CC \uBC18\uC601\uD569\uB2C8\uB2E4.',
                 },
               ]}
             />
             <section className="question-block">
               <div className="question-block-header">
-                <h2>예상 현금흐름 반영 기간</h2>
+                <h2>{'\uC608\uC0C1 \uD604\uAE08\uD750\uB984 \uBC18\uC601 \uAE30\uAC04'}</h2>
               </div>
               <ChoiceQuestion
                 value={String(formData.simulationYears || 10)}
