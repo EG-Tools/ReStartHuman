@@ -783,7 +783,7 @@ export function buildResultRows({
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),
       tenYear: formatCompactCurrency(result.comprehensiveTaxImpactAnnual * formData.simulationYears),
-      note: '일반계좌 배당 기준',
+      note: '\uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9+\uC608\uAE08\uC774\uC790 \uAE30\uC900',
       noteDetail: getComprehensiveTaxNote(result),
     },
   )

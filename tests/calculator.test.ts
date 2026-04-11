@@ -545,4 +545,20 @@ test('stock ownership can stay split while the current home stays singly owned',
   )
   assert.ok(result.holdingTaxAnnual > 0)
 })
+test('cash deposit interest joins dividends for financial comprehensive tax', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    householdType: 'single',
+    dividendInputMode: 'gross',
+    taxableAccountDividendAnnual: 6_000_000,
+    isaDividendAnnual: 0,
+    startingCashReserve: 1_500_000_000,
+    cashInterestRatePercent: 1,
+    healthInsuranceType: 'employee',
+    pensionMonthlyAmount: 0,
+  })
 
+  assert.equal(result.comprehensiveTaxIncluded, true)
+  assert.equal(result.comprehensiveTaxBaseAnnual, 21_000_000)
+  assert.ok(result.totalIncomeMonthly > result.totalDividendMonthlyNet)
+})

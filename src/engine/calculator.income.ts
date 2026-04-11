@@ -363,20 +363,53 @@ export const calculateIsaTax = ({
 
 export const calculateComprehensiveTax = (
   ownershipBreakdown: AccountOwnershipBreakdown[],
+  cashInterestOwnershipBreakdown: AccountOwnershipBreakdown[] = [],
 ): ComprehensiveTaxCalculation => {
   const thresholdAnnual = policyConfig.comprehensiveIncomeTax.financialIncomeThresholdAnnual
-  const breakdown = ownershipBreakdown.map((allocation) => {
-    const attributedDividendAnnual = roundCurrency(allocation.attributedAnnual)
+  const financialIncomeByPerson = new Map<
+    AccountOwnershipBreakdown['personKey'],
+    {
+      personKey: AccountOwnershipBreakdown['personKey']
+      label: string
+      attributedAnnual: number
+      withheldTaxAnnual: number
+    }
+  >()
+
+  const appendFinancialIncome = (allocation: AccountOwnershipBreakdown) => {
+    const attributedAnnual = roundCurrency(allocation.attributedAnnual)
     const withheldTaxAnnual = roundCurrency(
-      attributedDividendAnnual * policyConfig.dividendWithholding.totalRate,
+      attributedAnnual * policyConfig.dividendWithholding.totalRate,
     )
-    const exceedsThreshold = attributedDividendAnnual > thresholdAnnual
+    const existing = financialIncomeByPerson.get(allocation.personKey)
+
+    if (existing) {
+      existing.attributedAnnual = roundCurrency(existing.attributedAnnual + attributedAnnual)
+      existing.withheldTaxAnnual = roundCurrency(existing.withheldTaxAnnual + withheldTaxAnnual)
+      return
+    }
+
+    financialIncomeByPerson.set(allocation.personKey, {
+      personKey: allocation.personKey,
+      label: allocation.label,
+      attributedAnnual,
+      withheldTaxAnnual,
+    })
+  }
+
+  ownershipBreakdown.forEach(appendFinancialIncome)
+  cashInterestOwnershipBreakdown.forEach(appendFinancialIncome)
+
+  const breakdown = Array.from(financialIncomeByPerson.values()).map((item) => {
+    const attributedFinancialIncomeAnnual = roundCurrency(item.attributedAnnual)
+    const withheldTaxAnnual = roundCurrency(item.withheldTaxAnnual)
+    const exceedsThreshold = attributedFinancialIncomeAnnual > thresholdAnnual
 
     if (!exceedsThreshold) {
       return {
-        personKey: allocation.personKey,
-        label: allocation.label,
-        attributedDividendAnnual,
+        personKey: item.personKey,
+        label: item.label,
+        attributedDividendAnnual: attributedFinancialIncomeAnnual,
         thresholdAnnual,
         exceedsThreshold,
         finalTaxAnnual: withheldTaxAnnual,
@@ -385,21 +418,21 @@ export const calculateComprehensiveTax = (
       }
     }
 
-    const excessAnnual = Math.max(attributedDividendAnnual - thresholdAnnual, 0)
+    const excessAnnual = Math.max(attributedFinancialIncomeAnnual - thresholdAnnual, 0)
     const comparisonIncomeTaxAnnual =
       thresholdAnnual * policyConfig.dividendWithholding.incomeTaxRate +
       calculateProgressiveIncomeTax(excessAnnual)
     const withholdingEquivalentIncomeTaxAnnual =
-      attributedDividendAnnual * policyConfig.dividendWithholding.incomeTaxRate
+      attributedFinancialIncomeAnnual * policyConfig.dividendWithholding.incomeTaxRate
     const finalTaxAnnual = roundCurrency(
       Math.max(comparisonIncomeTaxAnnual, withholdingEquivalentIncomeTaxAnnual) *
         (1 + policyConfig.comprehensiveIncomeTax.localIncomeTaxMultiplier),
     )
 
     return {
-      personKey: allocation.personKey,
-      label: allocation.label,
-      attributedDividendAnnual,
+      personKey: item.personKey,
+      label: item.label,
+      attributedDividendAnnual: attributedFinancialIncomeAnnual,
       thresholdAnnual,
       exceedsThreshold,
       finalTaxAnnual,
@@ -411,14 +444,11 @@ export const calculateComprehensiveTax = (
   return {
     included: breakdown.some((item) => item.exceedsThreshold),
     impactAnnual: roundCurrency(breakdown.reduce((sum, item) => sum + item.additionalTaxAnnual, 0)),
-    baseAnnual: roundCurrency(
-      ownershipBreakdown.reduce((sum, item) => sum + item.attributedAnnual, 0),
-    ),
+    baseAnnual: roundCurrency(breakdown.reduce((sum, item) => sum + item.attributedDividendAnnual, 0)),
     thresholdAnnual,
     breakdown,
   }
 }
-
 export const evaluateEstimatedComprehensiveTaxReview = ({
   formData,
   age,

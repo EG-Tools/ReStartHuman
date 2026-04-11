@@ -974,9 +974,9 @@ export const buildInterpretationItems = ({
         : '보유세는 현재 납부 대상이 아닌 것으로 계산했습니다.',
     result.comprehensiveTaxIncluded
       ? result.comprehensiveTaxImpactAnnual > 0
-        ? `배당추가세는 일반계좌 배당이 인별 연 2,000만원을 넘을 때 반영합니다. 공식명은 금융소득 종합과세 추가세액이며, 현재 추가 세 부담은 약 ${effectiveComprehensiveRate}% 수준으로 추정했습니다.`
-        : `배당추가세는 일반계좌 배당이 인별 연 2,000만원을 넘는 구간이지만 ${getComprehensiveTaxZeroReason(result)} 추가 세 부담은 0원입니다.`
-      : '일반계좌 배당이 인별 연 2,000만원 이하라 배당추가세는 제외했습니다.',
+        ? `\uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD569\uCE5C \uAE08\uC735\uC18C\uB4DD\uC774 \uC778\uBCC4 \uC5F0 2,000\uB9CC\uC6D0\uC744 \uB118\uC744 \uB54C \uBC18\uC601\uD569\uB2C8\uB2E4. \uACF5\uC2DD\uBA85\uC740 \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC774\uBA70, \uD604\uC7AC \uCD94\uAC00 \uC138 \uBD80\uB2F4\uC740 \uC57D ${effectiveComprehensiveRate}% \uC218\uC900\uC73C\uB85C \uCD94\uC815\uD588\uC2B5\uB2C8\uB2E4.`
+        : `\uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD569\uCE5C \uAE08\uC735\uC18C\uB4DD\uC774 \uC778\uBCC4 \uC5F0 2,000\uB9CC\uC6D0\uC744 \uB118\uB294 \uAD6C\uAC04\uC774\uC9C0\uB9CC ${getComprehensiveTaxZeroReason(result)} \uCD94\uAC00 \uC138 \uBD80\uB2F4\uC740 0\uC6D0\uC785\uB2C8\uB2E4.`
+      : '\uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD569\uCE5C \uAE08\uC735\uC18C\uB4DD\uC774 \uC778\uBCC4 \uC5F0 2,000\uB9CC\uC6D0 \uC774\uD558\uB77C \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uC81C\uC678\uD588\uC2B5\uB2C8\uB2E4.',
     getHealthInsuranceInterpretationMessage(result, formData),
     getIncomeInterpretationMessage(result, formData),
     assetInterpretation,
@@ -1102,15 +1102,14 @@ export const getIsaDividendNote = (result: AlphaResult) => {
 
 export const getComprehensiveTaxInput = (result: AlphaResult) => {
   if (!result.comprehensiveTaxIncluded) {
-    return '일반계좌 배당 2,000만원 이하'
+    return '일반계좌 배당+예금이자 2,000만원 이하'
   }
 
   return result.comprehensiveTaxBreakdown
     .filter((item) => item.exceedsThreshold)
-    .map((item) => `${item.label} 2,000만원 초과`)
+    .map((item) => `${item.label} 금융소득 2,000만원 초과`)
     .join(', ')
 }
-
 const formatComprehensiveTaxAllocationSummary = (result: AlphaResult) =>
   result.comprehensiveTaxBreakdown
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
@@ -1122,24 +1121,23 @@ export const getComprehensiveTaxZeroReason = (result: AlphaResult) => {
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
     .join(', ')
 
-  return `${exceededSummary} 기준으로 인별 판정했고, 원천징수세액이 비교세액보다 크거나 같아`
+  return `${exceededSummary} 기준으로 비교세액을 따졌고, 원천징수세액이 비교세액보다 크거나 같아`
 }
-
 export const getComprehensiveTaxNote = (result: AlphaResult) => {
   const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
   const additionalSummary = result.comprehensiveTaxBreakdown
     .filter((item) => item.additionalTaxAnnual > 0)
-    .map((item) => `${item.label} 추가 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
+    .map((item) => `${item.label} \uCD94\uAC00 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
   }
 
   if (additionalSummary.length === 0) {
-    return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+    return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} \uCD94\uAC00 \uB0A9\uBD80\uB294 0\uC6D0\uC785\uB2C8\uB2E4. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
   }
 
-  return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
+  return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. \uC18C\uB4DD\uC138\uBC95 \uC81C62\uC870 \uAE30\uC900 \uCD94\uAC00 \uB0A9\uBD80: ${additionalSummary}. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
 }
 

@@ -3,6 +3,7 @@ import type { AlphaFormData, AlphaResult, AdditionalHome } from '../types/alpha'
 import {
   calculateCashProjection,
   calculateExpenses,
+  calculateGrossCashInterestAnnual,
   calculateNetCashInterestAnnual,
   estimateHealthInsurance,
   estimateHoldingTax,
@@ -199,8 +200,30 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   const totalDividendAnnualNet =
     taxableDividend.annualNet + isaResult.stream.annualNet + pensionDividend.annualNet
   const totalDividend = createDividendStream(totalDividendAnnualGross, totalDividendAnnualNet)
+  const currentCashInterestAnnualGross = calculateGrossCashInterestAnnual(
+    formData.startingCashReserve,
+    formData.cashInterestRatePercent,
+  )
+  const currentCashInterestAnnual = calculateNetCashInterestAnnual(
+    formData.startingCashReserve,
+    formData.cashInterestRatePercent,
+  )
+  const currentCashInterestMonthly = roundCurrency(currentCashInterestAnnual / 12)
+  const cashInterestOwnershipBreakdown = getOwnershipAllocations({
+    householdType: formData.householdType,
+    ownershipType: formData.householdType === 'couple' ? 'split' : 'mineOnly',
+    totalAnnualInput: currentCashInterestAnnualGross,
+    totalAnnualAllocated: currentCashInterestAnnualGross,
+    myAttributedAnnualInput:
+      formData.householdType === 'couple'
+        ? roundCurrency(currentCashInterestAnnualGross / 2)
+        : currentCashInterestAnnualGross,
+  })
 
-  const comprehensiveTax = calculateComprehensiveTax(taxableDividendOwnershipBreakdown)
+  const comprehensiveTax = calculateComprehensiveTax(
+    taxableDividendOwnershipBreakdown,
+    cashInterestOwnershipBreakdown,
+  )
   const expenses = calculateExpenses(formData)
   const pensionMonthlyApplied = getAgeQualifiedPensionMonthly(formData, formData.currentAge)
   const otherIncomeMonthlyApplied = getAgeQualifiedOtherIncomeMonthly(formData, formData.currentAge)
@@ -250,13 +273,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     formData,
     age: formData.currentAge,
     nationalPensionMonthly: pensionMonthlyApplied,
-    totalFinancialIncomeAnnual: taxableDividend.annualGross,
+    totalFinancialIncomeAnnual: taxableDividend.annualGross + currentCashInterestAnnualGross,
   })
-  const currentCashInterestAnnual = calculateNetCashInterestAnnual(
-    formData.startingCashReserve,
-    formData.cashInterestRatePercent,
-  )
-  const currentCashInterestMonthly = roundCurrency(currentCashInterestAnnual / 12)
   const totalIncomeMonthly =
     totalDividend.monthlyNet +
     otherIncomeMonthlyApplied +

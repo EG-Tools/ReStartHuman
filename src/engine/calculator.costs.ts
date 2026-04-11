@@ -85,15 +85,22 @@ export const getAgeQualifiedPensionMonthly = (formData: AlphaFormData, age: numb
 export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) =>
   roundCurrency(getStructuredAgeQualifiedOtherIncomeMonthly(formData, age))
 
-export const calculateNetCashInterestAnnual = (balance: number, annualRatePercent: number) => {
+export const calculateGrossCashInterestAnnual = (balance: number, annualRatePercent: number) => {
   if (balance <= 0 || annualRatePercent <= 0) {
     return 0
   }
 
-  const grossAnnualRate = annualRatePercent / 100
-  const netAnnualRate = grossAnnualRate * (1 - policyConfig.cashInterest.withholdingRate)
+  return roundCurrency(balance * (annualRatePercent / 100))
+}
 
-  return roundCurrency(balance * netAnnualRate)
+export const calculateNetCashInterestAnnual = (balance: number, annualRatePercent: number) => {
+  const grossAnnualInterest = calculateGrossCashInterestAnnual(balance, annualRatePercent)
+
+  if (grossAnnualInterest === 0) {
+    return 0
+  }
+
+  return roundCurrency(grossAnnualInterest * (1 - policyConfig.cashInterest.withholdingRate))
 }
 
 const getAdditionalPropertyBase = (formData: AlphaFormData) => {
