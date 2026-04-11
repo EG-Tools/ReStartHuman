@@ -263,8 +263,12 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   const yearlySurplusOrDeficit = roundCurrency(monthlySurplusOrDeficit * 12)
   const cashProjection = calculateCashProjection(
     formData,
-    totalDividend.monthlyNet,
-    taxableDividend.annualGross,
+    {
+      taxableDividendAnnualGross: taxableDividend.annualGross,
+      taxableDividendAnnualNet: taxableDividend.annualNet,
+      isaDividendAnnualNet: isaResult.stream.annualNet,
+      pensionDividendAnnualNet: pensionDividend.annualNet,
+    },
     expenses.totalExpenseMonthly,
     holdingTax.monthly,
     comprehensiveTax.impactAnnual,
@@ -294,6 +298,13 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     isaExcessTaxRate: policyConfig.isa.excessTaxRate,
     isaDividendOwnershipBreakdown,
     isaTaxBreakdown: isaResult.breakdown,
+    projectionIsaDividendTotal: cashProjection.cumulativeIsaDividend,
+    isaLiquidationYear: cashProjection.isaLiquidationYear,
+    isaLiquidationAge:
+      cashProjection.isaLiquidationYear === null
+        ? null
+        : formData.currentAge + cashProjection.isaLiquidationYear,
+    isaLiquidationTransferAmount: cashProjection.isaLiquidationTransferAmount,
     pensionDividendAnnualGross: pensionDividend.annualGross,
     pensionDividendAnnualNet: pensionDividend.annualNet,
     pensionDividendMonthlyGross: pensionDividend.monthlyGross,
@@ -359,3 +370,5 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     loanNotice: formData.loanInterestMonthly > 0,
   }
 }
+
+

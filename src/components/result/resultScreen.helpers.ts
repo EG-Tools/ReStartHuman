@@ -1088,12 +1088,16 @@ export const getIsaDividendNote = (result: AlphaResult) => {
   const ownershipSummary = formatIsaOwnershipSummary(result.isaTaxBreakdown)
   const limitSummary = formatIsaLimitSummary(result.isaTaxBreakdown)
   const baseNote = `${policyConfig.isa.note} 반영`
+  const liquidationNote =
+    result.isaLiquidationYear !== null && result.isaLiquidationTransferAmount > 0
+      ? `, 누적 ISA 순배당이 원금에 도달하는 ${result.isaLiquidationYear}년차(만 ${result.isaLiquidationAge}세)에 현재 ISA 자산 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}를 현금으로 옮기고 이후 배당은 0원으로 봅니다.`
+      : ''
 
   if (result.isaTaxAnnual === 0) {
-    return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 안에서 세금 없음`
+    return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 안에서는 세금이 없습니다${liquidationNote}`
   }
 
-  return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 초과분에 연 ${formatCompactCurrency(result.isaTaxAnnual)} 부과`
+  return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 초과분에 연 ${formatCompactCurrency(result.isaTaxAnnual)} 부과${liquidationNote}`
 }
 
 export const getComprehensiveTaxInput = (result: AlphaResult) => {
@@ -1138,3 +1142,4 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
 
   return `결과표의 배당추가세는 공식적으로 금융소득 종합과세 추가세액입니다. 현재는 일반계좌 배당만 반영합니다. ISA는 합산 제외, 일반계좌 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}. 근로·사업·프리랜서·기타소득은 소득세 행에서, 기타연금은 개인연금세 행에서, 임대소득은 임대소득세 행에서 별도로 계산합니다.`
 }
+

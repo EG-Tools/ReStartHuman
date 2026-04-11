@@ -148,6 +148,40 @@ test('other pension uses age-based private pension tax rates', () => {
   assert.equal(youngerResult.estimatedComprehensiveIncomeTaxAnnual, 0)
   assert.equal(olderResult.estimatedComprehensiveIncomeTaxAnnual, 0)
 })
+test('ISA dividends stop after principal recovery and transfer ISA assets to cash', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    housingType: 'monthlyRent',
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    isaAssets: 100_000_000,
+    isaDividendAnnual: 5_000_000,
+    taxableAccountDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+    healthInsuranceType: 'dependent',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+
+  assert.equal(result.projectionIsaDividendTotal, 100_000_000)
+  assert.equal(result.isaLiquidationYear, 20)
+  assert.equal(result.isaLiquidationAge, 70)
+  assert.equal(result.isaLiquidationTransferAmount, 100_000_000)
+  assert.equal(result.projectionTotalIncomeTotal, 100_000_000)
+  assert.equal(result.cashBalanceTimeline[20]?.balance, 200_000_000)
+  assert.equal(result.cashBalanceTimeline[21]?.balance, 200_000_000)
+  assert.equal(result.cashBalanceTimeline[30]?.balance, 200_000_000)
+})
+
 test('additional homes increase holding tax and health insurance property base', () => {
   const baseScenario = calculateAlphaScenario({
     ...defaultFormData,
@@ -476,3 +510,4 @@ test('stock ownership can stay split while the current home stays singly owned',
   )
   assert.ok(result.holdingTaxAnnual > 0)
 })
+

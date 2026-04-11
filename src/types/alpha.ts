@@ -227,7 +227,10 @@ export interface AlphaResult {
   isaExcessTaxRate: number
   isaDividendOwnershipBreakdown: AccountOwnershipBreakdown[]
   isaTaxBreakdown: IsaTaxBreakdown[]
-
+  projectionIsaDividendTotal: number
+  isaLiquidationYear: number | null
+  isaLiquidationAge: number | null
+  isaLiquidationTransferAmount: number
   pensionDividendAnnualGross: number
   pensionDividendAnnualNet: number
   pensionDividendMonthlyGross: number
@@ -311,4 +314,5 @@ export interface QuestionStep {
   description: string
   visibility: (formData: AlphaFormData, accessMode: AppAccessMode) => boolean
 }
+
 

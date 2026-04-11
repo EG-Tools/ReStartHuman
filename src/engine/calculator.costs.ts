@@ -645,10 +645,16 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
   }
 }
 
+type CashProjectionDividendInputs = {
+  taxableDividendAnnualGross: number
+  taxableDividendAnnualNet: number
+  isaDividendAnnualNet: number
+  pensionDividendAnnualNet: number
+}
+
 export const calculateCashProjection = (
   formData: AlphaFormData,
-  totalDividendMonthlyNet: number,
-  totalDividendAnnualGross: number,
+  dividendInputs: CashProjectionDividendInputs,
   totalExpenseMonthly: number,
   holdingTaxMonthly: number,
   financialComprehensiveTaxImpactAnnual: number,
@@ -664,7 +670,12 @@ export const calculateCashProjection = (
   let cumulativeRentalIncomeTax = 0
   let cumulativeEstimatedComprehensiveIncomeTax = 0
   let cumulativeEstimatedLocalIncomeTax = 0
+  let cumulativeIsaDividend = 0
   let balance = formData.startingCashReserve
+  let isaLiquidationYear: number | null = null
+  const usesIsaRecoveryModel = formData.isaAssets > 0 && dividendInputs.isaDividendAnnualNet > 0
+  const isaLiquidationTransferAmount = usesIsaRecoveryModel ? roundCurrency(formData.isaAssets) : 0
+  let remainingIsaRecoverableBase = usesIsaRecoveryModel ? roundCurrency(formData.isaAssets) : 0
   const timeline = [
     {
       year: 0,
@@ -687,7 +698,7 @@ export const calculateCashProjection = (
       formData.healthInsuranceOverrideMonthly ??
       estimateHealthInsurance(
         formData,
-        totalDividendAnnualGross,
+        dividendInputs.taxableDividendAnnualGross,
         projectedAge,
         projectedPensionMonthly,
       )
@@ -706,17 +717,48 @@ export const calculateCashProjection = (
       formData,
       projectedAge,
     ).totalTaxAnnual
-    const projectedTotalIncomeMonthly =
-      totalDividendMonthlyNet + projectedOtherIncomeMonthly + projectedPensionMonthly
-    const projectedMonthlyUsableCash =
-      projectedTotalIncomeMonthly -
-      projectedHealthInsuranceMonthly -
-      holdingTaxMonthly -
-      projectedEstimatedComprehensiveTax.incomeTaxAnnual / 12 -
-      projectedEstimatedComprehensiveTax.localIncomeTaxAnnual / 12 -
-      projectedPrivatePensionTaxAnnual / 12 -
-      financialComprehensiveTaxImpactAnnual / 12 -
-      projectedRentalIncomeTaxAnnual / 12
+
+    let projectedIsaDividendAnnual = 0
+    let projectedIsaTransferAmount = 0
+
+    if (dividendInputs.isaDividendAnnualNet > 0) {
+      if (usesIsaRecoveryModel) {
+        if (remainingIsaRecoverableBase > 0) {
+          projectedIsaDividendAnnual = Math.min(
+            dividendInputs.isaDividendAnnualNet,
+            remainingIsaRecoverableBase,
+          )
+          remainingIsaRecoverableBase = roundCurrency(
+            Math.max(remainingIsaRecoverableBase - projectedIsaDividendAnnual, 0),
+          )
+
+          if (remainingIsaRecoverableBase === 0 && isaLiquidationYear === null) {
+            isaLiquidationYear = yearIndex + 1
+            projectedIsaTransferAmount = isaLiquidationTransferAmount
+          }
+        }
+      } else {
+        projectedIsaDividendAnnual = dividendInputs.isaDividendAnnualNet
+      }
+    }
+
+    const projectedTotalIncomeAnnual = roundCurrency(
+      dividendInputs.taxableDividendAnnualNet +
+        projectedIsaDividendAnnual +
+        dividendInputs.pensionDividendAnnualNet +
+        projectedOtherIncomeMonthly * 12 +
+        projectedPensionMonthly * 12,
+    )
+    const projectedUsableCashAnnual = roundCurrency(
+      projectedTotalIncomeAnnual -
+        roundCurrency(projectedHealthInsuranceMonthly * 12) -
+        roundCurrency(holdingTaxMonthly * 12) -
+        projectedEstimatedComprehensiveTax.incomeTaxAnnual -
+        projectedEstimatedComprehensiveTax.localIncomeTaxAnnual -
+        projectedPrivatePensionTaxAnnual -
+        financialComprehensiveTaxImpactAnnual -
+        projectedRentalIncomeTaxAnnual,
+    )
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
@@ -731,18 +773,20 @@ export const calculateCashProjection = (
 
     const projectedExpenses =
       projectedBaseExpenses + projectedInsuranceExpense + projectedLoanInterest
-    const projectedMonthlySurplus = projectedMonthlyUsableCash - projectedExpenses
-    const annualNetChange = roundCurrency(projectedMonthlySurplus * 12)
+    const projectedExpensesAnnual = roundCurrency(projectedExpenses * 12)
+    const operatingAnnualNetChange = roundCurrency(projectedUsableCashAnnual - projectedExpensesAnnual)
+    const annualNetChange = roundCurrency(operatingAnnualNetChange + projectedIsaTransferAmount)
 
     cumulativeHealthInsurance += roundCurrency(projectedHealthInsuranceMonthly * 12)
     cumulativePensionIncome += roundCurrency(projectedPensionMonthly * 12)
     cumulativeOtherIncome += roundCurrency(projectedOtherIncomeMonthly * 12)
-    cumulativeTotalIncome += roundCurrency(projectedTotalIncomeMonthly * 12)
-    cumulativeUsableCash += roundCurrency(projectedMonthlyUsableCash * 12)
+    cumulativeTotalIncome += projectedTotalIncomeAnnual
+    cumulativeUsableCash += projectedUsableCashAnnual
     cumulativePrivatePensionTax += projectedPrivatePensionTaxAnnual
     cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
     cumulativeEstimatedComprehensiveIncomeTax += projectedEstimatedComprehensiveTax.incomeTaxAnnual
     cumulativeEstimatedLocalIncomeTax += projectedEstimatedComprehensiveTax.localIncomeTaxAnnual
+    cumulativeIsaDividend += projectedIsaDividendAnnual
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -764,5 +808,9 @@ export const calculateCashProjection = (
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
     cumulativeEstimatedComprehensiveIncomeTax: roundCurrency(cumulativeEstimatedComprehensiveIncomeTax),
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
+    cumulativeIsaDividend: roundCurrency(cumulativeIsaDividend),
+    isaLiquidationYear,
+    isaLiquidationTransferAmount,
   }
 }
+

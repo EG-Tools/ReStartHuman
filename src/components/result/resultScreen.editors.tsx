@@ -630,7 +630,7 @@ export function buildResultRows({
       ),
       monthly: formatCompactCurrency(result.isaDividendMonthlyNet),
       annual: formatCompactCurrency(result.isaDividendAnnualNet),
-      tenYear: formatCompactCurrency(result.isaDividendAnnualNet * formData.simulationYears),
+      tenYear: formatCompactCurrency(result.projectionIsaDividendTotal),
       note: 'ISA 절세 반영',
       noteDetail: getIsaDividendNote(result),
     })
@@ -944,3 +944,4 @@ export function buildResultRows({
 
   return rows
 }
+

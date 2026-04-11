@@ -40,8 +40,12 @@ test('현금흐름은 대출이자 반영 기간이 끝나면 그 이후 해부�
       loanInterestYears: 2,
       startingCashReserve: 0,
     },
-    1_000_000,
-    0,
+    {
+      taxableDividendAnnualGross: 0,
+      taxableDividendAnnualNet: 12_000_000,
+      isaDividendAnnualNet: 0,
+      pensionDividendAnnualNet: 0,
+    },
     700_000,
     0,
     0,
@@ -69,8 +73,12 @@ test('물가상승이 켜지면 같은 조건에서도 마지막 해 잔액이 �
       inflationEnabled: false,
       inflationRateAnnual: 0.05,
     },
-    2_000_000,
-    0,
+    {
+      taxableDividendAnnualGross: 0,
+      taxableDividendAnnualNet: 24_000_000,
+      isaDividendAnnualNet: 0,
+      pensionDividendAnnualNet: 0,
+    },
     1_500_000,
     0,
     0,
@@ -83,8 +91,12 @@ test('물가상승이 켜지면 같은 조건에서도 마지막 해 잔액이 �
       inflationEnabled: true,
       inflationRateAnnual: 0.05,
     },
-    2_000_000,
-    0,
+    {
+      taxableDividendAnnualGross: 0,
+      taxableDividendAnnualNet: 24_000_000,
+      isaDividendAnnualNet: 0,
+      pensionDividendAnnualNet: 0,
+    },
     1_500_000,
     0,
     0,
@@ -161,8 +173,12 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
       insurancePaymentYears: 2,
       startingCashReserve: 0,
     },
-    800_000,
-    0,
+    {
+      taxableDividendAnnualGross: 0,
+      taxableDividendAnnualNet: 9_600_000,
+      isaDividendAnnualNet: 0,
+      pensionDividendAnnualNet: 0,
+    },
     100_000,
     0,
     0,
@@ -355,3 +371,5 @@ test('current health insurance can stay lower than the next reflected estimate',
 
   assert.ok(nextReflectedPremium > currentPremium)
 })
+
+

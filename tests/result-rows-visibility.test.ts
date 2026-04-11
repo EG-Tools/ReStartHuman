@@ -3,6 +3,7 @@ import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
 import { buildResultRows } from '../src/components/result/resultScreen.editors'
+import { formatCompactCurrency } from '../src/utils/format'
 
 const buildRows = (formData = defaultFormData) => {
   const result = calculateAlphaScenario(formData)
@@ -32,6 +33,45 @@ test('total income row shows an empty-income message when nothing is entered', (
 
   const totalIncomeRow = rows.find((row) => row.item === '총 유입')
   assert.equal(totalIncomeRow?.input, '입력된 소득 없음')
+})
+
+test('ISA row uses projected dividend total after liquidation', () => {
+  const formData: typeof defaultFormData = {
+    ...defaultFormData,
+    simulationYears: 30,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    housingType: 'monthlyRent',
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    healthInsuranceType: 'dependent',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+    taxableAccountDividendAnnual: 0,
+    isaAssets: 100_000_000,
+    isaDividendAnnual: 5_000_000,
+  }
+  const result = calculateAlphaScenario(formData)
+  const rows = buildResultRows({
+    dividendBasisLabel: '세전 입력',
+    fixedExpenseAnnualBase: result.fixedExpenseMonthly * 12,
+    fixedExpenseMonthlyBase: result.fixedExpenseMonthly,
+    formData,
+    householdSummary: '본인',
+    housingRowLabel: '주거',
+    housingRowNote: '테스트',
+    onPatchFormData: () => {},
+    result,
+  })
+
+  const isaRow = rows.find((row) => row.item === 'ISA 배당')
+
+  assert.equal(result.projectionIsaDividendTotal, 100_000_000)
+  assert.equal(isaRow?.tenYear, formatCompactCurrency(result.projectionIsaDividendTotal))
 })
 
 test('vehicle rows stay hidden when there is no car input', () => {
@@ -70,7 +110,7 @@ test('loan interest row appears even when only the loan flag is enabled', () => 
 })
 
 test('loan interest note is capped by the simulation years', () => {
-  const formData = {
+  const formData: typeof defaultFormData = {
     ...defaultFormData,
     hasLoan: true,
     simulationYears: 10,
@@ -203,3 +243,5 @@ test('result table uses simplified tax row labels for readability', () => {
   assert.ok(rows.some((row) => row.item === '개인연금세'))
   assert.ok(rows.some((row) => row.item === '배당추가세'))
 })
+
+

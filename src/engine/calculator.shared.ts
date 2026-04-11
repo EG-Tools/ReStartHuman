@@ -41,6 +41,9 @@ export interface CashProjection {
   cumulativeRentalIncomeTax: number
   cumulativeEstimatedComprehensiveIncomeTax: number
   cumulativeEstimatedLocalIncomeTax: number
+  cumulativeIsaDividend: number
+  isaLiquidationYear: number | null
+  isaLiquidationTransferAmount: number
 }
 
 export interface HoldingTaxEstimate {
