@@ -299,6 +299,8 @@ export function buildResultRows({
   const shouldShowCarAssetRow = formData.hasCar || formData.currentCarMarketValue > 0
   const shouldShowTaxableDividendRow =
     formData.taxableAccountDividendAnnual > 0 || result.taxableDividendAnnualNet > 0
+  const shouldShowCashInterestRow =
+    result.cashInterestAnnual > 0 || result.projectionCashInterestTotal > 0
   const shouldShowIsaDividendRow =
     formData.isaDividendAnnual > 0 || result.isaDividendAnnualNet > 0
   const shouldShowPensionRow =
@@ -609,6 +611,23 @@ export function buildResultRows({
     })
   }
 
+  if (shouldShowCashInterestRow) {
+    rows.push({
+      category: '\uC18C\uB4DD',
+      item: '\uC77C\uBC18\uC608\uAE08 \uC774\uC790',
+      input: (
+        <span className="result-input-multiline">
+          {`\uD604\uC7AC \uD604\uAE08 ${formatCompactCurrency(formData.startingCashReserve)}\n\uC5F0 ${formData.cashInterestRatePercent}%`}
+        </span>
+      ),
+      monthly: formatCompactCurrency(result.cashInterestMonthly),
+      annual: formatCompactCurrency(result.cashInterestAnnual),
+      tenYear: formatCompactCurrency(result.projectionCashInterestTotal),
+      note: '\uC774\uC790\uC18C\uB4DD 15.4%',
+      noteDetail: totalIncomeNoteDetail || policyConfig.cashInterest.note,
+    })
+  }
+
   if (shouldShowTaxableDividendRow) {
     rows.push({
       category: '소득',
@@ -778,7 +797,7 @@ export function buildResultRows({
       : []),
     {
       category: '세금',
-      item: '배당추가세',
+      item: '금융종합세',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),

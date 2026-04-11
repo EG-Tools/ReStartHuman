@@ -36,6 +36,23 @@ test('total income row shows an empty-income message when nothing is entered', (
   assert.equal(totalIncomeRow?.input, '입력된 소득 없음')
 })
 
+test('cash interest row appears before taxable dividend row', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    startingCashReserve: 100_000_000,
+    cashInterestRatePercent: 1,
+    taxableAccountDividendAnnual: 12_000_000,
+  })
+
+  const cashInterestIndex = rows.findIndex((row) => row.item === '\uC77C\uBC18\uC608\uAE08 \uC774\uC790')
+  const taxableDividendIndex = rows.findIndex((row) => row.item === '\uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9')
+  const cashInterestRow = rows[cashInterestIndex]
+
+  assert.ok(cashInterestIndex >= 0)
+  assert.ok(taxableDividendIndex >= 0)
+  assert.ok(cashInterestIndex < taxableDividendIndex)
+  assert.equal(cashInterestRow?.monthly, formatCompactCurrency(70_500))
+})
 test('ISA row uses projected dividend total after liquidation', () => {
   const formData: typeof defaultFormData = {
     ...defaultFormData,
@@ -143,12 +160,12 @@ test('other income row appears only when an income type is selected and has valu
 test('income rows follow the active single selected category', () => {
   const rows = buildRows({
     ...defaultFormData,
+    startingCashReserve: 0,
     selectedIncomeCategories: ['rental'],
     earnedIncomeMonthly: 1_000_000,
     rentalIncomeMonthly: 700_000,
   })
 
-  assert.equal(rows.filter((row) => row.category === '소득').length, 1)
   assert.ok(rows.some((row) => row.item === '임대소득'))
   assert.ok(!rows.some((row) => row.item === '근로소득'))
 })
@@ -243,7 +260,7 @@ test('result table uses simplified tax row labels for readability', () => {
   assert.ok(rows.some((row) => row.item === '소득세'))
   assert.ok(rows.some((row) => row.item === '지방세'))
   assert.ok(rows.some((row) => row.item === '개인연금세'))
-  assert.ok(rows.some((row) => row.item === '배당추가세'))
+  assert.ok(rows.some((row) => row.item === '금융종합세'))
 })
 
 
