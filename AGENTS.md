@@ -20,6 +20,8 @@ If you need product context, logic notes, or testing details, start in `docs/REA
   - `npm run build`
   - `npm run lint`
   - `npm test`
+- After the required checks pass, stage only the files relevant to the task, create a commit, and push to origin on the current branch unless the user explicitly says not to.
+- If push fails because of auth, network, or remote policy, report that clearly instead of stopping after the local changes.
 - If the change adds or alters calculation logic, question flow rules, save/load behavior, or conditional result-table rows, add or update tests in the same task.
 - Do not mark the work complete while any of the above checks are failing.
 

@@ -1,12 +1,12 @@
-const CACHE_NAME = 'restarthuman-alpha-v56'
+const CACHE_NAME = 'restarthuman-alpha-v57'
 const toScopedUrl = (path) => new URL(path, self.registration.scope).toString()
 const APP_SHELL = [
   toScopedUrl('./'),
   toScopedUrl('./offline.html'),
-  toScopedUrl('./manifest.webmanifest?v=10'),
-  toScopedUrl('./icons/apple-touch-icon-180.png?v=10'),
-  toScopedUrl('./icons/app-icon-192.png?v=10'),
-  toScopedUrl('./icons/app-icon-512.png?v=10'),
+  toScopedUrl('./manifest.webmanifest?v=11'),
+  toScopedUrl('./icons/apple-touch-icon-180.png?v=11'),
+  toScopedUrl('./icons/app-icon-192.png?v=11'),
+  toScopedUrl('./icons/app-icon-512.png?v=11'),
 ]
 
 self.addEventListener('install', (event) => {
