@@ -144,6 +144,8 @@ type CashFlowEventMarker = {
   tone: CashFlowEventTone
 }
 
+type CashFlowMarkerPlacement = 'top' | 'bottom'
+
 const CASHFLOW_TEXT = {
   ageSuffix: '\uC138',
   yearsLater: '\uB144 \uD6C4',
@@ -356,20 +358,32 @@ export const CashFlowChart = memo(function CashFlowChart({
   ]
   const chartMarkers = rawMarkers
     .sort((left, right) => left.yearOffset - right.yearOffset)
-    .map((marker, index) => {
+    .map((marker) => {
       const markerPoint =
         coordinates.find((point) => point.year === marker.yearOffset) ?? coordinates[coordinates.length - 1]
       const labelX = Math.max(
         borderX + markerPillHalfWidth,
         Math.min(markerPoint.x, width - paddingRight - markerPillHalfWidth),
       )
+      const placement: CashFlowMarkerPlacement =
+        markerPoint.y <= paddingTop + chartHeight * 0.5 ? 'bottom' : 'top'
 
       return {
         ...marker,
         x: markerPoint.x,
         y: markerPoint.y,
         labelX,
-        lane: index % 2,
+        placement,
+      }
+    })
+    .map((marker, index, markers) => {
+      const samePlacementIndex = markers
+        .slice(0, index)
+        .filter((item) => item.placement === marker.placement).length
+
+      return {
+        ...marker,
+        lane: samePlacementIndex % 2,
       }
     })
 
@@ -463,9 +477,15 @@ export const CashFlowChart = memo(function CashFlowChart({
         />
 
         {chartMarkers.map((marker) => {
-          const labelY = paddingTop + 14 + marker.lane * 22
+          const labelY =
+            marker.placement === 'bottom'
+              ? chartFloorY - 16 - marker.lane * 22
+              : paddingTop + 14 + marker.lane * 22
           return (
-            <g key={marker.key} className={`cashflow-event-marker tone-${marker.tone}`}>
+            <g
+              key={marker.key}
+              className={`cashflow-event-marker tone-${marker.tone} placement-${marker.placement}`}
+            >
               <line
                 className="cashflow-event-line"
                 x1={marker.x}

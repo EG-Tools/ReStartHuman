@@ -61,3 +61,37 @@ test('cashflow chart shows an ISA marker when ISA dividends convert to cash', ()
 
   assert.ok(isaMatches.length >= 2)
 })
+
+test('cashflow chart places late markers below the curve when the trend is strongly upward', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 50,
+    startingCashReserve: 100_000_000,
+    taxableAccountDividendAnnual: 200_000_000,
+    insuranceMonthly: 100_000,
+    insurancePaymentYears: 35,
+    pensionMonthlyAmount: 1_000_000,
+    pensionStartAge: 70,
+    healthInsuranceType: 'employee' as const,
+    housingType: 'monthlyRent' as const,
+    monthlyRentDeposit: 0,
+    monthlyRentAmount: 0,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 1_000_000,
+  }
+  const result = calculateAlphaScenario(formData)
+
+  const markup = renderToStaticMarkup(
+    createElement(CashFlowChart, {
+      currentAge: formData.currentAge,
+      formData,
+      inflationEnabled: formData.inflationEnabled,
+      inflationRateAnnual: formData.inflationRateAnnual,
+      projectionYears: formData.simulationYears,
+      result,
+    }),
+  )
+
+  assert.match(markup, /placement-bottom/)
+})
