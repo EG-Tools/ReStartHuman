@@ -260,7 +260,7 @@ test('result table uses simplified tax row labels for readability', () => {
   assert.ok(rows.some((row) => row.item === '소득세'))
   assert.ok(rows.some((row) => row.item === '지방세'))
   assert.ok(rows.some((row) => row.item === '개인연금세'))
-  assert.ok(rows.some((row) => row.item === '금융종합세'))
+  assert.ok(rows.some((row) => row.item === '금융종합소득세'))
 })
 
 

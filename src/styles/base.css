@@ -244,6 +244,16 @@ p {
   padding-bottom: 8px;
 }
 
+.question-footer-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.question-footer-actions .button {
+  width: 100%;
+}
+
 .wide-button {
   min-width: 220px;
 }

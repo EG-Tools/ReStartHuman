@@ -9,6 +9,7 @@ export function QuestionScreen({
   totalQuestions,
   formData,
   accessMode,
+  onGoStart,
   onBack,
   onNext,
   onSeekQuestion,
@@ -27,6 +28,7 @@ export function QuestionScreen({
       question={question}
       questionIndex={questionIndex}
       totalQuestions={totalQuestions}
+      onGoStart={onGoStart}
       onBack={onBack}
       onNext={onNext}
       onSeekQuestion={onSeekQuestion}

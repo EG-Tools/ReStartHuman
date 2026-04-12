@@ -797,7 +797,7 @@ export function buildResultRows({
       : []),
     {
       category: '세금',
-      item: '금융종합세',
+      item: '금융종합소득세',
       input: getComprehensiveTaxInput(result),
       monthly: formatCompactCurrency(result.comprehensiveTaxImpactAnnual / 12),
       annual: formatCompactCurrency(result.comprehensiveTaxImpactAnnual),

@@ -166,9 +166,7 @@ const CASHFLOW_TEXT = {
 } as const
 
 const formatCashFlowEventDetail = (currentAge: number, yearOffset: number) =>
-  yearOffset <= 0
-    ? `${currentAge}${CASHFLOW_TEXT.ageSuffix}`
-    : `${currentAge + yearOffset}${CASHFLOW_TEXT.ageSuffix} / ${yearOffset}${CASHFLOW_TEXT.yearsLater}`
+  `${currentAge + Math.max(yearOffset, 0)}${CASHFLOW_TEXT.ageSuffix}`
 
 const buildCashFlowXTicks = ({
   chartWidth,
@@ -535,7 +533,7 @@ export const CashFlowChart = memo(function CashFlowChart({
           {chartMarkers.map((marker) => (
             <div key={`legend-${marker.key}`} className={`cashflow-event-legend-item tone-${marker.tone}`}>
               <span className="cashflow-event-legend-swatch" aria-hidden="true" />
-              <span className="cashflow-event-legend-text">{`${marker.label} ? ${marker.detail}`}</span>
+              <span className="cashflow-event-legend-text">{`${marker.label} ${marker.detail}`}</span>
             </div>
           ))}
         </div>
@@ -578,7 +576,9 @@ const mergeTrailingNumericChunk = (chunks: string[]) => {
 }
 
 const splitResultItemLabel = (value: string) =>
-  mergeTrailingNumericChunk(
+  value === '금융종합소득세'
+    ? ['금융종합', '소득세']
+    : mergeTrailingNumericChunk(
     value
       .split(/[\s/]+/)
       .flatMap((word) => splitResultItemWord(word.trim()))

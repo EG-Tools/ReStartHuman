@@ -228,6 +228,7 @@ export default function App() {
                 totalQuestions={flow.visibleQuestions.length}
                 formData={effectiveFormData}
                 accessMode={adSupport.accessMode}
+                onGoStart={flow.reset}
                 onBack={flow.previousQuestion}
                 onNext={flow.nextQuestion}
                 onSeekQuestion={flow.goToQuestion}
