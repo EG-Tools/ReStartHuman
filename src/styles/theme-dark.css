@@ -822,3 +822,23 @@ body {
   }
 }
 
+
+.question-screen .sticky-footer.question-footer-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.question-screen .sticky-footer.question-footer-actions .button {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .question-screen .sticky-footer.question-footer-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .question-screen .sticky-footer.question-footer-actions .button {
+    width: 100%;
+  }
+}
