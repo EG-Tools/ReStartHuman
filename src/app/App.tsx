@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
+import { AppHomeButton } from '../components/common/AppHomeButton'
 import { policyConfig } from '../config/policyConfig'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
@@ -85,9 +86,14 @@ export default function App() {
     [calculationInput, reusableLoadedSlotResult, shouldRenderResult],
   )
   const result = reusableLoadedSlotResult ?? liveResult
-  const optionsButton = useMemo(
-    () => <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />,
-    [],
+  const headerActions = useMemo(
+    () => (
+      <div className="app-header-actions">
+        <AppHomeButton onClick={flow.reset} />
+        <AppOptionsButton onClick={() => setIsOptionsOpen(true)} />
+      </div>
+    ),
+    [flow.reset],
   )
   const flowRoute = flow.route
   const openResult = flow.openResult
@@ -216,7 +222,7 @@ export default function App() {
             <StartScreen
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
-              headerAction={optionsButton}
+              headerAction={headerActions}
             />
           ) : null}
 
@@ -228,12 +234,11 @@ export default function App() {
                 totalQuestions={flow.visibleQuestions.length}
                 formData={effectiveFormData}
                 accessMode={adSupport.accessMode}
-                onGoStart={flow.reset}
                 onBack={flow.previousQuestion}
                 onNext={flow.nextQuestion}
                 onSeekQuestion={flow.goToQuestion}
                 onPatchFormData={patchFormData}
-                headerAction={optionsButton}
+                headerAction={headerActions}
               />
             </Suspense>
           ) : null}
@@ -243,7 +248,7 @@ export default function App() {
               <ResultAdScreen
                 onContinue={flow.openResult}
                 onEditAnswers={() => flow.goToQuestion(0)}
-                headerAction={optionsButton}
+                headerAction={headerActions}
               />
             </Suspense>
           ) : null}
@@ -257,7 +262,7 @@ export default function App() {
                 onStartOver={startOver}
                 onOpenSaveSlots={() => setSaveSlotMode('save')}
                 onPatchFormData={patchFormData}
-                headerAction={optionsButton}
+                headerAction={headerActions}
               />
             </Suspense>
           ) : null}

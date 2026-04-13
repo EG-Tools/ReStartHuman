@@ -7,7 +7,6 @@ export interface QuestionScreenProps {
   totalQuestions: number
   formData: AlphaFormData
   accessMode: AppAccessMode
-  onGoStart: () => void
   onBack: () => void
   onNext: () => void
   onSeekQuestion: (index: number) => void

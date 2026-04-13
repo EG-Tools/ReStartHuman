@@ -66,7 +66,6 @@ export function QuestionLayout({
   question,
   questionIndex,
   totalQuestions,
-  onGoStart,
   onBack,
   onNext,
   onSeekQuestion,
@@ -76,7 +75,6 @@ export function QuestionLayout({
   question: QuestionStep
   questionIndex: number
   totalQuestions: number
-  onGoStart: () => void
   onBack: () => void
   onNext: () => void
   onSeekQuestion: (index: number) => void
@@ -120,9 +118,6 @@ export function QuestionLayout({
       <div ref={bodyRef} className="question-body">{children}</div>
 
       <div className="footer-actions sticky-footer question-footer-actions">
-        <PrimaryButton variant="secondary" onClick={onGoStart}>
-          {'처음으로'}
-        </PrimaryButton>
         <PrimaryButton variant="ghost" onClick={onBack}>
           {'이전'}
         </PrimaryButton>

@@ -5,6 +5,13 @@
   justify-content: flex-end;
 }
 
+.app-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-home-button,
 .app-options-button {
   width: 44px;
   height: 44px;
@@ -446,11 +453,13 @@
     font-size: 0.72rem;
   }
 
+  .app-home-button,
   .app-options-button {
     width: 38px;
     height: 38px;
   }
 
+  .home-icon,
   .settings-icon {
     width: 16px;
     height: 16px;
