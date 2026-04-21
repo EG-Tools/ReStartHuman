@@ -108,16 +108,9 @@ const modeCards = [
 
 function SettingsIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="settings-icon">
-      <path
-        d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm8.5 3.4.9.7a.9.9 0 0 1 .2 1.2l-1.1 2a.9.9 0 0 1-1.1.4l-1.1-.4a7.7 7.7 0 0 1-1.4.8l-.2 1.2a.9.9 0 0 1-.9.8h-2.3a.9.9 0 0 1-.9-.8l-.2-1.2a7.7 7.7 0 0 1-1.4-.8l-1.1.4a.9.9 0 0 1-1.1-.4l-1.1-2a.9.9 0 0 1 .2-1.2l.9-.7a7.7 7.7 0 0 1 0-1.6l-.9-.7a.9.9 0 0 1-.2-1.2l1.1-2a.9.9 0 0 1 1.1-.4l1.1.4c.4-.3.9-.5 1.4-.8l.2-1.2a.9.9 0 0 1 .9-.8h2.3a.9.9 0 0 1 .9.8l.2 1.2c.5.2 1 .5 1.4.8l1.1-.4a.9.9 0 0 1 1.1.4l1.1 2a.9.9 0 0 1-.2 1.2l-.9.7c.1.5.1 1.1 0 1.6Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <span aria-hidden="true" className="settings-glyph">
+      {'\u2699'}
+    </span>
   )
 }
 

@@ -83,9 +83,10 @@ body {
   flex: 0 0 auto;
 }
 
-.settings-icon {
-  width: 18px;
-  height: 18px;
+.settings-glyph {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .start-main {
