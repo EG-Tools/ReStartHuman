@@ -323,7 +323,7 @@ export function AppOptionsModal({
           <div className="support-option-list">
             <div className="support-option-row">
               <span>{text.creator}</span>
-              <strong>EG Ark</strong>
+              <strong>Life User</strong>
             </div>
             <div className="support-option-row">
               <span>{text.email}</span>
