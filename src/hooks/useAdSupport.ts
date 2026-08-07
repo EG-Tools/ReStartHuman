@@ -11,10 +11,14 @@ const ADMIN_MODE_STORAGE_KEY = 'restarthuman_alpha_admin_mode_enabled'
 const ACCESS_MODE_STORAGE_KEY = 'restarthuman_alpha_access_mode'
 const LEGACY_AD_FREE_STORAGE_KEY = 'restarthuman_alpha_ad_free_enabled'
 
+// Keep every user unlocked while the public test is running.
+const PUBLIC_TEST_ADMIN_MODE_ENABLED = true
+
 const toAccessMode = (value: string | null | undefined): AppAccessMode =>
   value === 'general' ? 'general' : 'pro'
 
 const readAdminModeEnabled = (storage?: Storage) =>
+  PUBLIC_TEST_ADMIN_MODE_ENABLED ||
   safeStorageGetItem(storage, ADMIN_MODE_STORAGE_KEY) === 'true' ||
   safeStorageGetItem(storage, LEGACY_AD_FREE_STORAGE_KEY) === 'true'
 
