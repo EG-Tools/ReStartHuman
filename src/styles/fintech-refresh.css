@@ -1167,7 +1167,7 @@ body.theme-white .access-mode-card.is-active {
   }
 
   .start-quick-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
@@ -1207,6 +1207,36 @@ body.theme-white .access-mode-card.is-active {
 @media (max-width: 560px) {
   .start-dashboard-header {
     align-items: flex-start;
+  }
+
+  .start-brand-sprout {
+    top: -0.17em;
+  }
+
+  .start-quick-actions {
+    gap: 8px;
+  }
+
+  .start-quick-button {
+    gap: 6px;
+    min-width: 0;
+    min-height: 54px;
+    padding: 0 10px;
+    font-size: 0.82rem;
+  }
+
+  .start-quick-button .start-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .start-quick-button > span:nth-child(2) {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .start-quick-button > span:last-child {
+    font-size: 1.15rem;
   }
 
   .start-brand-lockup > p {
