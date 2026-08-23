@@ -459,7 +459,7 @@ body.theme-white .start-hero-overlay {
   justify-content: flex-start;
   padding: clamp(24px, 5vw, 46px);
   padding-left: clamp(16px, 3.5vw, 32px);
-  background: linear-gradient(90deg, rgba(244, 251, 255, 0.97) 0%, rgba(244, 251, 255, 0.86) 34%, rgba(244, 251, 255, 0.22) 58%, transparent 76%);
+  background: linear-gradient(90deg, rgba(244, 251, 255, 0.82) 0%, rgba(244, 251, 255, 0.56) 27%, rgba(244, 251, 255, 0.1) 44%, transparent 60%);
 }
 
 .start-hero-kicker {
@@ -542,7 +542,7 @@ body.theme-white .start-hero-panel .hero-copy {
 }
 
 :root:not(.theme-white) .start-hero-overlay {
-  background: linear-gradient(90deg, rgba(4, 18, 41, 0.97) 0%, rgba(4, 18, 41, 0.9) 35%, rgba(4, 18, 41, 0.36) 59%, transparent 78%);
+  background: linear-gradient(90deg, rgba(4, 18, 41, 0.84) 0%, rgba(4, 18, 41, 0.58) 28%, rgba(4, 18, 41, 0.16) 46%, transparent 62%);
 }
 
 :root:not(.theme-white) .start-hero-kicker {
@@ -1114,11 +1114,11 @@ body.theme-white .access-mode-card.is-active {
   body.theme-white .start-hero-overlay {
     padding: 24px 22px;
     padding-left: 14px;
-    background: linear-gradient(90deg, rgba(244, 251, 255, 0.98) 0%, rgba(244, 251, 255, 0.88) 42%, rgba(244, 251, 255, 0.14) 74%, transparent 100%);
+    background: linear-gradient(90deg, rgba(244, 251, 255, 0.86) 0%, rgba(244, 251, 255, 0.6) 34%, rgba(244, 251, 255, 0.08) 60%, transparent 84%);
   }
 
   :root:not(.theme-white) .start-hero-overlay {
-    background: linear-gradient(90deg, rgba(4, 18, 41, 0.98) 0%, rgba(4, 18, 41, 0.91) 43%, rgba(4, 18, 41, 0.3) 76%, transparent 100%);
+    background: linear-gradient(90deg, rgba(4, 18, 41, 0.88) 0%, rgba(4, 18, 41, 0.62) 35%, rgba(4, 18, 41, 0.14) 62%, transparent 86%);
   }
 
   .start-hero-kicker {
