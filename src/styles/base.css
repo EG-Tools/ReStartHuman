@@ -1679,10 +1679,6 @@ p {
   gap: 14px;
 }
 
-.support-mode-copy {
-  margin: 0;
-}
-
 .support-mode-toggle {
   display: flex;
   width: 100%;

@@ -137,10 +137,6 @@ body {
   min-width: 0;
 }
 
-.support-panel-eyebrow {
-  margin-bottom: 6px;
-}
-
 .support-panel-actions {
   display: flex;
   flex: 0 0 auto;

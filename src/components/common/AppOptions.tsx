@@ -31,11 +31,6 @@ const text = {
   modeLabel: '\uD14C\uC2A4\uD2B8 \uD45C\uC2DC \uBAA8\uB4DC',
   modeGeneral: '\uC77C\uBC18',
   modePro: '\uD504\uB85C',
-  modeGeneralCopy:
-    '\uC77C\uBC18 \uBCF4\uAE30\uB294 1\uC778 \uAC00\uAD6C \uBE60\uB978 \uCD94\uC815\uACFC \uAD11\uACE0 \uD750\uB984\uC744 \uD14C\uC2A4\uD2B8\uD560 \uB54C \uC0AC\uC6A9\uD569\uB2C8\uB2E4.',
-  modeProCopy:
-    '\uD504\uB85C \uBCF4\uAE30\uB294 \uBD80\uBD80, \uACF5\uB3D9\uBA85\uC758, \uB2E4\uC8FC\uD0DD, ISA, \uC138\uAE08\u00B7\uAC74\uBCF4 \uC0C1\uC138 \uACC4\uC0B0\uAE4C\uC9C0 \uBAA8\uB450 \uC5FD\uB2C8\uB2E4.',
-  modeSummaryLabel: '\uBAA8\uB4DC \uBE44\uAD50',
   generalPlanTitle: '1\uC778 \uAC00\uAD6C \uBE60\uB978 \uCD94\uC815',
   generalPlanCopy:
     '\uC77C\uBC18\uC8FC\uC2DD, \uAD6D\uBBFC\uC5F0\uAE08, \uCD1D\uC561 \uC785\uB825 \uC911\uC2EC\uC73C\uB85C \uBE60\uB974\uAC8C \uACC4\uC0B0\uD569\uB2C8\uB2E4.',
@@ -166,9 +161,6 @@ export function AppOptionsModal({
 
   const supportButtonLabel = canEnableAdminMode ? text.supportPrice : text.supportPreparing
 
-  const currentModeLabel = accessMode === 'pro' ? text.modePro : text.modeGeneral
-  const currentModeCopy = accessMode === 'pro' ? text.modeProCopy : text.modeGeneralCopy
-
   return (
     <div className="modal-backdrop settings-modal-backdrop" role="presentation" onClick={onClose}>
       <div
@@ -181,10 +173,10 @@ export function AppOptionsModal({
         <section className="note-panel support-panel">
           <div className="support-panel-header">
             <div>
-              <p className="eyebrow support-panel-eyebrow">{text.options}</p>
-              <h2>{text.adminMode}</h2>
+              <h2>{text.options}</h2>
             </div>
             <div className="support-panel-actions">
+              <span className="admin-mode-label">{text.adminMode}</span>
               <button
                 type="button"
                 className="icon-button modal-close-icon-button"
@@ -223,8 +215,6 @@ export function AppOptionsModal({
           {canToggleAccessMode ? (
             <div className="support-option-row support-mode-section">
               <span>{text.modeLabel}</span>
-              <strong>{currentModeLabel}</strong>
-              <p className="support-note support-mode-copy">{currentModeCopy}</p>
               <div className="slot-mode-switch support-mode-toggle" role="tablist" aria-label={text.modeLabel}>
                 <button
                   type="button"
@@ -248,30 +238,27 @@ export function AppOptionsModal({
             </div>
           ) : null}
 
-          <div className="support-option-row support-mode-section">
-            <span>{text.modeSummaryLabel}</span>
-            <div className="access-mode-summary-grid">
-              {modeCards.map((card) => {
-                const isActive = accessMode === card.key
+          <div className="access-mode-summary-grid">
+            {modeCards.map((card) => {
+              const isActive = accessMode === card.key
 
-                return (
-                  <article
-                    key={card.key}
-                    className={`access-mode-card ${isActive ? 'is-active' : ''}`.trim()}
-                    aria-current={isActive ? 'true' : undefined}
-                  >
-                    <p className="eyebrow access-mode-card-eyebrow">{card.eyebrow}</p>
-                    <h3>{card.title}</h3>
-                    <p className="support-note">{card.copy}</p>
-                    <ul className="access-mode-feature-list">
-                      {card.features.map((feature) => (
-                        <li key={feature}>{feature}</li>
-                      ))}
-                    </ul>
-                  </article>
-                )
-              })}
-            </div>
+              return (
+                <article
+                  key={card.key}
+                  className={`access-mode-card ${isActive ? 'is-active' : ''}`.trim()}
+                  aria-current={isActive ? 'true' : undefined}
+                >
+                  <p className="eyebrow access-mode-card-eyebrow">{card.eyebrow}</p>
+                  <h3>{card.title}</h3>
+                  <p className="support-note">{card.copy}</p>
+                  <ul className="access-mode-feature-list">
+                    {card.features.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
+                  </ul>
+                </article>
+              )
+            })}
           </div>
 
           {!isAdminModeEnabled ? (

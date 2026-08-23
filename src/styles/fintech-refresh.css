@@ -965,6 +965,13 @@ body.theme-white .settings-modal {
   border-radius: 28px;
 }
 
+.admin-mode-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .settings-meta {
   display: flex;
   flex-wrap: wrap;
