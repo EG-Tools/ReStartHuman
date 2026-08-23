@@ -409,8 +409,8 @@ body.theme-white .app-options-button {
   width: 0.82em;
   aspect-ratio: 67 / 47;
   background-color: currentColor;
-  -webkit-mask: url('../assets/original-sprout.png') center / contain no-repeat;
-  mask: url('../assets/original-sprout.png') center / contain no-repeat;
+  -webkit-mask: url('../assets/original-sprout.webp') center / contain no-repeat;
+  mask: url('../assets/original-sprout.webp') center / contain no-repeat;
 }
 
 .start-brand-lockup > p {
