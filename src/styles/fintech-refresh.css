@@ -979,7 +979,7 @@ body.theme-white .settings-modal {
   justify-content: flex-start;
   column-gap: 34px;
   row-gap: 4px;
-  padding: 2px 4px 0;
+  padding: 2px 4px 5px;
   color: color-mix(in srgb, var(--muted) 82%, transparent);
   font-size: 0.72rem;
   font-weight: 400;
