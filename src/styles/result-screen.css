@@ -118,9 +118,19 @@
 }
 
 .result-actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   min-width: 0;
   padding-inline: 10px;
+}
+
+.result-action-icon {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 900px) {
@@ -178,9 +188,17 @@
   }
 
   .result-actions .button {
+    flex-direction: column;
+    gap: 4px;
+    min-height: 66px;
     width: auto;
-    padding: 11px 6px;
-    font-size: 0.84rem;
+    padding: 8px 4px;
+    font-size: 0.8rem;
+  }
+
+  .result-action-icon {
+    width: 18px;
+    height: 18px;
   }
 }
 

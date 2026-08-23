@@ -83,7 +83,6 @@ body.theme-white .question-screen .sticky-footer {
 }
 
 body.theme-white .version-badge,
-body.theme-white .support-status-pill,
 body.theme-white .support-option-row,
 body.theme-white .access-mode-card,
 body.theme-white .support-confirm-dialog {
@@ -91,15 +90,9 @@ body.theme-white .support-confirm-dialog {
 }
 
 body.theme-white .version-badge,
-body.theme-white .support-status-pill,
 body.theme-white .support-option-row,
 body.theme-white .access-mode-card {
   background: rgba(255, 255, 255, 0.74);
-}
-
-body.theme-white .support-status-pill.is-active {
-  background: rgba(31, 122, 123, 0.1);
-  color: var(--brand);
 }
 
 body.theme-white .access-mode-card {

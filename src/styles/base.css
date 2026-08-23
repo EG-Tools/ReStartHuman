@@ -1671,12 +1671,6 @@ p {
   position: relative;
 }
 
-.support-status-pill.is-active {
-  border-color: rgba(62, 207, 142, 0.28);
-  background: rgba(62, 207, 142, 0.14);
-  color: var(--good);
-}
-
 .support-note {
   color: var(--muted);
 }

@@ -103,9 +103,9 @@
   --result-housing-market-bottom-gap: 5px;
 
   table-layout: fixed;
-  width: var(--result-table-fixed-width);
+  width: max(100%, var(--result-table-fixed-width));
   min-width: var(--result-table-fixed-width);
-  max-width: var(--result-table-fixed-width);
+  max-width: none;
   font-size: var(--result-table-font-size);
 
   -webkit-text-size-adjust: 100%;

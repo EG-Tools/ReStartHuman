@@ -167,8 +167,13 @@ export function SaveSlotModal({
             ) : null}
             <h2>저장 불러오기</h2>
           </div>
-          <button type="button" className="icon-button" onClick={onClose}>
-            닫기
+          <button
+            type="button"
+            className="icon-button modal-close-icon-button"
+            aria-label="닫기"
+            onClick={onClose}
+          >
+            <span className="css-close-icon" aria-hidden="true" />
           </button>
         </div>
 

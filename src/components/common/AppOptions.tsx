@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { APP_VERSION_LABEL } from '../../config/appMeta'
+import { APP_COMPANY, APP_CONTACT_EMAIL, APP_VERSION } from '../../config/appMeta'
 import type { ThemeMode } from '../../hooks/useThemeMode'
 import type { AppAccessMode } from '../../types/alpha'
 import { PrimaryButton } from './Ui'
@@ -24,21 +24,10 @@ const text = {
   openOptions: '\uC635\uC158 \uC5F4\uAE30',
   settings: '\uC124\uC815',
   options: '\uC635\uC158',
+  adminMode: '\uAD00\uB9AC\uC790 \uBAA8\uB4DC',
   developerSupport: '\uAC1C\uBC1C\uC790 \uD6C4\uC6D0',
-  activeStatus: '\uAD00\uB9AC\uC790 \uBAA8\uB4DC',
-  temporarySupport: '\uD14C\uC2A4\uD2B8 \uD6C4\uC6D0',
-  preparing: '\uC900\uBE44 \uC911',
-  usingWithoutAds: '\uAD00\uB9AC\uC790 \uBAA8\uB4DC \uC0AC\uC6A9 \uC911',
   supportPrice: '\uD6C4\uC6D0 1\uB144\uC5D0 3,000\uC6D0',
   supportPreparing: '\uD6C4\uC6D0 \uC900\uBE44 \uC911',
-  enabledCopyPro:
-    '\uD6C4\uC6D0\uC5D0 \uAC10\uC0AC\uB4DC\uB9BD\uB2C8\uB2E4. \uC774 \uAE30\uAE30\uC5D0\uC11C\uB294 \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB418\uC5B4 \uAD11\uACE0 \uC5C6\uC774 \uC804\uCCB4 \uAE30\uB2A5\uC744 \uD14C\uC2A4\uD2B8\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4.',
-  enabledCopyGeneral:
-    '\uAD00\uB9AC\uC790 \uBAA8\uB4DC\uB294 \uD65C\uC131\uD654\uB418\uC5B4 \uC788\uC9C0\uB9CC, \uC9C0\uAE08\uC740 \uC77C\uBC18 \uBCF4\uAE30\uB85C \uC804\uD658\uD574 \uAD11\uACE0\uC640 \uC77C\uBC18 \uC0AC\uC6A9\uC790 \uD750\uB984\uC744 \uD14C\uC2A4\uD2B8\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4. \uC544\uB798\uC5D0\uC11C \uD504\uB85C \uBCF4\uAE30\uB85C \uB2E4\uC2DC \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
-  temporaryCopy:
-    '\uD14C\uC2A4\uD2B8 \uBC84\uC804\uC5D0\uC11C\uB294 \uD6C4\uC6D0\uC744 \uD655\uC778\uD558\uBA74 \uC774 \uAE30\uAE30\uC5D0\uC11C \uAD00\uB9AC\uC790 \uBAA8\uB4DC\uAC00 \uD65C\uC131\uD654\uB429\uB2C8\uB2E4. \uAD6C\uB3C5\uC740 \uC5B8\uC81C\uB4E0 \uCDE8\uC18C\uD560 \uC218 \uC788\uACE0, \uACB0\uC81C \uC2DC\uC810\uBD80\uD130 1\uB144 \uB3D9\uC548 \uC720\uC9C0\uB429\uB2C8\uB2E4. \uC9C0\uAE08\uC740 \uC2E4\uC81C \uACB0\uC81C \uC5F0\uB3D9 \uC5C6\uC774 \uD14C\uC2A4\uD2B8 \uD750\uB984\uC73C\uB85C\uB9CC \uB3D9\uC791\uD569\uB2C8\uB2E4.',
-  preparingCopy:
-    '\uD6C4\uC6D0 \uAE30\uB2A5\uC740 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4. \uC2E4\uC81C \uACB0\uC81C \uC5F0\uB3D9\uC774 \uB05D\uB098\uAE30 \uC804\uAE4C\uC9C0\uB294 \uC77C\uBC18 \uC0AC\uC6A9\uC790\uC5D0\uAC8C \uAD11\uACE0 \uC81C\uAC70\uB97C \uC5F4\uC5B4\uB450\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.',
   modeLabel: '\uD14C\uC2A4\uD2B8 \uD45C\uC2DC \uBAA8\uB4DC',
   modeGeneral: '\uC77C\uBC18',
   modePro: '\uD504\uB85C',
@@ -60,8 +49,6 @@ const text = {
     '\uBC1D\uC740 \uBC30\uACBD\uACFC \uC5F0\uD55C \uC885\uC774 \uD1A4\uC73C\uB85C \uBCF4\uB294 \uD14C\uB9C8\uC785\uB2C8\uB2E4.',
   themeDarkCopy:
     '\uC9C0\uAE08\uCC98\uB7FC \uC5B4\uB450\uC6B4 \uBC30\uACBD \uAE30\uC900\uC758 \uB2E4\uD06C \uD14C\uB9C8\uC785\uB2C8\uB2E4.',
-  creator: '\uC81C\uC791\uC790',
-  email: '\uC774\uBA54\uC77C',
   close: '\uB2EB\uAE30',
   confirmSupport: '\uD6C4\uC6D0 \uD655\uC778',
   supportQuestion: '\uD6C4\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?',
@@ -108,8 +95,8 @@ const modeCards = [
 
 function SettingsIcon() {
   return (
-    <span aria-hidden="true" className="settings-glyph">
-      {'\u2699'}
+    <span aria-hidden="true" className="css-settings-icon">
+      <span />
     </span>
   )
 }
@@ -177,25 +164,7 @@ export function AppOptionsModal({
     setIsSupportSuccessOpen(true)
   }
 
-  const supportStatusLabel = isAdminModeEnabled
-    ? text.activeStatus
-    : canEnableAdminMode
-      ? text.temporarySupport
-      : text.preparing
-
-  const supportButtonLabel = isAdminModeEnabled
-    ? text.usingWithoutAds
-    : canEnableAdminMode
-      ? text.supportPrice
-      : text.supportPreparing
-
-  const supportCopy = isAdminModeEnabled
-    ? accessMode === 'pro'
-      ? text.enabledCopyPro
-      : text.enabledCopyGeneral
-    : canEnableAdminMode
-      ? text.temporaryCopy
-      : text.preparingCopy
+  const supportButtonLabel = canEnableAdminMode ? text.supportPrice : text.supportPreparing
 
   const currentModeLabel = accessMode === 'pro' ? text.modePro : text.modeGeneral
   const currentModeCopy = accessMode === 'pro' ? text.modeProCopy : text.modeGeneralCopy
@@ -209,24 +178,23 @@ export function AppOptionsModal({
         aria-label={text.settings}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="modal-header settings-modal-header">
-          <div>
-            <p className="eyebrow">{text.options}</p>
-          </div>
-        </div>
-
         <section className="note-panel support-panel">
           <div className="support-panel-header">
             <div>
-              <p className="support-version-label">{APP_VERSION_LABEL}</p>
-              <h2>{text.developerSupport}</h2>
+              <p className="eyebrow support-panel-eyebrow">{text.options}</p>
+              <h2>{text.adminMode}</h2>
             </div>
-            <span className={'support-status-pill' + (isAdminModeEnabled ? ' is-active' : '')}>
-              {supportStatusLabel}
-            </span>
+            <div className="support-panel-actions">
+              <button
+                type="button"
+                className="icon-button modal-close-icon-button"
+                aria-label={text.close}
+                onClick={onClose}
+              >
+                <span className="css-close-icon" aria-hidden="true" />
+              </button>
+            </div>
           </div>
-
-          <p className="support-copy">{supportCopy}</p>
 
           <div className="support-option-row support-mode-section">
             <span>{text.themeLabel}</span>
@@ -306,34 +274,29 @@ export function AppOptionsModal({
             </div>
           </div>
 
-          <div className="support-actions">
-            <PrimaryButton
-              variant={isAdminModeEnabled ? 'primary' : 'secondary'}
-              onClick={() => {
-                if (canOpenSupportPrompt) {
-                  setIsSupportPromptOpen(true)
-                }
-              }}
-              disabled={!canOpenSupportPrompt}
-            >
-              {supportButtonLabel}
-            </PrimaryButton>
-          </div>
-
-          <div className="support-option-list">
-            <div className="support-option-row">
-              <span>{text.creator}</span>
-              <strong>Life User</strong>
+          {!isAdminModeEnabled ? (
+            <div className="support-actions">
+              <PrimaryButton
+                variant="secondary"
+                onClick={() => {
+                  if (canOpenSupportPrompt) {
+                    setIsSupportPromptOpen(true)
+                  }
+                }}
+                disabled={!canOpenSupportPrompt}
+              >
+                {supportButtonLabel}
+              </PrimaryButton>
             </div>
-            <div className="support-option-row">
-              <span>{text.email}</span>
-              <strong>Lyrikey@Naver.com</strong>
-            </div>
-          </div>
+          ) : null}
 
-          <PrimaryButton className="settings-close-button" onClick={onClose}>
-            {text.close}
-          </PrimaryButton>
+          <footer className="settings-meta">
+            <span>Version : {APP_VERSION}</span>
+            <span>회사 : {APP_COMPANY}</span>
+            <span>
+              이메일 : <a href={`mailto:${APP_CONTACT_EMAIL}`}>{APP_CONTACT_EMAIL}</a>
+            </span>
+          </footer>
         </section>
 
         {isSupportPromptOpen && canOpenSupportPrompt ? (

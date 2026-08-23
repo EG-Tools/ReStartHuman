@@ -109,10 +109,6 @@ body {
   align-items: center;
 }
 
-.settings-modal-header {
-  justify-content: flex-start;
-}
-
 .support-panel {
   display: flex;
   flex-direction: column;
@@ -131,30 +127,26 @@ body {
 
 .support-panel-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
-.support-status-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 700;
-  white-space: nowrap;
+.support-panel-header > div:first-child {
+  min-width: 0;
 }
 
-.support-version-label {
+.support-panel-eyebrow {
   margin-bottom: 6px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+}
+
+.support-panel-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .support-option-row {
@@ -182,20 +174,9 @@ body {
   display: flex;
 }
 
-.support-actions .button,
-.settings-close-button {
+.support-actions .button {
   width: 100%;
 }
-
-.settings-close-button {
-  margin-top: 0;
-}
-
-.support-option-list {
-  display: grid;
-  gap: 10px;
-}
-
 
 .access-mode-summary-grid {
   display: grid;

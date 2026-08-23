@@ -1,5 +1,6 @@
 export const policyConfig = {
   policyBaseDate: '2026-03-27',
+  policyReferenceUrl: 'https://taxlaw.nts.go.kr/',
   policyStatus:
     '정책 기준일은 2026년 3월 27일입니다. 일반계좌 배당 원천징수, ISA 절세, 금융소득 종합과세 공개 기준을 반영했고, 건강보험과 종합소득세는 공개 기준을 참고한 단순 추정치입니다.',
   dividendTaxRate: 0.154,

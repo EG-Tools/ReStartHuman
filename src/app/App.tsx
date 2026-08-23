@@ -223,6 +223,7 @@ export default function App() {
               onStart={startFresh}
               onOpenLoadSlots={() => setSaveSlotMode('load')}
               headerAction={headerActions}
+              themeMode={theme.themeMode}
             />
           ) : null}
 
@@ -298,6 +299,7 @@ export default function App() {
           onChangeAccessMode={adSupport.setAccessMode}
         />
       ) : null}
+
     </div>
   )
 }
