@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { BookIcon, ClockIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
+import pensionPersonCaneImage from '../../assets/pension-person-cane-6.png'
 import startHeroDarkImage from '../../assets/retirement-journey-hero-dark-v3.webp'
 import startHeroLightImage from '../../assets/retirement-journey-hero-light-v3.webp'
 import { APP_COMPANY, APP_CONTACT_EMAIL, APP_VERSION } from '../../config/appMeta'
@@ -15,9 +16,21 @@ interface StartScreenProps {
 }
 
 type StartIconName = 'wallet' | 'growth' | 'pension' | 'health' | 'chart'
+type SvgStartIconName = Exclude<StartIconName, 'pension'>
 
 function StartIcon({ name }: { name: StartIconName }) {
-  const icons: Record<StartIconName, ReactNode> = {
+  if (name === 'pension') {
+    return (
+      <img
+        className="start-icon start-icon-pension-image"
+        src={pensionPersonCaneImage}
+        alt=""
+        aria-hidden="true"
+      />
+    )
+  }
+
+  const icons: Record<SvgStartIconName, ReactNode> = {
     wallet: (
       <>
         <path fill="currentColor" d="M4.2 7.2h13.9A2.9 2.9 0 0 1 21 10.1v7.1a2.9 2.9 0 0 1-2.9 2.9H4.2A2.2 2.2 0 0 1 2 17.9V9.4a2.2 2.2 0 0 1 2.2-2.2Z" />
@@ -35,12 +48,6 @@ function StartIcon({ name }: { name: StartIconName }) {
         <path d="M16.8 3.1H20v3.2" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx="18.5" cy="17.4" r="4.3" fill="currentColor" />
         <path d="m15.8 15.5 1.05 3.7 1.65-3.7 1.65 3.7 1.05-3.7M15.5 16.75h6M15.8 18h5.4" fill="none" stroke="var(--start-icon-cutout, white)" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" />
-      </>
-    ),
-    pension: (
-      <>
-        <circle cx="12" cy="5.5" r="3.5" fill="currentColor" />
-        <path fill="currentColor" d="M8.2 10h7.6a3.5 3.5 0 0 1 3.5 3.5v3.8a1.55 1.55 0 0 1-3.1 0v-3.1h-.8V22h-3.1v-6.1h-.6V22H8.6v-7.8h-.8v3.1a1.55 1.55 0 0 1-3.1 0v-3.8A3.5 3.5 0 0 1 8.2 10Z" />
       </>
     ),
     health: (
