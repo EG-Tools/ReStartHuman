@@ -290,38 +290,18 @@ body.theme-white .app-options-button {
 .css-home-icon::before {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 4px;
-  width: 11px;
-  height: 11px;
-  border-top: 2px solid currentColor;
-  border-left: 2px solid currentColor;
-  border-radius: 2px 0 0;
-  transform: rotate(45deg);
+  inset: 1px;
+  border: 0;
+  background: currentColor;
+  clip-path: polygon(50% 0, 100% 39%, 100% 100%, 63% 100%, 63% 63%, 37% 63%, 37% 100%, 0 100%, 0 39%);
 }
 
 .css-home-icon::after {
-  content: '';
-  position: absolute;
-  bottom: 1px;
-  left: 4px;
-  width: 12px;
-  height: 10px;
-  border: 2px solid currentColor;
-  border-top: 0;
-  border-radius: 0 0 3px 3px;
-  box-sizing: border-box;
+  content: none;
 }
 
 .css-home-icon > span {
-  position: absolute;
-  z-index: 1;
-  bottom: 1px;
-  left: 8px;
-  width: 4px;
-  height: 7px;
-  border-radius: 2px 2px 0 0;
-  background: currentColor;
+  display: none;
 }
 
 .css-settings-icon::before {
@@ -588,26 +568,30 @@ body.theme-white .start-hero-panel .hero-copy {
 }
 
 .start-overview-icon {
+  --start-icon-cutout: #e6f1ff;
   display: grid;
   place-items: center;
   width: 48px;
   height: 48px;
-  border-radius: 17px;
+  border-radius: 50%;
   background: #e6f1ff;
   color: #2869b7;
 }
 
 .start-overview-card.tone-teal .start-overview-icon {
+  --start-icon-cutout: #ddf5f1;
   background: #ddf5f1;
   color: #078f88;
 }
 
 .start-overview-card.tone-indigo .start-overview-icon {
+  --start-icon-cutout: #e9ebff;
   background: #e9ebff;
   color: #575bbb;
 }
 
 .start-overview-card.tone-orange .start-overview-icon {
+  --start-icon-cutout: #fff0dc;
   background: #fff0dc;
   color: #ea8b30;
 }
@@ -616,6 +600,11 @@ body.theme-white .start-hero-panel .hero-copy {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
+}
+
+.start-overview-icon .start-icon {
+  width: 29px;
+  height: 29px;
 }
 
 .start-overview-card p,

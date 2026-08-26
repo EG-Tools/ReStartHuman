@@ -13,60 +13,67 @@ interface StartScreenProps {
   themeMode: ThemeMode
 }
 
-type StartIconName = 'wallet' | 'growth' | 'pension' | 'shield' | 'chart' | 'archive' | 'book'
+type StartIconName = 'wallet' | 'growth' | 'pension' | 'health' | 'chart' | 'history' | 'book'
 
 function StartIcon({ name }: { name: StartIconName }) {
-  const paths: Record<StartIconName, ReactNode> = {
+  const icons: Record<StartIconName, ReactNode> = {
     wallet: (
       <>
-        <path d="M4.5 7.5h15v11h-15z" />
-        <path d="M6 7.5V5.8A1.8 1.8 0 0 1 7.8 4h8.7" />
-        <path d="M15.5 11h5v4h-5a2 2 0 0 1 0-4Z" />
+        <path fill="currentColor" d="M4.2 7.2h13.9A2.9 2.9 0 0 1 21 10.1v7.1a2.9 2.9 0 0 1-2.9 2.9H4.2A2.2 2.2 0 0 1 2 17.9V9.4a2.2 2.2 0 0 1 2.2-2.2Z" />
+        <path d="m4.5 7.2 10.8-3.1a1.5 1.5 0 0 1 1.9 1.4v1.7" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+        <path fill="var(--start-icon-cutout, white)" d="M16.2 11.2H22v4.9h-5.8a2.45 2.45 0 1 1 0-4.9Z" />
+        <circle cx="17.2" cy="13.65" r=".85" fill="currentColor" />
       </>
     ),
     growth: (
       <>
-        <path d="M5 19V9M10 19v-5m5 5V11m4 8V5" />
-        <path d="m5 8 5-4 5 4 4-4" />
+        <rect x="2.5" y="15.3" width="4" height="6.2" rx="1.1" fill="currentColor" />
+        <rect x="7.8" y="12.7" width="4" height="8.8" rx="1.1" fill="currentColor" />
+        <rect x="13.1" y="9.7" width="4" height="11.8" rx="1.1" fill="currentColor" />
+        <path d="m3.4 11 5.1-4.6 3.7 2.8 7.8-6" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16.8 3.1H20v3.2" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="18.5" cy="17.4" r="4.3" fill="currentColor" />
+        <path d="m15.8 15.5 1.05 3.7 1.65-3.7 1.65 3.7 1.05-3.7M15.5 16.75h6M15.8 18h5.4" fill="none" stroke="var(--start-icon-cutout, white)" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
     pension: (
       <>
-        <circle cx="12" cy="7" r="3" />
-        <path d="M6.5 20v-3.5a5.5 5.5 0 0 1 11 0V20M9 14l3 3 3-3" />
+        <circle cx="12" cy="5.5" r="3.5" fill="currentColor" />
+        <path fill="currentColor" d="M8.2 10h7.6a3.5 3.5 0 0 1 3.5 3.5v3.8a1.55 1.55 0 0 1-3.1 0v-3.1h-.8V22h-3.1v-6.1h-.6V22H8.6v-7.8h-.8v3.1a1.55 1.55 0 0 1-3.1 0v-3.8A3.5 3.5 0 0 1 8.2 10Z" />
       </>
     ),
-    shield: (
+    health: (
       <>
-        <path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6z" />
-        <path d="m8.5 12 2.2 2.2 4.8-5" />
+        <path fill="currentColor" d="M12 21.2 4.1 13.8C-.1 9.9 2.1 3 7.5 3A5.6 5.6 0 0 1 12 5.5 5.6 5.6 0 0 1 16.5 3c5.4 0 7.6 6.9 3.4 10.8Z" />
+        <path d="M3.6 12.2h4.1l1.6-3.1 3.1 6.5 2.2-4.2h5.8" fill="none" stroke="var(--start-icon-cutout, white)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
     chart: (
       <>
-        <path d="M4 19h16M6 16v-4m6 4V8m6 8V5" />
-        <path d="m5 9 5-4 4 2 5-4" />
+        <rect x="3" y="15" width="4" height="6" rx="1" fill="currentColor" />
+        <rect x="9.8" y="11.5" width="4" height="9.5" rx="1" fill="currentColor" />
+        <rect x="16.6" y="8" width="4" height="13" rx="1" fill="currentColor" />
+        <path d="m3.8 11.3 5.3-4.6 4.1 2.6 7.2-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.2 3.2h3.3v3.3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
-    archive: (
+    history: (
       <>
-        <path d="M4 7h16v13H4zM3 4h18v3H3z" />
-        <path d="M9 11h6" />
+        <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <path d="M12 7.2v5.2l3.4 2" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
     book: (
       <>
-        <path d="M4 5.5A3.5 3.5 0 0 1 7.5 4H11v15H7.5A3.5 3.5 0 0 0 4 20.5z" />
-        <path d="M20 5.5A3.5 3.5 0 0 0 16.5 4H13v15h3.5a3.5 3.5 0 0 1 3.5 1.5z" />
+        <path d="M3.5 5.7A4.6 4.6 0 0 1 7.7 4h3.1v15.8H7.7a4.6 4.6 0 0 0-4.2 1.7Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20.5 5.7A4.6 4.6 0 0 0 16.3 4h-3.1v15.8h3.1a4.6 4.6 0 0 1 4.2 1.7Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
   }
 
   return (
-    <svg className="start-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {paths[name]}
-      </g>
+    <svg className={`start-icon start-icon-${name}`} viewBox="0 0 24 24" aria-hidden="true">
+      <g>{icons[name]}</g>
     </svg>
   )
 }
@@ -81,7 +88,7 @@ const overviewCards: Array<{
   { icon: 'wallet', label: '생활비', value: '월 지출', copy: '주거·보험·고정비', tone: 'blue' },
   { icon: 'growth', label: '자산 소득', value: '연 배당', copy: '일반계좌·ISA', tone: 'teal' },
   { icon: 'pension', label: '은퇴 소득', value: '연금', copy: '국민·기타연금', tone: 'indigo' },
-  { icon: 'shield', label: '예상 부담', value: '세금·건보', copy: '공개 기준 추정', tone: 'orange' },
+  { icon: 'health', label: '예상 부담', value: '세금·건보', copy: '공개 기준 추정', tone: 'orange' },
 ]
 
 export function StartScreen({
@@ -171,7 +178,7 @@ export function StartScreen({
 
         <div className="start-quick-actions">
           <button type="button" className="start-quick-button" onClick={onOpenLoadSlots}>
-            <StartIcon name="archive" />
+            <StartIcon name="history" />
             <span>저장 불러오기</span>
             <span aria-hidden="true">›</span>
           </button>
