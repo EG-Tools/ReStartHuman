@@ -609,9 +609,10 @@ body.theme-white .start-hero-panel .hero-copy {
 
 .start-overview-icon .start-icon-pension-image {
   display: block;
-  width: 29px;
-  height: 29px;
+  width: 31px;
+  height: 31px;
   object-fit: contain;
+  transform: translate(1px, 1px);
 }
 
 .start-overview-card p,
