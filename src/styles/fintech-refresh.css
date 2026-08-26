@@ -573,7 +573,7 @@ body.theme-white .start-hero-panel .hero-copy {
   place-items: center;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 17px;
   background: #e6f1ff;
   color: #2869b7;
 }
@@ -612,7 +612,7 @@ body.theme-white .start-hero-panel .hero-copy {
   width: 31px;
   height: 31px;
   object-fit: contain;
-  transform: translate(1px, 1px);
+  transform: translateY(1px);
 }
 
 .start-overview-card p,
