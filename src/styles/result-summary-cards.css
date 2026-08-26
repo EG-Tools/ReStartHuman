@@ -21,6 +21,7 @@
   margin-bottom: 0;
   font-size: clamp(1.56rem, 3.6vw, 2.4rem);
   text-align: right;
+  min-width: 0;
 }
 
 .summary-card .summary-value {
@@ -30,6 +31,8 @@
   gap: 0.12em;
   flex-wrap: nowrap;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   white-space: nowrap;
   line-height: 1;
   font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;

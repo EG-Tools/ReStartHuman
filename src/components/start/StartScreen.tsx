@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { BookIcon, ClockIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
 import startHeroDarkImage from '../../assets/retirement-journey-hero-dark-v3.webp'
 import startHeroLightImage from '../../assets/retirement-journey-hero-light-v3.webp'
@@ -13,7 +14,7 @@ interface StartScreenProps {
   themeMode: ThemeMode
 }
 
-type StartIconName = 'wallet' | 'growth' | 'pension' | 'health' | 'chart' | 'history' | 'book'
+type StartIconName = 'wallet' | 'growth' | 'pension' | 'health' | 'chart'
 
 function StartIcon({ name }: { name: StartIconName }) {
   const icons: Record<StartIconName, ReactNode> = {
@@ -55,18 +56,6 @@ function StartIcon({ name }: { name: StartIconName }) {
         <rect x="16.6" y="8" width="4" height="13" rx="1" fill="currentColor" />
         <path d="m3.8 11.3 5.3-4.6 4.1 2.6 7.2-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M17.2 3.2h3.3v3.3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </>
-    ),
-    history: (
-      <>
-        <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
-        <path d="M12 7.2v5.2l3.4 2" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      </>
-    ),
-    book: (
-      <>
-        <path d="M3.5 5.7A4.6 4.6 0 0 1 7.7 4h3.1v15.8H7.7a4.6 4.6 0 0 0-4.2 1.7Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M20.5 5.7A4.6 4.6 0 0 0 16.3 4h-3.1v15.8h3.1a4.6 4.6 0 0 1 4.2 1.7Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
   }
@@ -178,7 +167,7 @@ export function StartScreen({
 
         <div className="start-quick-actions">
           <button type="button" className="start-quick-button" onClick={onOpenLoadSlots}>
-            <StartIcon name="history" />
+            <ClockIcon className="start-icon" />
             <span>저장 불러오기</span>
             <span aria-hidden="true">›</span>
           </button>
@@ -189,7 +178,7 @@ export function StartScreen({
             aria-controls="start-help"
             onClick={() => setIsHelpVisible((isVisible) => !isVisible)}
           >
-            <StartIcon name="book" />
+            <BookIcon className="start-icon" />
             <span>이용 안내</span>
             <span aria-hidden="true">{isHelpVisible ? '⌄' : '›'}</span>
           </button>
@@ -198,7 +187,7 @@ export function StartScreen({
         {isHelpVisible ? (
           <section id="start-help" className="help-drawer note-panel start-help-drawer" aria-labelledby="start-help-title">
             <div className="help-drawer-toggle">
-              <span id="start-help-title" className="start-help-title"><StartIcon name="book" /> 알아두면 좋은 내용</span>
+              <span id="start-help-title" className="start-help-title"><BookIcon className="start-icon" /> 알아두면 좋은 내용</span>
               <button
                 type="button"
                 className="help-drawer-toggle-copy start-help-close"

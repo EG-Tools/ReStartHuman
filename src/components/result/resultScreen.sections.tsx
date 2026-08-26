@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
   formatCompactCurrency,
@@ -71,6 +71,74 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   ]
 }
 
+const SUMMARY_VALUE_MIN_FONT_SIZE = 16
+const SUMMARY_VALUE_FIT_MARGIN = 4
+
+function AutoFitSummaryValue({
+  value,
+  chunks,
+}: {
+  value: string
+  chunks: SummaryValueChunk[]
+}) {
+  const valueRef = useRef<HTMLSpanElement>(null)
+
+  useLayoutEffect(() => {
+    const valueElement = valueRef.current
+
+    if (!valueElement) {
+      return undefined
+    }
+
+    let animationFrame = 0
+
+    const fitValue = () => {
+      cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(() => {
+        valueElement.style.removeProperty('font-size')
+
+        const availableWidth = valueElement.clientWidth - SUMMARY_VALUE_FIT_MARGIN
+        const requiredWidth = valueElement.scrollWidth
+
+        if (availableWidth <= 0 || requiredWidth <= availableWidth) {
+          return
+        }
+
+        const naturalFontSize = Number.parseFloat(getComputedStyle(valueElement).fontSize)
+        const fittedFontSize = Math.max(
+          SUMMARY_VALUE_MIN_FONT_SIZE,
+          naturalFontSize * (availableWidth / requiredWidth),
+        )
+
+        valueElement.style.fontSize = `${fittedFontSize}px`
+      })
+    }
+
+    const resizeObserver = new ResizeObserver(fitValue)
+    resizeObserver.observe(valueElement)
+    fitValue()
+    void document.fonts?.ready.then(fitValue)
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      resizeObserver.disconnect()
+    }
+  }, [value])
+
+  return (
+    <span ref={valueRef} className="summary-value">
+      {chunks.map((chunk) => (
+        <span key={chunk.key} className="summary-value-chunk">
+          <span className="summary-value-number">{chunk.numberText}</span>
+          {chunk.unitText ? (
+            <span className="summary-value-unit">{chunk.unitText}</span>
+          ) : null}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 export const SummaryCards = memo(function SummaryCards({
   result,
   projectionYears,
@@ -110,16 +178,7 @@ export const SummaryCards = memo(function SummaryCards({
           <article key={card.label} className={`summary-card tone-${card.tone}`}>
             <p>{card.label}</p>
             <h2 className="summary-value-heading">
-              <span className="summary-value">
-                {chunks.map((chunk) => (
-                  <span key={chunk.key} className="summary-value-chunk">
-                    <span className="summary-value-number">{chunk.numberText}</span>
-                    {chunk.unitText ? (
-                      <span className="summary-value-unit">{chunk.unitText}</span>
-                    ) : null}
-                  </span>
-                ))}
-              </span>
+              <AutoFitSummaryValue value={card.value} chunks={chunks} />
             </h2>
           </article>
         )

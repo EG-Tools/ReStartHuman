@@ -1,3 +1,4 @@
+import { BookIcon } from '../common/AppIcons'
 import { policyConfig } from '../../config/policyConfig'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { InlineNumericField } from '../common/Ui'
@@ -93,12 +94,7 @@ export const ResultHelpDrawer = memo(function ResultHelpDrawer({ policyStatus }:
     <details className="help-drawer result-panel result-help-drawer">
       <summary className="help-drawer-toggle">
         <span className="result-help-title">
-          <svg className="result-help-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 5.5A3.5 3.5 0 0 1 7.5 4H11v15H7.5A3.5 3.5 0 0 0 4 20.5z" />
-              <path d="M20 5.5A3.5 3.5 0 0 0 16.5 4H13v15h3.5a3.5 3.5 0 0 1 3.5 1.5z" />
-            </g>
-          </svg>
+          <BookIcon className="result-help-icon" />
           이용 안내
         </span>
         <span className="result-help-chevron" aria-hidden="true" />

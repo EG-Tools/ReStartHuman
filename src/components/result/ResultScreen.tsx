@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { ClockIcon, HomeIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import {
@@ -28,43 +29,29 @@ interface RecentAdviceState {
   previousFormData: AlphaFormData
 }
 
-type ResultActionIconName = 'home' | 'edit' | 'save' | 'share'
+type ResultActionIconName = 'edit' | 'share'
 
 function ResultActionIcon({ name }: { name: ResultActionIconName }) {
-  const paths: Record<ResultActionIconName, ReactNode> = {
-    home: (
-      <>
-        <path d="m3.5 11.5 8.5-7 8.5 7" />
-        <path d="M5.5 10v10h13V10M10 20v-6h4v6" />
-      </>
-    ),
+  const icons: Record<ResultActionIconName, ReactNode> = {
     edit: (
       <>
-        <path d="m4 20 4.2-1 10.5-10.5a2.1 2.1 0 0 0-3-3L5.2 16z" />
-        <path d="m13.8 7.4 3 3M4 20h5" />
-      </>
-    ),
-    save: (
-      <>
-        <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H17l3 3v15H4z" />
-        <path d="M8 3v6h8V3M8 21v-7h8v7" />
+        <path d="m4 20 4.2-1 10.5-10.5a2.1 2.1 0 0 0-3-3L5.2 16Z" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="m13.8 7.4 3 3M4 20h5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
     share: (
       <>
-        <circle cx="6" cy="12" r="2.5" />
-        <circle cx="18" cy="6" r="2.5" />
-        <circle cx="18" cy="18" r="2.5" />
-        <path d="m8.2 10.9 7.6-3.8M8.2 13.1l7.6 3.8" />
+        <circle cx="6" cy="12" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <circle cx="18" cy="6" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <circle cx="18" cy="18" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <path d="m8.2 10.9 7.6-3.8M8.2 13.1l7.6 3.8" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
   }
 
   return (
-    <svg className="result-action-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {paths[name]}
-      </g>
+    <svg className={`result-action-icon result-action-icon-${name}`} viewBox="0 0 24 24" aria-hidden="true">
+      <g>{icons[name]}</g>
     </svg>
   )
 }
@@ -341,7 +328,9 @@ export const ResultScreen = memo(function ResultScreen({
 
       <div className="footer-actions footer-actions-wrap result-actions">
         <PrimaryButton variant="ghost" onClick={onStartOver}>
-          <ResultActionIcon name="home" />
+          <span className="result-action-icon result-action-home-icon" aria-hidden="true">
+            <HomeIcon />
+          </span>
           <span>{'\uCC98\uC74C\uC73C\uB85C'}</span>
         </PrimaryButton>
         <PrimaryButton variant="secondary" onClick={onEditAnswers}>
@@ -349,7 +338,7 @@ export const ResultScreen = memo(function ResultScreen({
           <span>{'\uC218\uC815'}</span>
         </PrimaryButton>
         <PrimaryButton onClick={onOpenSaveSlots}>
-          <ResultActionIcon name="save" />
+          <ClockIcon className="result-action-icon" />
           <span>{'\uC800\uC7A5'}</span>
         </PrimaryButton>
         <PrimaryButton onClick={handleShareImage} disabled={exportState !== 'idle'}>

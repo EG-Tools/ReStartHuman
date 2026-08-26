@@ -1,13 +1,7 @@
+import { HomeIcon } from './AppIcons'
+
 interface AppHomeButtonProps {
   onClick: () => void
-}
-
-function HomeIcon() {
-  return (
-    <span aria-hidden="true" className="css-home-icon">
-      <span />
-    </span>
-  )
 }
 
 export function AppHomeButton({ onClick }: AppHomeButtonProps) {
