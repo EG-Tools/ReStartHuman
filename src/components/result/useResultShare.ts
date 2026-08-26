@@ -86,7 +86,7 @@ export function useResultShare({ captureRef }: UseResultShareOptions) {
         navigator.canShare({ files: [file] })
       ) {
         await navigator.share({
-          title: 'Re Start Human 결과',
+          title: 'ReStart Human 결과',
           files: [file],
         })
         setExportMessage('결과 이미지를 공유했습니다.')
@@ -95,7 +95,7 @@ export function useResultShare({ captureRef }: UseResultShareOptions) {
 
       if (navigator.share) {
         await navigator.share({
-          title: 'Re Start Human 결과',
+          title: 'ReStart Human 결과',
           text: '결과 화면 이미지를 저장하거나 전송할 수 있습니다.',
           url: window.location.href,
         })

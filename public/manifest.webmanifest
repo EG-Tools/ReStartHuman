@@ -1,6 +1,6 @@
 {
-  "name": "Re Start Human",
-  "short_name": "Re Start Human",
+  "name": "ReStart Human",
+  "short_name": "ReStart Human",
   "description": "배당, 종합소득세, 건강보험료, 지출을 함께 보는 은퇴 현금흐름 계산기",
   "lang": "ko-KR",
   "start_url": "./",
