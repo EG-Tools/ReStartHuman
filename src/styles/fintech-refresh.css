@@ -643,9 +643,11 @@ body.theme-white .start-hero-panel .hero-copy {
 }
 
 .start-primary-cta {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 12px;
   width: 100%;
   min-height: 72px;
   padding: 0 24px;
@@ -659,6 +661,8 @@ body.theme-white .start-hero-panel .hero-copy {
 }
 
 .start-cta-arrow {
+  position: absolute;
+  right: 24px;
   font-size: 2.3rem;
   font-weight: 350;
   line-height: 1;
