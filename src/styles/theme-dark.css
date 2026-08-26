@@ -501,12 +501,6 @@ body {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.result-actions .button-ghost .result-action-icon,
-.result-actions .button-secondary .result-action-icon {
-  color: #a6d4ff;
-}
-
-
 .slot-mode-button.is-active {
   background: linear-gradient(135deg, #173f44, #123237);
   color: #eefbfc;

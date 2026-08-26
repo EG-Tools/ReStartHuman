@@ -134,17 +134,13 @@
   height: 22px;
   padding: 0;
   flex: 0 0 auto;
+  color: inherit;
   opacity: 1;
 }
 
 .result-action-home-icon .css-home-icon {
   width: 18px;
   height: 18px;
-}
-
-.result-actions .button-ghost .result-action-icon,
-.result-actions .button-secondary .result-action-icon {
-  color: #0b4f91;
 }
 
 @media (max-width: 900px) {
