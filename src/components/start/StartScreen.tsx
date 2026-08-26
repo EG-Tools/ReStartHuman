@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { BookIcon, ClockIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
-import pensionPersonCaneImage from '../../assets/pension-person-cane-6.png'
+import pensionSupportWonImage from '../../assets/pension-support-won.png'
 import startHeroDarkImage from '../../assets/retirement-journey-hero-dark-v3.webp'
 import startHeroLightImage from '../../assets/retirement-journey-hero-light-v3.webp'
 import { APP_COMPANY, APP_CONTACT_EMAIL, APP_VERSION } from '../../config/appMeta'
@@ -23,7 +23,7 @@ function StartIcon({ name }: { name: StartIconName }) {
     return (
       <img
         className="start-icon start-icon-pension-image"
-        src={pensionPersonCaneImage}
+        src={pensionSupportWonImage}
         alt=""
         aria-hidden="true"
       />
