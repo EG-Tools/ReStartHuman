@@ -71,7 +71,6 @@ const splitSummaryValueChunks = (value: string): SummaryValueChunk[] => {
   ]
 }
 
-const SUMMARY_VALUE_MIN_FONT_SIZE = 16
 const SUMMARY_VALUE_FIT_MARGIN = 4
 
 function AutoFitSummaryValue({
@@ -97,18 +96,16 @@ function AutoFitSummaryValue({
       animationFrame = requestAnimationFrame(() => {
         valueElement.style.removeProperty('font-size')
 
+        const contentElement = valueElement.firstElementChild as HTMLElement | null
         const availableWidth = valueElement.clientWidth - SUMMARY_VALUE_FIT_MARGIN
-        const requiredWidth = valueElement.scrollWidth
+        const requiredWidth = contentElement?.scrollWidth ?? 0
 
         if (availableWidth <= 0 || requiredWidth <= availableWidth) {
           return
         }
 
         const naturalFontSize = Number.parseFloat(getComputedStyle(valueElement).fontSize)
-        const fittedFontSize = Math.max(
-          SUMMARY_VALUE_MIN_FONT_SIZE,
-          naturalFontSize * (availableWidth / requiredWidth),
-        )
+        const fittedFontSize = naturalFontSize * (availableWidth / requiredWidth)
 
         valueElement.style.fontSize = `${fittedFontSize}px`
       })
@@ -127,14 +124,19 @@ function AutoFitSummaryValue({
 
   return (
     <span ref={valueRef} className="summary-value">
-      {chunks.map((chunk) => (
-        <span key={chunk.key} className="summary-value-chunk">
-          <span className="summary-value-number">{chunk.numberText}</span>
-          {chunk.unitText ? (
-            <span className="summary-value-unit">{chunk.unitText}</span>
-          ) : null}
-        </span>
-      ))}
+      <span className="summary-value-content">
+        {chunks.map((chunk) => (
+          <span
+            key={chunk.key}
+            className={`summary-value-chunk summary-value-chunk-${chunk.key}`}
+          >
+            <span className="summary-value-number">{chunk.numberText}</span>
+            {chunk.unitText ? (
+              <span className="summary-value-unit">{chunk.unitText}</span>
+            ) : null}
+          </span>
+        ))}
+      </span>
     </span>
   )
 }

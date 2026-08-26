@@ -25,11 +25,9 @@
 }
 
 .summary-card .summary-value {
-  display: inline-flex;
+  display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 0.12em;
-  flex-wrap: nowrap;
   width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -38,6 +36,16 @@
   font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
+}
+
+.summary-card .summary-value-content {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.12em;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .summary-card .summary-value-chunk {
@@ -50,6 +58,11 @@
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
+}
+
+.summary-card .summary-value-chunk-secondary {
+  margin-left: 0.04em;
+  font-size: 0.62em;
 }
 
 .summary-card .summary-value-number {
