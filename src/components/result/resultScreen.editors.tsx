@@ -240,20 +240,31 @@ function FixedExpenseEditor({
 }
 
 function LivingExpenseEditor({
+  accessMode,
   formData,
   onPatchFormData,
 }: {
+  accessMode: AppAccessMode
   formData: AlphaFormData
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
-  const totalValue = getLivingCostSnapshot(formData)
+  const isGeneralMode = accessMode === 'general'
+  const totalValue = isGeneralMode
+    ? (formData.generalLivingExpenseMonthly ?? getLivingCostSnapshot(formData))
+    : getLivingCostSnapshot(formData)
 
-  if (formData.livingCostInputMode === 'total') {
+  if (isGeneralMode || formData.livingCostInputMode === 'total') {
     return (
       <InlineAmountInput
         label="월 생활비"
         value={totalValue}
-        onChange={(value) => onPatchFormData({ livingCostMonthlyTotal: value })}
+        onChange={(value) =>
+          onPatchFormData(
+            isGeneralMode
+              ? { generalLivingExpenseMonthly: value }
+              : { livingCostMonthlyTotal: value },
+          )
+        }
       />
     )
   }
@@ -916,7 +927,13 @@ export function buildResultRows({
     {
       category: '지출',
       item: '생활비',
-      input: <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />,
+      input: (
+        <LivingExpenseEditor
+          accessMode={accessMode}
+          formData={formData}
+          onPatchFormData={onPatchFormData}
+        />
+      ),
       monthly: formatCompactCurrency(result.livingExpenseMonthly),
       annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
       tenYear: formatCompactCurrency(result.projectionLivingExpenseTotal),

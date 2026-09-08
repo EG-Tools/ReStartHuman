@@ -1867,10 +1867,11 @@ export function renderQuestionContent({
               <QuestionNumberFields
                 fields={[
                   {
-                    key: 'livingCostMonthlyTotal',
+                    key: 'generalLivingExpenseMonthly',
                     label: '\uC6D4 \uC0DD\uD65C\uBE44 \uCD1D\uC561',
-                    value: formData.livingCostMonthlyTotal,
-                    onChange: (value) => update('livingCostMonthlyTotal', value),
+                    value:
+                      formData.generalLivingExpenseMonthly ?? formData.livingCostMonthlyTotal,
+                    onChange: (value) => update('generalLivingExpenseMonthly', value),
                   },
                 ]}
               />

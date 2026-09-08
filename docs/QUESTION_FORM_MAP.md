@@ -136,6 +136,7 @@ Behavior notes:
 Main fields:
 - `livingCostInputMode`
 - `livingCostMonthlyTotal`
+- `generalLivingExpenseMonthly` (general-mode total override; `null` means derive from the active pro input, while `0` is an explicit zero)
 - `foodMonthly`
 - `necessitiesMonthly`
 - `diningOutMonthly`

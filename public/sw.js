@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'restarthuman-alpha-'
-const CACHE_NAME = `${CACHE_PREFIX}v79`
+const CACHE_NAME = `${CACHE_PREFIX}v80`
 const toScopedUrl = (path) => new URL(path, self.registration.scope).toString()
 const APP_SHELL = [
   toScopedUrl('./'),

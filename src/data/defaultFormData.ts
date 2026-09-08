@@ -97,6 +97,7 @@ export const defaultFormData: AlphaFormData = {
 
   livingCostInputMode: 'total',
   livingCostMonthlyTotal: 0,
+  generalLivingExpenseMonthly: null,
   foodMonthly: 0,
   necessitiesMonthly: 0,
   diningOutMonthly: 0,

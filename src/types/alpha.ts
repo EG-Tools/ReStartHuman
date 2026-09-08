@@ -140,6 +140,7 @@ export interface AlphaFormData {
 
   livingCostInputMode: 'total' | 'detailed'
   livingCostMonthlyTotal: number
+  generalLivingExpenseMonthly: number | null
   foodMonthly: number
   necessitiesMonthly: number
   diningOutMonthly: number

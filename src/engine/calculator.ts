@@ -157,6 +157,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
     otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),
     generalFixedExpenseMonthly: sanitizeOptionalMoney(formData.generalFixedExpenseMonthly),
     livingCostMonthlyTotal: sanitizeMoney(formData.livingCostMonthlyTotal),
+    generalLivingExpenseMonthly: sanitizeOptionalMoney(formData.generalLivingExpenseMonthly),
     foodMonthly: sanitizeMoney(formData.foodMonthly),
     necessitiesMonthly: sanitizeMoney(formData.necessitiesMonthly),
     diningOutMonthly: sanitizeMoney(formData.diningOutMonthly),

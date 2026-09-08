@@ -14,10 +14,14 @@ const toSafeMoney = (value: number | undefined) => {
 }
 
 const deriveGeneralLivingCostTotal = (formData: AlphaFormData) => {
-  const explicitTotal = toSafeMoney(formData.livingCostMonthlyTotal)
+  const explicitTotal = formData.generalLivingExpenseMonthly
 
-  if (explicitTotal > 0) {
-    return explicitTotal
+  if (explicitTotal !== null && Number.isFinite(explicitTotal)) {
+    return toSafeMoney(explicitTotal)
+  }
+
+  if (formData.livingCostInputMode === 'total') {
+    return toSafeMoney(formData.livingCostMonthlyTotal)
   }
 
   return (
@@ -134,6 +138,7 @@ export const getAccessModeFormData = (
     generalFixedExpenseMonthly,
     otherFixedMonthly: generalFixedExpenseMonthly,
     livingCostInputMode: 'total',
+    generalLivingExpenseMonthly: generalLivingCostTotal,
     livingCostMonthlyTotal: generalLivingCostTotal,
     foodMonthly: 0,
     necessitiesMonthly: 0,

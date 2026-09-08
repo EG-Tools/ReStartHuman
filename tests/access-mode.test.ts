@@ -107,6 +107,29 @@ test('general access mode keeps detailed fixed expenses separate from its total 
   assert.equal(sourceData.otherFixedMonthly, 50_000)
 })
 
+test('general access mode distinguishes an explicit zero living expense from no override', () => {
+  const sourceData = {
+    ...defaultFormData,
+    livingCostInputMode: 'detailed' as const,
+    foodMonthly: 500_000,
+    necessitiesMonthly: 200_000,
+    diningOutMonthly: 100_000,
+  }
+  const derivedGeneralData = getAccessModeFormData(sourceData, 'general')
+  const explicitlyClearedGeneralData = getAccessModeFormData(
+    { ...sourceData, generalLivingExpenseMonthly: 0 },
+    'general',
+  )
+
+  assert.equal(derivedGeneralData.generalLivingExpenseMonthly, 800_000)
+  assert.equal(derivedGeneralData.livingCostMonthlyTotal, 800_000)
+  assert.equal(explicitlyClearedGeneralData.generalLivingExpenseMonthly, 0)
+  assert.equal(explicitlyClearedGeneralData.livingCostMonthlyTotal, 0)
+  assert.equal(sourceData.foodMonthly, 500_000)
+  assert.equal(sourceData.necessitiesMonthly, 200_000)
+  assert.equal(sourceData.diningOutMonthly, 100_000)
+})
+
 test('general access mode hides pro-only question steps', () => {
   const generalQuestionIds = questionFlow
     .filter((question) => question.visibility(defaultFormData, 'general'))
