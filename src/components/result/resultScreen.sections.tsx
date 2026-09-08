@@ -216,6 +216,8 @@ const CASHFLOW_TEXT = {
   isaShort: 'ISA',
   healthInsuranceReflect: '\uAC74\uBCF4 \uBC18\uC601',
   healthInsuranceShort: '\uAC74\uBCF4',
+  healthInsuranceRetirement: '퇴직 후 지역 전환',
+  healthInsuranceRetirementShort: '건보 전환',
   insuranceEnd: '\uBCF4\uD5D8 \uC885\uB8CC',
   insuranceShort: '\uBCF4\uD5D8',
   heroEyebrowSuffix: '\uB144 \uD604\uAE08\uD750\uB984 \uC608\uC0C1',
@@ -400,6 +402,24 @@ export const CashFlowChart = memo(function CashFlowChart({
             shortLabel: CASHFLOW_TEXT.healthInsuranceShort,
             detail: formatCashFlowEventDetail(currentAge, 1),
             yearOffset: 1,
+            tone: 'insurance' as const,
+          },
+        ]
+      : []),
+    ...(result.healthInsuranceSource === 'estimated' &&
+    result.healthInsuranceRetirementTransitionYear !== null &&
+    result.healthInsuranceRetirementTransitionYear > 0 &&
+    result.healthInsuranceRetirementTransitionYear <= totalYears
+      ? [
+          {
+            key: 'health-insurance-retirement',
+            label: CASHFLOW_TEXT.healthInsuranceRetirement,
+            shortLabel: CASHFLOW_TEXT.healthInsuranceRetirementShort,
+            detail: formatCashFlowEventDetail(
+              currentAge,
+              result.healthInsuranceRetirementTransitionYear,
+            ),
+            yearOffset: result.healthInsuranceRetirementTransitionYear,
             tone: 'insurance' as const,
           },
         ]

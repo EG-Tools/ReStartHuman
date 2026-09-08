@@ -376,6 +376,7 @@ export const calculateIsaTax = ({
 export const calculateComprehensiveTax = (
   ownershipBreakdown: AccountOwnershipBreakdown[],
   cashInterestOwnershipBreakdown: AccountOwnershipBreakdown[] = [],
+  otherComprehensiveTaxBaseAnnual = 0,
 ): ComprehensiveTaxCalculation => {
   const thresholdAnnual = policyConfig.comprehensiveIncomeTax.financialIncomeThresholdAnnual
   const financialIncomeByPerson = new Map<
@@ -416,6 +417,8 @@ export const calculateComprehensiveTax = (
     const attributedFinancialIncomeAnnual = roundCurrency(item.attributedAnnual)
     const withheldTaxAnnual = roundCurrency(item.withheldTaxAnnual)
     const exceedsThreshold = attributedFinancialIncomeAnnual > thresholdAnnual
+    const attributedOtherTaxBaseAnnual =
+      item.personKey === 'mine' ? roundCurrency(Math.max(otherComprehensiveTaxBaseAnnual, 0)) : 0
 
     if (!exceedsThreshold) {
       return {
@@ -431,14 +434,25 @@ export const calculateComprehensiveTax = (
     }
 
     const excessAnnual = Math.max(attributedFinancialIncomeAnnual - thresholdAnnual, 0)
-    const comparisonIncomeTaxAnnual =
+    const comprehensiveComparisonIncomeTaxAnnual =
       thresholdAnnual * policyConfig.dividendWithholding.incomeTaxRate +
-      calculateProgressiveIncomeTax(excessAnnual)
-    const withholdingEquivalentIncomeTaxAnnual =
-      attributedFinancialIncomeAnnual * policyConfig.dividendWithholding.incomeTaxRate
-    const finalTaxAnnual = roundCurrency(
-      Math.max(comparisonIncomeTaxAnnual, withholdingEquivalentIncomeTaxAnnual) *
+      calculateProgressiveIncomeTax(attributedOtherTaxBaseAnnual + excessAnnual)
+    const withholdingComparisonIncomeTaxAnnual =
+      attributedFinancialIncomeAnnual * policyConfig.dividendWithholding.incomeTaxRate +
+      calculateProgressiveIncomeTax(attributedOtherTaxBaseAnnual)
+    const combinedTaxAnnual = roundCurrency(
+      Math.max(
+        comprehensiveComparisonIncomeTaxAnnual,
+        withholdingComparisonIncomeTaxAnnual,
+      ) *
         (1 + policyConfig.comprehensiveIncomeTax.localIncomeTaxMultiplier),
+    )
+    const standaloneOtherIncomeTaxAnnual = roundCurrency(
+      calculateProgressiveIncomeTax(attributedOtherTaxBaseAnnual) *
+        (1 + policyConfig.comprehensiveIncomeTax.localIncomeTaxMultiplier),
+    )
+    const finalTaxAnnual = roundCurrency(
+      Math.max(combinedTaxAnnual - standaloneOtherIncomeTaxAnnual, withheldTaxAnnual),
     )
 
     return {
@@ -525,7 +539,7 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
 
   if (totalFinancialIncomeAnnual > financialThresholdAnnual) {
     reasons.push(
-      `금융소득이 연 ${formatCompactCurrency(totalFinancialIncomeAnnual)}로 2,000만원 기준을 넘어 종합과세 검토가 필요합니다.`,
+      `금융소득이 연 ${formatCompactCurrency(totalFinancialIncomeAnnual)}로 2,000만원 기준을 넘어 다른 종합소득과 합산한 비교세액을 반영했습니다.`,
     )
   }
 

@@ -384,9 +384,17 @@ export function buildResultRows({
   const hasProjectedHealthInsuranceShift =
     result.healthInsuranceSource === 'estimated' &&
     reflectedHealthInsuranceMonthly !== result.healthInsuranceMonthly
+  const hasHealthInsuranceRetirementTransition =
+    result.healthInsuranceSource === 'estimated' &&
+    result.healthInsuranceRetirementTransitionYear !== null &&
+    result.healthInsuranceRetirementTransitionYear <= formData.simulationYears
+  const retirementHealthInsuranceLabel =
+    formData.householdType === 'couple' ? '부부 모두 지역가입자' : '지역가입자'
   const healthInsuranceNote =
     result.healthInsuranceSource === 'manual'
       ? '\uC218\uB3D9 \uC785\uB825 \uC801\uC6A9'
+      : hasHealthInsuranceRetirementTransition
+        ? '추정 · 퇴직 후 지역 전환'
       : hasProjectedHealthInsuranceShift
         ? '\uC6D4 \uAE30\uC900 \uD604\uC7AC / 1\uB144\u00B7\uADF8\uB798\uD504 \uB2E4\uC74C \uBC18\uC601'
         : result.healthInsuranceReviewLevel === 'high'
@@ -400,10 +408,14 @@ export function buildResultRows({
       : hasProjectedHealthInsuranceShift
         ? `\uC6D4 \uAE30\uC900\uC740 \uD604\uC7AC \uAE30\uC900 ${formatCompactCurrency(result.healthInsuranceMonthly)}\uC744, 1\uB144 \uACB0\uACFC\uC640 \uADF8\uB798\uD504\uB294 \uB2E4\uC74C \uBC18\uC601 \uAE30\uC900 ${formatCompactCurrency(reflectedHealthInsuranceMonthly)}\uC744 \uC801\uC6A9\uD588\uC2B5\uB2C8\uB2E4.`
         : ''
+  const healthInsuranceRetirementSummary = hasHealthInsuranceRetirementTransition
+    ? `근로 기간 ${result.healthInsuranceRetirementTransitionYear}년이 끝난 뒤 만 ${result.healthInsuranceRetirementTransitionAge}세부터 ${retirementHealthInsuranceLabel} 기준으로 자동 전환해 계산했습니다.`
+    : ''
   const healthInsuranceNoteDetail = [
     policyConfig.healthInsurance.approximationNotice,
     result.healthInsuranceReviewLevel === 'none' ? '' : healthInsuranceReviewSummary,
     healthInsuranceProjectionSummary,
+    healthInsuranceRetirementSummary,
     businessHealthInsuranceSummary,
   ]
     .filter(Boolean)
@@ -536,7 +548,7 @@ export function buildResultRows({
           : EMPTY_CELL,
       tenYear:
         formData.housingType === 'monthlyRent'
-          ? formatCompactCurrency(result.housingMonthlyCost * 12 * formData.simulationYears)
+          ? formatCompactCurrency(result.projectionHousingExpenseTotal)
           : EMPTY_CELL,
       note: housingRowNote,
       noteDetail:
@@ -759,7 +771,7 @@ export function buildResultRows({
                   : estimatedComprehensiveTaxStartsLater
                     ? '추정 · 향후 시작 소득 반영'
                     : '추정 · 근로·사업 등',
-            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·법인대표 급여·사업소득·프리랜서·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세와 금융소득 종합과세 추가세액은 아래 별도 행으로 분리했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
+            noteDetail: `${estimatedComprehensiveTaxSourceSummary || '국민연금·근로소득·법인대표 급여·사업소득·프리랜서·기타소득'} 기준으로 추정했습니다. 근로소득공제, 국민연금 연금소득공제, 기타소득 필요경비 60%와 소득금액 300만원 기준, 본인 기본공제 150만원을 반영했습니다.${estimatedComprehensiveTaxReviewSummary ? ` ${estimatedComprehensiveTaxReviewSummary}` : ''}${result.rentalSeparateTaxationOption ? ' 주택임대소득 2천만원 이하 구간은 분리과세 선택 가능성을 함께 봤습니다.' : ''} 임대소득세는 별도 계산하고, 금융소득 종합과세는 이 과세표준과 합산해 계산한 추가세액만 아래 별도 행에 표시했습니다.${estimatedComprehensiveTaxStartsLater ? ' 현재는 시작 나이 전이거나 반영 기간 밖이라 0원이지만, 향후 기간에는 자동 반영합니다.' : ''}`,
           },
           {
             category: '세금',
@@ -867,17 +879,12 @@ export function buildResultRows({
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
       tenYear: formatCompactCurrency(
-        (formData.maintenanceMonthly + formData.telecomMonthly + formData.otherFixedMonthly) *
-          12 *
-          formData.simulationYears +
-          formData.insuranceMonthly *
-            12 *
-            Math.min(formData.insurancePaymentYears, formData.simulationYears),
+        result.projectionFixedExpenseTotal,
       ),
       note:
         formData.insuranceMonthly > 0 && formData.insurancePaymentYears > 0
-          ? `차량비 제외 · 보험료 ${Math.min(formData.insurancePaymentYears, formData.simulationYears)}년 반영`
-          : '차량비 제외',
+          ? `차량비 제외 · 보험료 ${Math.min(formData.insurancePaymentYears, formData.simulationYears)}년${formData.inflationEnabled ? ' · 물가 반영' : ''}`
+          : `차량비 제외${formData.inflationEnabled ? ' · 물가 반영' : ''}`,
       noteDetail:
         formData.insuranceMonthly > 0 && formData.insurancePaymentYears > 0
           ? `보험료 ${formatCompactCurrency(formData.insuranceMonthly)}는 앞으로 ${Math.min(formData.insurancePaymentYears, formData.simulationYears)}년 동안만 반영합니다.`
@@ -889,11 +896,11 @@ export function buildResultRows({
       input: <LivingExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />,
       monthly: formatCompactCurrency(result.livingExpenseMonthly),
       annual: formatCompactCurrency(result.livingExpenseMonthly * 12),
-      tenYear: formatCompactCurrency(result.livingExpenseMonthly * 12 * formData.simulationYears),
+      tenYear: formatCompactCurrency(result.projectionLivingExpenseTotal),
       note:
         formData.livingCostInputMode === 'detailed'
-          ? '상세 항목 합산'
-          : '총액 입력',
+          ? `상세 항목 합산${formData.inflationEnabled ? ' · 물가 반영' : ''}`
+          : `총액 입력${formData.inflationEnabled ? ' · 물가 반영' : ''}`,
     },
   )
 
@@ -910,8 +917,8 @@ export function buildResultRows({
       ),
       monthly: formatCompactCurrency(academyMonthly),
       annual: formatCompactCurrency(academyMonthly * 12),
-      tenYear: formatCompactCurrency(academyMonthly * 12 * formData.simulationYears),
-      note: '상세 생활비 포함',
+      tenYear: formatCompactCurrency(result.projectionAcademyExpenseTotal),
+      note: `상세 생활비 포함${formData.inflationEnabled ? ' · 물가 반영' : ''}`,
       noteDetail: '자녀가 있을 때만 생활비 상세 항목으로 별도 표기합니다.',
     })
   }
@@ -929,8 +936,8 @@ export function buildResultRows({
       ),
       monthly: formatCompactCurrency(result.carMonthlyConverted),
       annual: formatCompactCurrency(formData.carYearlyCost),
-      tenYear: formatCompactCurrency(formData.carYearlyCost * formData.simulationYears),
-      note: '연간 비용 ÷ 12',
+      tenYear: formatCompactCurrency(result.projectionCarExpenseTotal),
+      note: `연간 비용 ÷ 12${formData.inflationEnabled ? ' · 물가 반영' : ''}`,
       noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
     })
   }
@@ -948,11 +955,7 @@ export function buildResultRows({
       ),
       monthly: formatCompactCurrency(formData.loanInterestMonthly),
       annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
-      tenYear: formatCompactCurrency(
-        formData.loanInterestMonthly *
-          12 *
-          Math.min(formData.loanInterestYears, formData.simulationYears),
-      ),
+      tenYear: formatCompactCurrency(result.projectionLoanInterestTotal),
       note:
         formData.loanInterestMonthly > 0 && formData.loanInterestYears > 0
           ? `${Math.min(formData.loanInterestYears, formData.simulationYears)}년치 반영`

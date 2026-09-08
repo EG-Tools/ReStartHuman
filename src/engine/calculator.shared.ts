@@ -46,6 +46,12 @@ export interface CashProjection {
   cumulativeFinancialComprehensiveTax: number
   cumulativeIsaDividend: number
   cumulativeIsaPrincipalWithdrawal: number
+  cumulativeHousingExpense: number
+  cumulativeFixedExpense: number
+  cumulativeLivingExpense: number
+  cumulativeAcademyExpense: number
+  cumulativeCarExpense: number
+  cumulativeLoanInterest: number
   isaRemainingPrincipalWithdrawalAllowance: number
   minimumBalance: number
   firstDepletionYear: number | null

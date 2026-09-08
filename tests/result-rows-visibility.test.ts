@@ -92,6 +92,31 @@ test('ISA row stops projected dividends after the principal allowance is exhaust
   assert.equal(isaRow?.tenYear, formatCompactCurrency(result.projectionIsaDividendTotal))
 })
 
+test('result table uses the same inflation-adjusted living cost total as the cash projection', () => {
+  const formData = {
+    ...defaultFormData,
+    simulationYears: 30,
+    inflationEnabled: true,
+    inflationRateAnnual: 0.02,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    healthInsuranceOverrideMonthly: 0,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 1_000_000,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  }
+  const result = calculateAlphaScenario(formData)
+  const rows = buildRows(formData)
+  const livingCostRow = rows.find((row) => row.item === '생활비')
+
+  assert.equal(result.projectionLivingExpenseTotal, 486_816_951)
+  assert.equal(livingCostRow?.tenYear, formatCompactCurrency(result.projectionLivingExpenseTotal))
+  assert.match(String(livingCostRow?.note), /물가 반영/)
+})
+
 test('vehicle rows stay hidden when there is no car input', () => {
   const rows = buildRows({
     ...defaultFormData,

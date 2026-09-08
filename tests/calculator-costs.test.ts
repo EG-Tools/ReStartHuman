@@ -219,6 +219,43 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
   assert.equal(projection.endingBalance, 26_400_000)
 })
 
+test('보험료 납입기간 0년은 기본 10년으로 바꾸지 않고 즉시 종료로 처리한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    simulationYears: 10,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    healthInsuranceOverrideMonthly: 0,
+    insuranceMonthly: 100_000,
+    insurancePaymentYears: 0,
+  })
+
+  assert.equal(result.projectionFixedExpenseTotal, 0)
+  assert.equal(result.cashBalanceAfterTenYears, 0)
+})
+
+test('결과표용 누적 생활비는 그래프와 같은 물가상승률을 적용한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    simulationYears: 30,
+    inflationEnabled: true,
+    inflationRateAnnual: 0.02,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    healthInsuranceOverrideMonthly: 0,
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 1_000_000,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  })
+
+  assert.equal(result.projectionLivingExpenseTotal, 486_816_951)
+  assert.equal(result.cashBalanceAfterTenYears, -result.projectionLivingExpenseTotal)
+})
+
 test('기간형 근로소득이 끝나면 급여 기준 직장보험료도 더 이상 유지하지 않는다', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
@@ -235,6 +272,40 @@ test('기간형 근로소득이 끝나면 급여 기준 직장보험료도 더 �
   })
 
   assert.equal(result.projectionHealthInsuranceTotal, result.healthInsuranceMonthly * 12)
+})
+
+test('부부 직장가입자는 근로기간 종료 후 부부 모두 지역가입자로 자동 전환한다', () => {
+  const formData = {
+    ...defaultFormData,
+    householdType: 'couple' as const,
+    currentAge: 50,
+    simulationYears: 2,
+    selectedIncomeCategories: ['earned'] as Array<'earned'>,
+    earnedIncomeMonthly: 3_000_000,
+    earnedIncomeDurationYears: 1,
+    salaryMonthly: 3_000_000,
+    healthInsuranceType: 'employeeWithDependentSpouse' as const,
+    homeMarketValue: 800_000_000,
+    homeOfficialValue: 500_000_000,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    inflationEnabled: false,
+  }
+  const result = calculateAlphaScenario(formData)
+  const regionalPremiumAfterRetirement = estimateHealthInsurance(
+    { ...formData, healthInsuranceType: 'bothRegional' },
+    0,
+    51,
+    0,
+  )
+
+  assert.equal(result.healthInsuranceRetirementTransitionYear, 1)
+  assert.equal(result.healthInsuranceRetirementTransitionAge, 51)
+  assert.equal(
+    result.projectionHealthInsuranceTotal,
+    result.healthInsuranceMonthly * 12 + regionalPremiumAfterRetirement * 12,
+  )
+  assert.ok(regionalPremiumAfterRetirement > 0)
 })
 test('피부양자 사업소득은 건강보험 재확인 high로 본다', () => {
   const formData = {

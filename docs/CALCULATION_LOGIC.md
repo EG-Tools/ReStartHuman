@@ -15,13 +15,13 @@ The main entry is `calculateAlphaScenario()` in `src/engine/calculator.ts`.
 2. Convert dividend inputs into gross/net streams.
 3. Split taxable and ISA dividends by owner.
 4. Calculate the ISA principal-withdrawal exhaustion year and one-time settlement estimate.
-5. Calculate comprehensive tax for taxable-account dividends.
-6. Calculate expenses.
-7. Derive pension and other-income monthly inflow.
+5. Derive pension and other-income monthly inflow and its simplified taxable base.
+6. Calculate financial comprehensive-tax comparison amounts using that other-income base.
+7. Calculate expenses.
 8. Estimate health insurance.
 9. Estimate holding tax.
 10. Compute monthly usable cash and surplus/deficit.
-11. Build cash timeline for the chosen projection period.
+11. Build cash timeline and category-level cumulative expenses for the chosen projection period.
 12. Return a `AlphaResult` object.
 
 ## 3) Sanitization rules to remember
@@ -70,8 +70,11 @@ Owner:
 
 Behavior:
 - Threshold check is performed per person, not only on the household sum.
-- Only taxable-account dividend ownership is used for this logic.
-- The model uses a simplified comparison-tax method built from `policyConfig` brackets.
+- Taxable-account dividends and projected deposit interest are combined per person.
+- When a person's financial income exceeds 20 million KRW, the excess is combined with the modeled other comprehensive-income taxable base before the comparison-tax calculation.
+- Other modeled taxable income is attributed to the primary user because the current form has no spouse-specific non-financial income fields.
+- The result keeps the base tax on other income in the income-tax row and reports only the incremental comparison-tax amount in the financial comprehensive-tax row, preventing double subtraction.
+- Rental-income tax and private-pension tax remain separate simplified models.
 
 ### Pension and other income
 Owner:
@@ -117,6 +120,7 @@ Current model summary:
 - Employee-like types use salary plus possible extra burden from non-salary income above threshold.
 - Salary-based premiums use the employee 50% share, while premiums on non-salary income above the threshold use the employee's full share.
 - When a selected earned-income or corporate-executive stream reaches its configured end, its salary base also stops in the projection.
+- After that employee-income period ends, estimated coverage automatically changes to `regional` for a single household or `bothRegional` for a couple.
 - Dependent can stay at `0` if annual non-salary income is below threshold.
 - Regional-style cases combine income-side and property-side pressure.
 - Property-side pressure uses housing plus additional property base.
@@ -142,6 +146,7 @@ Current model summary:
 - Starts from `startingCashReserve`.
 - Uses monthly inflow minus expenses, insurance, holding tax, and comprehensive-tax impact.
 - Applies inflation only to the cost side when `inflationEnabled` is true.
+- Returns category-level cumulative housing, fixed, living, academy, car, and loan expenses; the result table uses these same values instead of separate multiplication formulas.
 - Applies loan interest only for the configured number of years.
 - Generates `cashBalanceTimeline` from year 0 to final year.
 - Recalculates cash interest, financial comprehensive tax, and health-insurance income every projection year using that year's balance.

@@ -46,6 +46,10 @@ It is not a substitute for a fully authoritative legal or professional tax calcu
 
 The ISA input is an annual dividend estimate, not an account-closure gain/loss statement. The app uses the entered ISA asset balance as a proxy for cumulative contributed principal, reduces the principal-withdrawal allowance by annual withdrawals, and settles when that allowance is exhausted. Market-value changes, additional contributions, fees, and separate losses are not entered, so the displayed settlement cannot reproduce an actual account statement.
 
+The financial comprehensive-tax estimate uses the Article 62 comparison-tax structure with the app's simplified other-income taxable base. Non-financial income is attributed to the primary user because spouse-specific earned or business income is not collected. Rental-income and private-pension taxes remain separate estimates, so this is not a tax-return reproduction.
+
+Estimated employee health insurance automatically changes to regional coverage after the selected earned-income or corporate-executive duration ends. A single household uses the regional model and a couple uses the both-regional label. Manual premium overrides remain fixed for the projection because they are treated as explicit user-entered amounts.
+
 Asset-rank and household-spending comparisons are dated internal reference bands, not live official-statistics integrations. The result text must keep that limitation visible.
 
 If a task asks for legal accuracy changes, inspect:

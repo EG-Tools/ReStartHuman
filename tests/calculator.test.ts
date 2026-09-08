@@ -622,6 +622,35 @@ test('cash deposit interest joins dividends for financial comprehensive tax', ()
   )
 })
 
+test('금융소득 2천만원 초과분은 사업소득 과세표준과 합산해 비교세액을 계산한다', () => {
+  const commonFormData = {
+    ...defaultFormData,
+    taxableAccountDividendAnnual: 60_000_000,
+    dividendInputMode: 'gross' as const,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    healthInsuranceOverrideMonthly: 0,
+    inflationEnabled: false,
+    livingCostMonthlyTotal: 0,
+    insuranceMonthly: 0,
+    maintenanceMonthly: 0,
+    telecomMonthly: 0,
+    otherFixedMonthly: 0,
+  }
+  const financialIncomeOnly = calculateAlphaScenario(commonFormData)
+  const combinedIncome = calculateAlphaScenario({
+    ...commonFormData,
+    selectedIncomeCategories: ['business'],
+    businessIncomeMonthly: 10_000_000,
+    businessIncomeDurationYears: 10,
+  })
+
+  assert.equal(financialIncomeOnly.comprehensiveTaxImpactAnnual, 0)
+  assert.equal(combinedIncome.estimatedComprehensiveIncomeTaxAnnual, 26_035_000)
+  assert.equal(combinedIncome.comprehensiveTaxImpactAnnual, 9_520_500)
+  assert.equal(combinedIncome.projectionFinancialComprehensiveTaxTotal, 95_205_000)
+})
+
 test('예금이자율 소수점은 반올림하지 않고 계산한다', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,

@@ -62,6 +62,35 @@ test('cashflow chart shows an ISA marker when the principal allowance is exhaust
   assert.ok(isaMatches.length >= 2)
 })
 
+test('cashflow chart shows the regional health insurance transition after retirement', () => {
+  const formData = {
+    ...defaultFormData,
+    householdType: 'couple' as const,
+    currentAge: 50,
+    simulationYears: 20,
+    selectedIncomeCategories: ['earned'] as Array<'earned'>,
+    earnedIncomeMonthly: 3_000_000,
+    earnedIncomeDurationYears: 10,
+    salaryMonthly: 3_000_000,
+    healthInsuranceType: 'employeeWithDependentSpouse' as const,
+  }
+  const result = calculateAlphaScenario(formData)
+
+  const markup = renderToStaticMarkup(
+    createElement(CashFlowChart, {
+      currentAge: formData.currentAge,
+      formData,
+      inflationEnabled: formData.inflationEnabled,
+      inflationRateAnnual: formData.inflationRateAnnual,
+      projectionYears: formData.simulationYears,
+      result,
+    }),
+  )
+
+  assert.match(markup, /퇴직 후 지역 전환/)
+  assert.match(markup, /60세/)
+})
+
 test('cashflow chart places late markers below the curve when the trend is strongly upward', () => {
   const formData = {
     ...defaultFormData,

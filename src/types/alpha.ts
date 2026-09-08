@@ -272,6 +272,8 @@ export interface AlphaResult {
   otherIncomeMonthlyApplied: number
   incomeBreakdown: IncomeBreakdownItem[]
   projectionHealthInsuranceTotal: number
+  healthInsuranceRetirementTransitionYear: number | null
+  healthInsuranceRetirementTransitionAge: number | null
   projectionPensionIncomeTotal: number
   projectionOtherIncomeTotal: number
   projectionPrivatePensionTaxTotal: number
@@ -288,6 +290,12 @@ export interface AlphaResult {
   fixedExpenseMonthly: number
   livingExpenseMonthly: number
   totalExpenseMonthly: number
+  projectionHousingExpenseTotal: number
+  projectionFixedExpenseTotal: number
+  projectionLivingExpenseTotal: number
+  projectionAcademyExpenseTotal: number
+  projectionCarExpenseTotal: number
+  projectionLoanInterestTotal: number
   totalIncomeMonthly: number
   projectionTotalIncomeTotal: number
   cashInterestAnnual: number

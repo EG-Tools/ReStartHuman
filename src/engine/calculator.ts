@@ -10,6 +10,7 @@ import {
   getDependentHealthInsuranceAssessment,
   getAgeQualifiedOtherIncomeMonthly,
   getAgeQualifiedPensionMonthly,
+  getHealthInsuranceRetirementTransitionYear,
 } from './calculator.costs'
 import {
   getAgeQualifiedRentalIncomeMonthly,
@@ -145,7 +146,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
         : 'unknown',
     dependentFreelanceAnnualProfit: sanitizeMoney(formData.dependentFreelanceAnnualProfit),
     insuranceMonthly: sanitizeMoney(formData.insuranceMonthly),
-    insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears) || 10),
+    insurancePaymentYears: Math.max(0, sanitizeMoney(formData.insurancePaymentYears)),
     maintenanceMonthly: sanitizeMoney(formData.maintenanceMonthly),
     telecomMonthly: sanitizeMoney(formData.telecomMonthly),
     currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),
@@ -220,10 +221,6 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
         : currentCashInterestAnnualGross,
   })
 
-  const comprehensiveTax = calculateComprehensiveTax(
-    taxableDividendOwnershipBreakdown,
-    cashInterestOwnershipBreakdown,
-  )
   const expenses = calculateExpenses(formData)
   const pensionMonthlyApplied = getAgeQualifiedPensionMonthly(formData, formData.currentAge)
   const otherIncomeMonthlyApplied = getAgeQualifiedOtherIncomeMonthly(formData, formData.currentAge)
@@ -234,6 +231,11 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
       age: formData.currentAge,
       nationalPensionMonthly: pensionMonthlyApplied,
     }),
+  )
+  const comprehensiveTax = calculateComprehensiveTax(
+    taxableDividendOwnershipBreakdown,
+    cashInterestOwnershipBreakdown,
+    estimatedComprehensiveTax.taxableBaseAnnual,
   )
   const currentPrivatePensionTax = calculateAgeQualifiedPrivatePensionTaxAnnual(
     formData,
@@ -263,6 +265,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     formData.healthInsuranceOverrideMonthly ?? currentEstimatedHealthInsurance
   const nextReflectedHealthInsuranceMonthly =
     formData.healthInsuranceOverrideMonthly ?? nextReflectedEstimatedHealthInsurance
+  const healthInsuranceRetirementTransitionYear =
+    getHealthInsuranceRetirementTransitionYear(formData)
   const holdingTax = estimateHoldingTax(formData)
   const rentalIncomeMonthlyApplied = getAgeQualifiedRentalIncomeMonthly(formData, formData.currentAge)
   const rentalIncomeTax =
@@ -373,6 +377,11 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     otherIncomeMonthlyApplied,
     incomeBreakdown,
     projectionHealthInsuranceTotal: cashProjection.cumulativeHealthInsurance,
+    healthInsuranceRetirementTransitionYear,
+    healthInsuranceRetirementTransitionAge:
+      healthInsuranceRetirementTransitionYear === null
+        ? null
+        : formData.currentAge + healthInsuranceRetirementTransitionYear,
     projectionPensionIncomeTotal: cashProjection.cumulativePensionIncome,
     projectionOtherIncomeTotal: cashProjection.cumulativeOtherIncome,
     projectionPrivatePensionTaxTotal: cashProjection.cumulativePrivatePensionTax,
@@ -390,6 +399,12 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     fixedExpenseMonthly: expenses.fixedExpenseMonthly,
     livingExpenseMonthly: expenses.livingExpenseMonthly,
     totalExpenseMonthly: expenses.totalExpenseMonthly,
+    projectionHousingExpenseTotal: cashProjection.cumulativeHousingExpense,
+    projectionFixedExpenseTotal: cashProjection.cumulativeFixedExpense,
+    projectionLivingExpenseTotal: cashProjection.cumulativeLivingExpense,
+    projectionAcademyExpenseTotal: cashProjection.cumulativeAcademyExpense,
+    projectionCarExpenseTotal: cashProjection.cumulativeCarExpense,
+    projectionLoanInterestTotal: cashProjection.cumulativeLoanInterest,
     totalIncomeMonthly,
     projectionTotalIncomeTotal: cashProjection.cumulativeTotalIncome,
     cashInterestAnnual: currentCashInterestAnnual,

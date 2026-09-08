@@ -1138,7 +1138,7 @@ export const getComprehensiveTaxZeroReason = (result: AlphaResult) => {
     .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
     .join(', ')
 
-  return `${exceededSummary} 기준으로 비교세액을 따졌고, 원천징수세액이 비교세액보다 크거나 같아`
+  return `${exceededSummary}와 다른 종합소득 과세표준을 합쳐 비교세액을 계산했지만, 기존 소득세와 금융소득 원천징수세액의 합계가 더 크거나 같아`
 }
 export const getComprehensiveTaxNote = (result: AlphaResult) => {
   const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
@@ -1148,13 +1148,13 @@ export const getComprehensiveTaxNote = (result: AlphaResult) => {
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
+    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 인별로 합산한 추가 납부 추정액입니다. ISA는 합산에서 제외하며, 금융소득 귀속은 ${allocationSummary}. 현재는 인별 금융소득이 2,000만원 이하라 원천징수로 종결되는 것으로 봅니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} \uCD94\uAC00 \uB0A9\uBD80\uB294 0\uC6D0\uC785\uB2C8\uB2E4. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
+    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다.`
   }
 
-  return `\uACB0\uACFC\uD45C\uC758 \uBC30\uB2F9\uCD94\uAC00\uC138\uB294 \uACF5\uC2DD\uC801\uC73C\uB85C \uAE08\uC735\uC18C\uB4DD \uC885\uD569\uACFC\uC138 \uCD94\uAC00\uC138\uC561\uC785\uB2C8\uB2E4. \uD604\uC7AC\uB294 \uC77C\uBC18\uACC4\uC88C \uBC30\uB2F9\uACFC \uC608\uAE08\uC774\uC790\uB97C \uD568\uAED8 \uBC18\uC601\uD569\uB2C8\uB2E4. ISA\uB294 \uD569\uC0B0 \uC81C\uC678, \uAE08\uC735\uC18C\uB4DD \uADC0\uC18D\uC740 ${allocationSummary}. \uC18C\uB4DD\uC138\uBC95 \uC81C62\uC870 \uAE30\uC900 \uCD94\uAC00 \uB0A9\uBD80: ${additionalSummary}. \uADFC\uB85C\u00B7\uC0AC\uC5C5\u00B7\uD504\uB9AC\uB79C\uC11C\u00B7\uAE30\uD0C0\uC18C\uB4DD\uC740 \uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C, \uAE30\uD0C0\uC5F0\uAE08\uC740 \uAC1C\uC778\uC5F0\uAE08\uC138 \uD589\uC5D0\uC11C, \uC784\uB300\uC18C\uB4DD\uC740 \uC784\uB300\uC18C\uB4DD\uC138 \uD589\uC5D0\uC11C \uBCC4\uB3C4\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.`
+  return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 뒤, 기존 소득세와 금융소득 원천징수세액을 제외한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}.`
 }
 

@@ -94,6 +94,36 @@ export const getAgeQualifiedPensionMonthly = (formData: AlphaFormData, age: numb
 export const getAgeQualifiedOtherIncomeMonthly = (formData: AlphaFormData, age: number) =>
   roundCurrency(getStructuredAgeQualifiedOtherIncomeMonthly(formData, age))
 
+const usesEmployeeHealthInsurance = (healthInsuranceType: AlphaFormData['healthInsuranceType']) =>
+  healthInsuranceType === 'employee' || healthInsuranceType === 'employeeWithDependentSpouse'
+
+export const getHealthInsuranceRetirementTransitionYear = (formData: AlphaFormData) => {
+  if (!usesEmployeeHealthInsurance(formData.healthInsuranceType)) {
+    return null
+  }
+
+  const employeeIncomeCategory = getSelectedIncomeCategories(formData).find(
+    (category) => category === 'earned' || category === 'corporateExecutive',
+  )
+
+  return employeeIncomeCategory
+    ? getIncomeCategoryDurationYears(formData, employeeIncomeCategory)
+    : null
+}
+
+const getHealthInsuranceTypeAtAge = (formData: AlphaFormData, age: number) => {
+  const retirementTransitionYear = getHealthInsuranceRetirementTransitionYear(formData)
+
+  if (
+    retirementTransitionYear !== null &&
+    age >= formData.currentAge + retirementTransitionYear
+  ) {
+    return formData.householdType === 'couple' ? 'bothRegional' : 'regional'
+  }
+
+  return formData.healthInsuranceType
+}
+
 export const calculateGrossCashInterestAnnual = (balance: number, annualRatePercent: number) => {
   if (balance <= 0 || annualRatePercent <= 0) {
     return 0
@@ -398,14 +428,13 @@ export const estimateHealthInsurance = (
   options: HealthInsuranceEstimationOptions = {},
 ) => {
   const includeDeclaredBusinessIncome = options.includeDeclaredBusinessIncome ?? true
-  const usesEmployeeHealthInsurance =
-    formData.healthInsuranceType === 'employee' ||
-    formData.healthInsuranceType === 'employeeWithDependentSpouse'
+  const effectiveHealthInsuranceType = getHealthInsuranceTypeAtAge(formData, age)
+  const hasEmployeeHealthInsurance = usesEmployeeHealthInsurance(effectiveHealthInsuranceType)
   const selectedIncomeCategories = getSelectedIncomeCategories(formData)
   const employeeIncomeCategory = selectedIncomeCategories.find(
     (category) => category === 'earned' || category === 'corporateExecutive',
   )
-  const earnedIncomeMonthly = usesEmployeeHealthInsurance && employeeIncomeCategory
+  const earnedIncomeMonthly = hasEmployeeHealthInsurance && employeeIncomeCategory
     ? getAgeQualifiedIncomeCategoryMonthly(formData, employeeIncomeCategory, age)
     : 0
   const employeeIncomeDurationYears = employeeIncomeCategory
@@ -415,7 +444,7 @@ export const estimateHealthInsurance = (
     employeeIncomeDurationYears === null ||
     age < formData.currentAge + employeeIncomeDurationYears
   const businessIncomeMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
-  const nonSalaryOtherIncomeMonthly = usesEmployeeHealthInsurance
+  const nonSalaryOtherIncomeMonthly = hasEmployeeHealthInsurance
     ? getAgeQualifiedNonSalaryIncomeMonthly(formData, age)
     : getStructuredAgeQualifiedOtherIncomeMonthly(formData, age)
   const businessIncomeAnnualForHealthInsurance = getEstimatedBusinessIncomeAnnualForHealthInsurance(
@@ -471,7 +500,7 @@ export const estimateHealthInsurance = (
     pensionMonthly,
   })
 
-  switch (formData.healthInsuranceType) {
+  switch (effectiveHealthInsuranceType) {
     case 'employee':
     case 'employeeWithDependentSpouse':
       return roundCurrency(employeeMonthlyBasePremium + employeeMonthlyAdditionalPremium)
@@ -717,6 +746,12 @@ export const calculateCashProjection = (
   let cumulativeFinancialComprehensiveTax = 0
   let cumulativeIsaDividend = 0
   let cumulativeIsaPrincipalWithdrawal = 0
+  let cumulativeHousingExpense = 0
+  let cumulativeFixedExpense = 0
+  let cumulativeLivingExpense = 0
+  let cumulativeAcademyExpense = 0
+  let cumulativeCarExpense = 0
+  let cumulativeLoanInterest = 0
   let balance = formData.startingCashReserve
   let isaRemainingPrincipalWithdrawalAllowance = roundCurrency(formData.isaAssets)
   const isaSettlementYear = dividendInputs.isaSettlementYear
@@ -731,8 +766,21 @@ export const calculateCashProjection = (
 
   const fixedLoanInterestMonthly = formData.loanInterestMonthly
   const fixedInsuranceMonthly = formData.insuranceMonthly
-  const baseExpenseMonthlyWithoutLoanAndInsurance = Math.max(
-    totalExpenseMonthly - fixedLoanInterestMonthly - fixedInsuranceMonthly,
+  const carExpenseMonthly = roundCurrency(formData.carYearlyCost / 12)
+  const housingExpenseMonthly = formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
+  const fixedExpenseMonthlyWithoutInsuranceAndCar =
+    formData.maintenanceMonthly + formData.telecomMonthly + formData.otherFixedMonthly
+  const academyExpenseMonthly =
+    formData.livingCostInputMode === 'detailed' && formData.hasChildren
+      ? formData.academyMonthly ?? 0
+      : 0
+  const livingExpenseMonthly = Math.max(
+    totalExpenseMonthly -
+      fixedLoanInterestMonthly -
+      fixedInsuranceMonthly -
+      carExpenseMonthly -
+      housingExpenseMonthly -
+      fixedExpenseMonthlyWithoutInsuranceAndCar,
     0,
   )
 
@@ -776,6 +824,7 @@ export const calculateCashProjection = (
     const projectedFinancialComprehensiveTax = calculateComprehensiveTax(
       dividendInputs.taxableDividendOwnershipBreakdown,
       projectedCashInterestOwnershipBreakdown,
+      projectedEstimatedComprehensiveTax.taxableBaseAnnual,
     )
     const projectedHealthInsuranceMonthly =
       formData.healthInsuranceOverrideMonthly ??
@@ -824,7 +873,12 @@ export const calculateCashProjection = (
       ? (1 + formData.inflationRateAnnual) ** yearIndex
       : 1
 
-    const projectedBaseExpenses = baseExpenseMonthlyWithoutLoanAndInsurance * inflationMultiplier
+    const projectedHousingExpense = housingExpenseMonthly * inflationMultiplier
+    const projectedFixedExpense =
+      fixedExpenseMonthlyWithoutInsuranceAndCar * inflationMultiplier
+    const projectedLivingExpense = livingExpenseMonthly * inflationMultiplier
+    const projectedAcademyExpense = academyExpenseMonthly * inflationMultiplier
+    const projectedCarExpense = carExpenseMonthly * inflationMultiplier
     const projectedInsuranceExpense =
       yearIndex < formData.insurancePaymentYears
         ? fixedInsuranceMonthly * inflationMultiplier
@@ -833,7 +887,12 @@ export const calculateCashProjection = (
       yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
 
     const projectedExpenses =
-      projectedBaseExpenses + projectedInsuranceExpense + projectedLoanInterest
+      projectedHousingExpense +
+      projectedFixedExpense +
+      projectedLivingExpense +
+      projectedCarExpense +
+      projectedInsuranceExpense +
+      projectedLoanInterest
     const projectedExpensesAnnual = roundCurrency(projectedExpenses * 12)
     const operatingAnnualNetChange = roundCurrency(projectedUsableCashAnnual - projectedExpensesAnnual)
     const annualNetChange = roundCurrency(operatingAnnualNetChange + projectedIsaTransferAmount)
@@ -851,6 +910,14 @@ export const calculateCashProjection = (
     cumulativeFinancialComprehensiveTax += projectedFinancialComprehensiveTax.impactAnnual
     cumulativeIsaDividend += projectedIsaDividendAnnual - projectedIsaSettlementTax
     cumulativeIsaPrincipalWithdrawal += projectedIsaPrincipalWithdrawal
+    cumulativeHousingExpense += roundCurrency(projectedHousingExpense * 12)
+    cumulativeFixedExpense += roundCurrency(
+      (projectedFixedExpense + projectedInsuranceExpense) * 12,
+    )
+    cumulativeLivingExpense += roundCurrency(projectedLivingExpense * 12)
+    cumulativeAcademyExpense += roundCurrency(projectedAcademyExpense * 12)
+    cumulativeCarExpense += roundCurrency(projectedCarExpense * 12)
+    cumulativeLoanInterest += roundCurrency(projectedLoanInterest * 12)
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -879,6 +946,12 @@ export const calculateCashProjection = (
     cumulativeFinancialComprehensiveTax: roundCurrency(cumulativeFinancialComprehensiveTax),
     cumulativeIsaDividend: roundCurrency(cumulativeIsaDividend),
     cumulativeIsaPrincipalWithdrawal: roundCurrency(cumulativeIsaPrincipalWithdrawal),
+    cumulativeHousingExpense: roundCurrency(cumulativeHousingExpense),
+    cumulativeFixedExpense: roundCurrency(cumulativeFixedExpense),
+    cumulativeLivingExpense: roundCurrency(cumulativeLivingExpense),
+    cumulativeAcademyExpense: roundCurrency(cumulativeAcademyExpense),
+    cumulativeCarExpense: roundCurrency(cumulativeCarExpense),
+    cumulativeLoanInterest: roundCurrency(cumulativeLoanInterest),
     isaRemainingPrincipalWithdrawalAllowance: roundCurrency(
       isaRemainingPrincipalWithdrawalAllowance,
     ),
