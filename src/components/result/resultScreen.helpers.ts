@@ -22,6 +22,14 @@ export interface ResultRow {
   noteDetail?: string
 }
 
+export const getPreviousFormDataPatchValues = (
+  sourceFormData: AlphaFormData,
+  patch: Partial<AlphaFormData>,
+) =>
+  Object.fromEntries(
+    Object.keys(patch).map((key) => [key, sourceFormData[key as keyof AlphaFormData]]),
+  ) as Partial<AlphaFormData>
+
 const ageAssetBenchmarks = [
   { min: 0, max: 39, label: '39세 이하', averageAsset: 314_980_000 },
   { min: 40, max: 49, label: '40대', averageAsset: 627_140_000 },

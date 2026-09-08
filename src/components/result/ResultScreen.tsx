@@ -20,6 +20,7 @@ import {
   getAgeAssetBenchmark,
   getAssetInterpretationMessage,
   getHouseholdAssetEstimate,
+  getPreviousFormDataPatchValues,
   type ResultRow,
 } from './resultScreen.helpers'
 
@@ -29,14 +30,6 @@ interface RecentAdviceState {
   text: string
   previousPatch: Partial<AlphaFormData>
 }
-
-const getPreviousPatchValues = (
-  formData: AlphaFormData,
-  patch: Partial<AlphaFormData>,
-) =>
-  Object.fromEntries(
-    Object.keys(patch).map((key) => [key, formData[key as keyof AlphaFormData]]),
-  ) as Partial<AlphaFormData>
 
 type ResultActionIconName = 'edit' | 'share'
 
@@ -140,6 +133,7 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
 interface ResultScreenProps {
   accessMode: AppAccessMode
   formData: AlphaFormData
+  sourceFormData: AlphaFormData
   result: AlphaResult
   onEditAnswers: () => void
   onStartOver: () => void
@@ -151,6 +145,7 @@ interface ResultScreenProps {
 export const ResultScreen = memo(function ResultScreen({
   accessMode,
   formData,
+  sourceFormData,
   result,
   onEditAnswers,
   onStartOver,
@@ -247,11 +242,11 @@ export const ResultScreen = memo(function ResultScreen({
       setRecentAdvice({
         id: item.id,
         text: item.message,
-        previousPatch: getPreviousPatchValues(formData, item.patch),
+        previousPatch: getPreviousFormDataPatchValues(sourceFormData, item.patch),
       })
       onPatchFormData(item.patch)
     },
-    [formData, onPatchFormData],
+    [onPatchFormData, sourceFormData],
   )
   const handleUndoAdvice = useCallback(() => {
     if (!recentAdvice) {

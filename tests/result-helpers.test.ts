@@ -8,6 +8,7 @@ import {
   buildDeficitAdviceItems,
   buildInterpretationItems,
   getLivingCostSnapshot,
+  getPreviousFormDataPatchValues,
 } from '../src/components/result/resultScreen.helpers'
 
 test('living cost snapshot includes academy cost when children exist', () => {
@@ -144,7 +145,7 @@ test('deficit advice is added when the scenario is deficit-like', () => {
   assert.ok(items.some((item) => item.patch && Object.keys(item.patch).length > 0))
 })
 
-test('general-mode living cost advice updates the general override used by calculation', () => {
+test('general-mode living cost advice undo restores the automatic living-cost state', () => {
   const sourceFormData = {
     ...defaultFormData,
     currentAge: 50,
@@ -156,7 +157,7 @@ test('general-mode living cost advice updates the general override used by calcu
     homeOfficialValue: 0,
     livingCostInputMode: 'detailed' as const,
     livingCostMonthlyTotal: 0,
-    generalLivingExpenseMonthly: 800_000,
+    generalLivingExpenseMonthly: null,
     foodMonthly: 500_000,
     necessitiesMonthly: 200_000,
     diningOutMonthly: 100_000,
@@ -172,14 +173,25 @@ test('general-mode living cost advice updates the general override used by calcu
   assert.equal(advice.patch?.generalLivingExpenseMonthly, 0)
   assert.equal('livingCostMonthlyTotal' in (advice.patch ?? {}), false)
 
-  const appliedFormData = getAccessModeFormData(
-    { ...sourceFormData, ...advice.patch },
-    'general',
-  )
+  const previousPatch = getPreviousFormDataPatchValues(sourceFormData, advice.patch ?? {})
+  assert.equal(previousPatch.generalLivingExpenseMonthly, null)
+
+  const appliedSourceFormData = { ...sourceFormData, ...advice.patch }
+  const appliedFormData = getAccessModeFormData(appliedSourceFormData, 'general')
   const appliedResult = calculateAlphaScenario(appliedFormData)
 
   assert.equal(appliedFormData.livingCostMonthlyTotal, 0)
   assert.equal(appliedResult.livingExpenseMonthly, 0)
+
+  const restoredSourceFormData = { ...appliedSourceFormData, ...previousPatch }
+  const updatedProFormData = {
+    ...restoredSourceFormData,
+    foodMonthly: 700_000,
+  }
+  const updatedGeneralFormData = getAccessModeFormData(updatedProFormData, 'general')
+
+  assert.equal(restoredSourceFormData.generalLivingExpenseMonthly, null)
+  assert.equal(updatedGeneralFormData.livingCostMonthlyTotal, 1_000_000)
 })
 
 test('jeonse advice moves released housing cash into starting reserve', () => {

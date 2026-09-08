@@ -236,6 +236,7 @@ export default function App() {
               <ResultScreen
                 accessMode={adSupport.accessMode}
                 formData={effectiveFormData}
+                sourceFormData={formData}
                 result={result}
                 onEditAnswers={() => flow.goToQuestion(0)}
                 onStartOver={startOver}
