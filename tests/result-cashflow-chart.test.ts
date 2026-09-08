@@ -124,3 +124,33 @@ test('cashflow chart places late markers below the curve when the trend is stron
 
   assert.match(markup, /placement-bottom/)
 })
+
+test('cashflow chart labels the raw deficit as the maximum cumulative shortfall', () => {
+  const formData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    startingCashReserve: 50_000_000,
+    cashInterestRatePercent: 0.03,
+    healthInsuranceOverrideMonthly: 0,
+    livingCostInputMode: 'total' as const,
+    livingCostMonthlyTotal: 1_000_000,
+  }
+  const result = calculateAlphaScenario(formData)
+
+  const markup = renderToStaticMarkup(
+    createElement(CashFlowChart, {
+      currentAge: formData.currentAge,
+      formData,
+      inflationEnabled: formData.inflationEnabled,
+      inflationRateAnnual: formData.inflationRateAnnual,
+      projectionYears: formData.simulationYears,
+      result,
+    }),
+  )
+
+  assert.ok(result.cashShortfallToAvoidDepletion > 0)
+  assert.match(markup, /현재 조건의 최대 누적 부족액/)
+  assert.doesNotMatch(markup, /보완자금이 필요/)
+})

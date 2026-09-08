@@ -136,6 +136,7 @@ export interface AlphaFormData {
   loanInterestMonthly: number
   loanInterestYears: number
   otherFixedMonthly: number
+  generalFixedExpenseMonthly: number | null
 
   livingCostInputMode: 'total' | 'detailed'
   livingCostMonthlyTotal: number

@@ -60,6 +60,7 @@ test('general access mode keeps only misc income and total-style expenses', () =
       maintenanceMonthly: 150_000,
       hasLoan: true,
       loanInterestMonthly: 300_000,
+      loanInterestYears: 10,
       livingCostInputMode: 'detailed',
       foodMonthly: 500_000,
       necessitiesMonthly: 200_000,
@@ -82,6 +83,28 @@ test('general access mode keeps only misc income and total-style expenses', () =
   assert.equal(generalData.livingCostMonthlyTotal, 1_050_000)
   assert.equal(generalData.hasCar, false)
   assert.equal(generalData.loanInterestMonthly, 0)
+})
+
+test('general access mode keeps detailed fixed expenses separate from its total override', () => {
+  const sourceData = {
+    ...defaultFormData,
+    insuranceMonthly: 200_000,
+    insurancePaymentYears: 10,
+    maintenanceMonthly: 150_000,
+    telecomMonthly: 100_000,
+    otherFixedMonthly: 50_000,
+  }
+  const derivedGeneralData = getAccessModeFormData(sourceData, 'general')
+  const explicitlyClearedGeneralData = getAccessModeFormData(
+    { ...sourceData, generalFixedExpenseMonthly: 0 },
+    'general',
+  )
+
+  assert.equal(derivedGeneralData.generalFixedExpenseMonthly, 500_000)
+  assert.equal(derivedGeneralData.otherFixedMonthly, 500_000)
+  assert.equal(explicitlyClearedGeneralData.generalFixedExpenseMonthly, 0)
+  assert.equal(explicitlyClearedGeneralData.otherFixedMonthly, 0)
+  assert.equal(sourceData.otherFixedMonthly, 50_000)
 })
 
 test('general access mode hides pro-only question steps', () => {

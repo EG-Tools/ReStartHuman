@@ -1,8 +1,8 @@
 import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { ClockIcon, HomeIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
-import type { AlphaFormData, AlphaResult } from '../../types/alpha'
-import { getInsuranceMonthlyAtYear } from '../../engine/calculator.costs'
+import type { AlphaFormData, AlphaResult, AppAccessMode } from '../../types/alpha'
+import { getInsuranceMonthlyAtYear } from '../../utils/expensePeriods'
 import {
   CashFlowChart,
   ResultInterpretation,
@@ -130,6 +130,7 @@ const ResultCaptureContent = memo(function ResultCaptureContent({
 })
 
 interface ResultScreenProps {
+  accessMode: AppAccessMode
   formData: AlphaFormData
   result: AlphaResult
   onEditAnswers: () => void
@@ -140,6 +141,7 @@ interface ResultScreenProps {
 }
 
 export const ResultScreen = memo(function ResultScreen({
+  accessMode,
   formData,
   result,
   onEditAnswers,
@@ -279,6 +281,7 @@ export const ResultScreen = memo(function ResultScreen({
   const rows = useMemo<ResultRow[]>(
     () =>
       buildResultRows({
+        accessMode,
         dividendBasisLabel,
         fixedExpenseAnnualBase,
         fixedExpenseMonthlyBase,
@@ -290,6 +293,7 @@ export const ResultScreen = memo(function ResultScreen({
         result,
       }),
     [
+      accessMode,
       dividendBasisLabel,
       fixedExpenseAnnualBase,
       fixedExpenseMonthlyBase,

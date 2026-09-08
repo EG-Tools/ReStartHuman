@@ -1,8 +1,9 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
 import {
   formatNumericDraftValue,
   getNumericInputPrecision,
+  hasNumericDraftChanged,
   parseNumericDraftValue,
   roundNumericInputValue,
   sanitizeNumericDraftValue,
@@ -54,6 +55,8 @@ function useNumericDraftController({
   const precision = display === 'currency' ? 0 : getNumericInputPrecision(step)
   const displayValue = Number.isFinite(value) ? toDisplayValue(value, display, precision) : 0
   const [editBuffer, setEditBuffer] = useState<string | null>(null)
+  const initialDraftRef = useRef<string | null>(null)
+  const editBufferRef = useRef<string | null>(null)
   const draftValue = editBuffer ?? formatDraftValue(displayValue, precision, idleZeroDisplay)
   const commitRawValue = (rawValue: string) => {
     const nextValue = parseNumericDraftValue({
@@ -68,23 +71,23 @@ function useNumericDraftController({
 
   return {
     draftValue,
-    displayValue,
-    commitDraftValue: () => {
-      const nextValue = commitRawValue(draftValue)
-      setEditBuffer(null)
-      return nextValue
-    },
     inputHandlers: {
       onFocus: () => {
-        setEditBuffer((currentValue) =>
-          currentValue ?? formatDraftValue(displayValue, precision, idleZeroDisplay),
-        )
+        const initialDraft = formatDraftValue(displayValue, precision, idleZeroDisplay)
+        initialDraftRef.current = initialDraft
+        editBufferRef.current = initialDraft
+        setEditBuffer(initialDraft)
       },
       onBlur: () => {
-        if (commitMode === 'blur') {
-          commitRawValue(draftValue)
+        if (
+          commitMode === 'blur' &&
+          hasNumericDraftChanged(initialDraftRef.current, editBufferRef.current)
+        ) {
+          commitRawValue(editBufferRef.current ?? '')
         }
 
+        initialDraftRef.current = null
+        editBufferRef.current = null
         setEditBuffer(null)
       },
       onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -94,6 +97,8 @@ function useNumericDraftController({
         }
 
         if (event.key === 'Escape') {
+          initialDraftRef.current = null
+          editBufferRef.current = null
           setEditBuffer(null)
           event.currentTarget.blur()
         }
@@ -105,6 +110,7 @@ function useNumericDraftController({
       },
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
         const nextDraftValue = sanitizeNumericDraftValue(event.target.value, precision)
+        editBufferRef.current = nextDraftValue
         setEditBuffer(nextDraftValue)
 
         if (commitMode === 'change') {

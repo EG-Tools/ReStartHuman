@@ -35,6 +35,7 @@ import {
   sanitizeMoney,
   sanitizeOptionalMoney,
 } from './calculator.shared'
+import { getLoanInterestMonthlyAtYear } from '../utils/expensePeriods'
 
 const sanitizeAdditionalHome = (home: AdditionalHome): AdditionalHome => ({
   housingType:
@@ -154,6 +155,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
     loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
     loanInterestYears: sanitizeMoney(formData.loanInterestYears),
     otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),
+    generalFixedExpenseMonthly: sanitizeOptionalMoney(formData.generalFixedExpenseMonthly),
     livingCostMonthlyTotal: sanitizeMoney(formData.livingCostMonthlyTotal),
     foodMonthly: sanitizeMoney(formData.foodMonthly),
     necessitiesMonthly: sanitizeMoney(formData.necessitiesMonthly),
@@ -433,7 +435,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
         : monthlySurplusOrDeficit < 0
           ? 'deficit'
           : 'neutral',
-    loanNotice: formData.loanInterestMonthly > 0,
+    loanNotice: getLoanInterestMonthlyAtYear(formData) > 0,
   }
 }
 

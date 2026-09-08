@@ -1,4 +1,5 @@
-const CACHE_NAME = 'restarthuman-alpha-v78'
+const CACHE_PREFIX = 'restarthuman-alpha-'
+const CACHE_NAME = `${CACHE_PREFIX}v79`
 const toScopedUrl = (path) => new URL(path, self.registration.scope).toString()
 const APP_SHELL = [
   toScopedUrl('./'),
@@ -22,13 +23,20 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
           .map((key) => caches.delete(key)),
       ),
-    ),
+    ).then(() => self.clients.claim()),
   )
-  self.clients.claim()
 })
+
+const cacheSuccessfulResponse = async (cache, request, response) => {
+  if (!response.ok) {
+    return
+  }
+
+  await cache.put(request, response.clone())
+}
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
@@ -43,35 +51,35 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, copy)
-          })
+      caches.open(CACHE_NAME).then(async (cache) => {
+        try {
+          const response = await fetch(event.request)
+          await cacheSuccessfulResponse(cache, event.request, response)
           return response
-        })
-        .catch(async () => {
-          const cachedPage = await caches.match(event.request)
-          return cachedPage || caches.match(toScopedUrl('./offline.html'))
-        }),
+        } catch {
+          const cachedPage = await cache.match(event.request)
+          return cachedPage || cache.match(toScopedUrl('./offline.html'))
+        }
+      }),
     )
     return
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedResponse = await cache.match(event.request)
+
+      if (cachedResponse?.ok) {
         return cachedResponse
       }
 
-      return fetch(event.request).then((response) => {
-        const copy = response.clone()
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, copy)
-        })
-        return response
-      })
+      if (cachedResponse) {
+        await cache.delete(event.request)
+      }
+
+      const response = await fetch(event.request)
+      await cacheSuccessfulResponse(cache, event.request, response)
+      return response
     }),
   )
 })

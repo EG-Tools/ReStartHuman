@@ -23,6 +23,10 @@ import {
 } from '../utils/incomeStreams'
 import { formatCompactCurrency } from '../utils/format'
 import {
+  getInsuranceMonthlyAtYear,
+  getLoanInterestMonthlyAtYear,
+} from '../utils/expensePeriods'
+import {
   type CashProjection,
   type HoldingTaxEstimate,
   getOwnershipAllocations,
@@ -49,12 +53,9 @@ export const getAdditionalHomeOfficialValueTotal = (formData: AlphaFormData) =>
     getActiveAdditionalHomes(formData).reduce((sum, home) => sum + Math.max(home.officialValue, 0), 0),
   )
 
-export const getInsuranceMonthlyAtYear = (formData: AlphaFormData, yearIndex = 0) =>
-  yearIndex < formData.insurancePaymentYears ? formData.insuranceMonthly : 0
-
 export const calculateExpenses = (formData: AlphaFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
-  const loanInterestMonthly = formData.loanInterestMonthly
+  const loanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const fixedMaintenanceMonthly = formData.maintenanceMonthly
   const insuranceMonthly = getInsuranceMonthlyAtYear(formData)
 
@@ -779,7 +780,7 @@ export const calculateCashProjection = (
     },
   ]
 
-  const fixedLoanInterestMonthly = formData.loanInterestMonthly
+  const fixedLoanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const fixedInsuranceMonthly = getInsuranceMonthlyAtYear(formData)
   const carExpenseMonthly = roundCurrency(formData.carYearlyCost / 12)
   const housingExpenseMonthly = formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
@@ -896,8 +897,7 @@ export const calculateCashProjection = (
     const projectedCarExpense = carExpenseMonthly * inflationMultiplier
     const projectedInsuranceExpense =
       getInsuranceMonthlyAtYear(formData, yearIndex) * inflationMultiplier
-    const projectedLoanInterest =
-      yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
+    const projectedLoanInterest = getLoanInterestMonthlyAtYear(formData, yearIndex)
 
     const projectedExpenses =
       projectedHousingExpense +

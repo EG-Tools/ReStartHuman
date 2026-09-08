@@ -1,5 +1,9 @@
 import { defaultFormData } from '../data/defaultFormData'
 import type { AlphaFormData, AppAccessMode } from '../types/alpha'
+import {
+  getInsuranceMonthlyAtYear,
+  getLoanInterestMonthlyAtYear,
+} from './expensePeriods'
 
 const toSafeMoney = (value: number | undefined) => {
   if (!Number.isFinite(value)) {
@@ -28,17 +32,18 @@ const deriveGeneralLivingCostTotal = (formData: AlphaFormData) => {
 }
 
 const deriveGeneralFixedExpenseMonthly = (formData: AlphaFormData) => {
-  const explicitTotal = toSafeMoney(formData.otherFixedMonthly)
+  const explicitTotal = formData.generalFixedExpenseMonthly
 
-  if (explicitTotal > 0) {
-    return explicitTotal
+  if (explicitTotal !== null && Number.isFinite(explicitTotal)) {
+    return toSafeMoney(explicitTotal)
   }
 
   return (
-    toSafeMoney(formData.insuranceMonthly) +
+    toSafeMoney(getInsuranceMonthlyAtYear(formData)) +
     toSafeMoney(formData.maintenanceMonthly) +
     toSafeMoney(formData.telecomMonthly) +
-    (formData.hasLoan ? toSafeMoney(formData.loanInterestMonthly) : 0)
+    toSafeMoney(formData.otherFixedMonthly) +
+    (formData.hasLoan ? toSafeMoney(getLoanInterestMonthlyAtYear(formData)) : 0)
   )
 }
 
@@ -126,6 +131,7 @@ export const getAccessModeFormData = (
     hasLoan: false,
     loanInterestMonthly: 0,
     loanInterestYears: 0,
+    generalFixedExpenseMonthly,
     otherFixedMonthly: generalFixedExpenseMonthly,
     livingCostInputMode: 'total',
     livingCostMonthlyTotal: generalLivingCostTotal,

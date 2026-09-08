@@ -112,8 +112,12 @@ An insurance payment duration of `0` means the payment has already ended, so it 
 
 ### Loan burden
 - Loan input is monthly interest.
-- It is added as a monthly expense.
-- Projection logic limits its duration using `loanInterestYears`.
+- It is added as a monthly expense only while `loanInterestYears` remains active.
+- A duration of `0` means the loan-interest burden has already ended, so current monthly/annual results, risk level, and projection all exclude it.
+
+### Cash depletion shortfall
+- `cashShortfallToAvoidDepletion` is the largest negative balance reached under the current projection inputs.
+- It is displayed as the current scenario's maximum cumulative shortfall, not as a recalculated minimum initial deposit that includes interest earned on added cash.
 
 ## 6) Health insurance logic
 Owner:

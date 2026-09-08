@@ -486,8 +486,8 @@ export const CashFlowChart = memo(function CashFlowChart({
           </p>
           {result.firstCashDepletionAge !== null ? (
             <p className="cashflow-depletion-warning">
-              {result.firstCashDepletionAge}세에 현금이 처음 부족해지며, 기간 중 최소{' '}
-              {formatCompactCurrency(result.cashShortfallToAvoidDepletion)}의 보완자금이 필요합니다.
+              {result.firstCashDepletionAge}세에 현금이 처음 부족해지며, 현재 조건의 최대 누적
+              부족액은 {formatCompactCurrency(result.cashShortfallToAvoidDepletion)}입니다.
             </p>
           ) : null}
         </div>

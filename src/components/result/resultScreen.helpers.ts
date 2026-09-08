@@ -6,6 +6,7 @@ import type {
   AlphaResult,
 } from '../../types/alpha'
 import { calculateAlphaScenario } from '../../engine/calculator'
+import { getLoanInterestMonthlyAtYear } from '../../utils/expensePeriods'
 import { formatCompactCurrency, formatPercent } from '../../utils/format'
 
 export interface ResultRow {
@@ -828,7 +829,7 @@ const findLoanAdvice = (
   formData: AlphaFormData,
   result: AlphaResult,
 ): AdviceCandidate | null => {
-  if (formData.loanInterestMonthly <= 0) {
+  if (getLoanInterestMonthlyAtYear(formData) <= 0) {
     return null
   }
 

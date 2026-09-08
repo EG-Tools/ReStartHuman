@@ -1,8 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
-import { getInsuranceMonthlyAtYear } from '../../engine/calculator.costs'
-import type { AlphaFormData, AlphaResult } from '../../types/alpha'
+import {
+  getInsuranceMonthlyAtYear,
+  getLoanInterestMonthlyAtYear,
+} from '../../utils/expensePeriods'
+import type { AlphaFormData, AlphaResult, AppAccessMode } from '../../types/alpha'
 import { formatCompactCurrency, formatCurrency, formatSignedCompactCurrency } from '../../utils/format'
 import { InlineNumericField } from '../common/Ui'
 import { buildStructuredIncomePatch, getSelectedIncomeCategories } from '../../utils/incomeStreams'
@@ -203,24 +206,34 @@ function HealthInsuranceEditor({
 }
 
 function FixedExpenseEditor({
+  accessMode,
   formData,
   onPatchFormData,
 }: {
+  accessMode: AppAccessMode
   formData: AlphaFormData
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
-  const lockedBase =
-    getInsuranceMonthlyAtYear(formData) + formData.maintenanceMonthly + formData.telecomMonthly
-  const totalValue = lockedBase + formData.otherFixedMonthly
+  const isGeneralMode = accessMode === 'general'
+  const lockedBase = isGeneralMode
+    ? 0
+    : getInsuranceMonthlyAtYear(formData) +
+      formData.maintenanceMonthly +
+      formData.telecomMonthly
+  const totalValue = isGeneralMode
+    ? (formData.generalFixedExpenseMonthly ?? formData.otherFixedMonthly)
+    : lockedBase + formData.otherFixedMonthly
 
   return (
     <InlineAmountInput
       label="월 고정지출"
       value={totalValue}
       onChange={(value) =>
-        onPatchFormData({
-          otherFixedMonthly: Math.max(value - lockedBase, 0),
-        })
+        onPatchFormData(
+          isGeneralMode
+            ? { generalFixedExpenseMonthly: value }
+            : { otherFixedMonthly: Math.max(value - lockedBase, 0) },
+        )
       }
     />
   )
@@ -267,6 +280,7 @@ function LivingExpenseEditor({
 }
 
 interface BuildResultRowsOptions {
+  accessMode?: AppAccessMode
   dividendBasisLabel: string
   fixedExpenseAnnualBase: number
   fixedExpenseMonthlyBase: number
@@ -281,6 +295,7 @@ interface BuildResultRowsOptions {
 const EMPTY_CELL = '-'
 
 export function buildResultRows({
+  accessMode = 'pro',
   dividendBasisLabel,
   fixedExpenseAnnualBase,
   fixedExpenseMonthlyBase,
@@ -361,6 +376,7 @@ export function buildResultRows({
   const healthInsuranceReviewSummary = result.healthInsuranceReviewReasons.join(' ')
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
+  const activeLoanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
   const shouldShowAcademyRow =
     formData.livingCostInputMode === 'detailed' && academyMonthly > 0
@@ -876,7 +892,13 @@ export function buildResultRows({
     {
       category: '지출',
       item: '고정지출',
-      input: <FixedExpenseEditor formData={formData} onPatchFormData={onPatchFormData} />,
+      input: (
+        <FixedExpenseEditor
+          accessMode={accessMode}
+          formData={formData}
+          onPatchFormData={onPatchFormData}
+        />
+      ),
       monthly: formatCompactCurrency(fixedExpenseMonthlyBase),
       annual: formatCompactCurrency(fixedExpenseAnnualBase),
       tenYear: formatCompactCurrency(
@@ -954,8 +976,8 @@ export function buildResultRows({
           onChange={(value) => onPatchFormData({ loanInterestMonthly: value })}
         />
       ),
-      monthly: formatCompactCurrency(formData.loanInterestMonthly),
-      annual: formatCompactCurrency(formData.loanInterestMonthly * 12),
+      monthly: formatCompactCurrency(activeLoanInterestMonthly),
+      annual: formatCompactCurrency(activeLoanInterestMonthly * 12),
       tenYear: formatCompactCurrency(result.projectionLoanInterestTotal),
       note:
         formData.loanInterestMonthly > 0 && formData.loanInterestYears > 0

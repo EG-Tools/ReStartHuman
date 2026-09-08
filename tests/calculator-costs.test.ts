@@ -21,6 +21,7 @@ test('지출 계산은 월세·차량유지비·대출이자를 모두 합산한
     otherFixedMonthly: 200_000,
     carYearlyCost: 1_200_000,
     loanInterestMonthly: 300_000,
+    loanInterestYears: 10,
     livingCostInputMode: 'total',
     livingCostMonthlyTotal: 1_000_000,
   })
@@ -234,6 +235,27 @@ test('보험료 납입기간 0년은 기본 10년으로 바꾸지 않고 즉시 
   assert.equal(result.projectionFixedExpenseTotal, 0)
   assert.equal(result.cashBalanceAfterTenYears, 0)
   assert.equal(result.fixedExpenseMonthly, 0)
+  assert.equal(result.totalExpenseMonthly, 0)
+  assert.equal(result.monthlySurplusOrDeficit, 0)
+  assert.equal(result.yearlySurplusOrDeficit, 0)
+  assert.equal(result.riskLevel, 'neutral')
+})
+
+test('대출이자 반영기간 0년은 월·연간·누적 지출에서 모두 제외한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    simulationYears: 10,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    healthInsuranceOverrideMonthly: 0,
+    hasLoan: true,
+    loanInterestMonthly: 100_000,
+    loanInterestYears: 0,
+  })
+
+  assert.equal(result.projectionLoanInterestTotal, 0)
+  assert.equal(result.cashBalanceAfterTenYears, 0)
   assert.equal(result.totalExpenseMonthly, 0)
   assert.equal(result.monthlySurplusOrDeficit, 0)
   assert.equal(result.yearlySurplusOrDeficit, 0)

@@ -1761,10 +1761,10 @@ export function renderQuestionContent({
               <QuestionNumberFields
                 fields={[
                   {
-                    key: 'otherFixedMonthly',
+                    key: 'generalFixedExpenseMonthly',
                     label: '\uC6D4 \uACE0\uC815\uC9C0\uCD9C \uCD1D\uC561',
-                    value: formData.otherFixedMonthly,
-                    onChange: (value) => update('otherFixedMonthly', value),
+                    value: formData.generalFixedExpenseMonthly ?? formData.otherFixedMonthly,
+                    onChange: (value) => update('generalFixedExpenseMonthly', value),
                   },
                 ]}
               />

@@ -123,6 +123,7 @@ Main fields:
 - `maintenanceMonthly`
 - `telecomMonthly`
 - `otherFixedMonthly`
+- `generalFixedExpenseMonthly` (general-mode total override; `null` means derive from detailed expenses, while `0` is an explicit zero)
 - `hasLoan`
 - `loanInterestMonthly`
 - `loanInterestYears`

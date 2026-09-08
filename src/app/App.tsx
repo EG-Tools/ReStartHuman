@@ -234,6 +234,7 @@ export default function App() {
           {flow.route === appRoutes.result && result ? (
             <Suspense fallback={<section className="screen result-screen" />}>
               <ResultScreen
+                accessMode={adSupport.accessMode}
                 formData={effectiveFormData}
                 result={result}
                 onEditAnswers={() => flow.goToQuestion(0)}

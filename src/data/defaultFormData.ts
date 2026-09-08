@@ -93,6 +93,7 @@ export const defaultFormData: AlphaFormData = {
   loanInterestMonthly: 0,
   loanInterestYears: 0,
   otherFixedMonthly: 0,
+  generalFixedExpenseMonthly: null,
 
   livingCostInputMode: 'total',
   livingCostMonthlyTotal: 0,

@@ -31,6 +31,9 @@ export const formatNumericDraftValue = (
   return roundedValue !== 0 || showZero ? String(roundedValue) : ''
 }
 
+export const hasNumericDraftChanged = (initialDraft: string | null, nextDraft: string | null) =>
+  initialDraft !== null && nextDraft !== null && initialDraft !== nextDraft
+
 export const sanitizeNumericDraftValue = (rawValue: string, precision: number) => {
   const compactValue = rawValue.replace(/,/g, '')
 

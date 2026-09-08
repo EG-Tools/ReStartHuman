@@ -152,6 +152,21 @@ test('loan interest row appears even when only the loan flag is enabled', () => 
   assert.ok(rows.some((row) => row.item === '대출이자'))
 })
 
+test('loan interest row shows zero current expense when its duration is zero', () => {
+  const rows = buildRows({
+    ...defaultFormData,
+    hasLoan: true,
+    loanInterestMonthly: 100_000,
+    loanInterestYears: 0,
+  })
+  const loanRow = rows.find((row) => row.item === '대출이자')
+
+  assert.equal(loanRow?.monthly, '0원')
+  assert.equal(loanRow?.annual, '0원')
+  assert.equal(loanRow?.tenYear, '0원')
+  assert.equal(loanRow?.note, '미반영')
+})
+
 test('loan interest note is capped by the simulation years', () => {
   const formData: typeof defaultFormData = {
     ...defaultFormData,
