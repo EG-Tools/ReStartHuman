@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
+import { getAccessModeFormData } from '../src/utils/accessMode'
 import {
   createSaveSlotRecord,
   getSaveSlotStorageKey,
@@ -94,6 +95,33 @@ test('저장 슬롯은 저장 후 다시 읽으면 슬롯 번호 순서대로 �
       { slotId: 3, name: '세 번째' },
     ],
   )
+})
+
+test('v0.57 저장 슬롯의 일반 모드 생활비 총액을 새 필드로 이전한다', () => {
+  const storage = new MemoryStorage()
+  const legacyFormData: Record<string, unknown> = {
+    ...defaultFormData,
+    livingCostInputMode: 'detailed',
+    livingCostMonthlyTotal: 500_000,
+    foodMonthly: 500_000,
+    necessitiesMonthly: 200_000,
+    diningOutMonthly: 100_000,
+  }
+  delete legacyFormData.generalLivingExpenseMonthly
+
+  storage.setItem(
+    getSaveSlotStorageKey(1),
+    JSON.stringify({
+      version: 1,
+      ...makeRecord(1, 'v0.57 저장'),
+      formData: legacyFormData,
+    }),
+  )
+
+  const loadedFormData = readSaveSlotRecords(storage)[0]?.formData
+  assert.ok(loadedFormData)
+  assert.equal(loadedFormData.generalLivingExpenseMonthly, 500_000)
+  assert.equal(getAccessModeFormData(loadedFormData, 'general').livingCostMonthlyTotal, 500_000)
 })
 
 test('저장 슬롯은 알 수 없는 버전이나 깨진 데이터는 무시한다', () => {

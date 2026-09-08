@@ -123,13 +123,13 @@ test('service worker retries a failed download instead of caching the 404', asyn
 test('service worker activation removes only this app old caches', async () => {
   const harness = createWorkerHarness()
   harness.stores.set('restarthuman-alpha-v78', new Map())
-  harness.stores.set('restarthuman-alpha-v80', new Map())
+  harness.stores.set('restarthuman-alpha-v81', new Map())
   harness.stores.set('another-app-cache', new Map())
 
   await harness.dispatchActivate()
 
   assert.equal(harness.stores.has('restarthuman-alpha-v78'), false)
-  assert.equal(harness.stores.has('restarthuman-alpha-v80'), true)
+  assert.equal(harness.stores.has('restarthuman-alpha-v81'), true)
   assert.equal(harness.stores.has('another-app-cache'), true)
   assert.equal(harness.getClaimCount(), 1)
 })

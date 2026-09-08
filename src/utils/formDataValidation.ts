@@ -104,5 +104,26 @@ export const normalizeStoredFormData = (value: unknown): AlphaFormData | null =>
     isCompatibleFormDataValue(key, value[key], templateValue),
   )
 
-  return isCompatible ? { ...defaultFormData, ...value } : null
+  if (!isCompatible) {
+    return null
+  }
+
+  const hasGeneralLivingExpense = Object.prototype.hasOwnProperty.call(
+    value,
+    'generalLivingExpenseMonthly',
+  )
+  const legacyGeneralLivingExpense =
+    !hasGeneralLivingExpense &&
+    isFiniteNumber(value.livingCostMonthlyTotal) &&
+    value.livingCostMonthlyTotal > 0
+      ? value.livingCostMonthlyTotal
+      : defaultFormData.generalLivingExpenseMonthly
+
+  return {
+    ...defaultFormData,
+    ...value,
+    generalLivingExpenseMonthly: hasGeneralLivingExpense
+      ? (value.generalLivingExpenseMonthly as number | null)
+      : legacyGeneralLivingExpense,
+  }
 }

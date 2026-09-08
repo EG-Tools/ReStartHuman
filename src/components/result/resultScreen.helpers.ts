@@ -4,8 +4,10 @@ import type {
   AccountOwnershipBreakdown,
   AlphaFormData,
   AlphaResult,
+  AppAccessMode,
 } from '../../types/alpha'
 import { calculateAlphaScenario } from '../../engine/calculator'
+import { getAccessModeFormData } from '../../utils/accessMode'
 import { getLoanInterestMonthlyAtYear } from '../../utils/expensePeriods'
 import { formatCompactCurrency, formatPercent } from '../../utils/format'
 
@@ -363,6 +365,7 @@ const createAdviceCandidate = ({
   currentFormData,
   afterFormData,
   afterResult,
+  patch: requestedPatch,
 }: {
   id: string
   message: string
@@ -371,12 +374,13 @@ const createAdviceCandidate = ({
   currentFormData: AlphaFormData
   afterFormData: AlphaFormData
   afterResult: AlphaResult
+  patch?: Partial<AlphaFormData>
 }): AdviceCandidate | null => {
   if (!improvesEnough(beforeResult, afterResult)) {
     return null
   }
 
-  const patch = buildFormDataPatch(currentFormData, afterFormData)
+  const patch = requestedPatch ?? buildFormDataPatch(currentFormData, afterFormData)
 
   if (Object.keys(patch).length === 0) {
     return null
@@ -398,15 +402,35 @@ const createAdviceCandidate = ({
 const buildReducedLivingCostFormData = (
   formData: AlphaFormData,
   reductionMonthly: number,
-): AlphaFormData => {
+  accessMode: AppAccessMode,
+): { formData: AlphaFormData; patch: Partial<AlphaFormData> } => {
   if (reductionMonthly <= 0) {
-    return formData
+    return { formData, patch: {} }
+  }
+
+  if (accessMode === 'general') {
+    const patch = {
+      generalLivingExpenseMonthly: Math.max(
+        0,
+        getLivingCostSnapshot(formData) - reductionMonthly,
+      ),
+    }
+
+    return {
+      formData: getAccessModeFormData({ ...formData, ...patch }, accessMode),
+      patch,
+    }
   }
 
   if (formData.livingCostInputMode === 'total') {
-    return {
+    const nextFormData = {
       ...formData,
       livingCostMonthlyTotal: Math.max(0, formData.livingCostMonthlyTotal - reductionMonthly),
+    }
+
+    return {
+      formData: nextFormData,
+      patch: buildFormDataPatch(formData, nextFormData),
     }
   }
 
@@ -439,7 +463,10 @@ const buildReducedLivingCostFormData = (
     remaining -= amountToReduce
   }
 
-  return nextFormData
+  return {
+    formData: nextFormData,
+    patch: buildFormDataPatch(formData, nextFormData),
+  }
 }
 
 const buildDividendBoostFormData = (
@@ -658,6 +685,7 @@ const buildSteppedAdviceCandidate = ({
 const findLivingCostAdvice = (
   formData: AlphaFormData,
   result: AlphaResult,
+  accessMode: AppAccessMode,
 ): AdviceCandidate | null => {
   const currentLivingCost = getLivingCostSnapshot(formData)
 
@@ -671,7 +699,11 @@ const findLivingCostAdvice = (
   return buildSteppedAdviceCandidate({
     maxAmount: maxReduction,
     evaluateCandidate: (reductionMonthly) => {
-      const nextFormData = buildReducedLivingCostFormData(formData, reductionMonthly)
+      const { formData: nextFormData, patch } = buildReducedLivingCostFormData(
+        formData,
+        reductionMonthly,
+        accessMode,
+      )
       const nextResult = calculateAlphaScenario(nextFormData)
 
       if (!improvesEnough(result, nextResult)) {
@@ -695,6 +727,7 @@ const findLivingCostAdvice = (
         currentFormData: formData,
         afterFormData: nextFormData,
         afterResult: nextResult,
+        patch,
       })
     },
   })
@@ -898,7 +931,11 @@ const buildHealthInsuranceAdvice = (
   return `\uAC74\uAC15\uBCF4\uD5D8\uB8CC\uB294 \uC6D4 ${formatCompactCurrency(result.healthInsuranceMonthly)}\uB85C \uD604\uC7AC \uC6D4 \uC720\uC785\uC758 ${formatPercent(healthInsuranceShare)} \uC218\uC900\uC785\uB2C8\uB2E4. ${getHealthInsuranceTypeSummary(formData.healthInsuranceType)}\uC73C\uB85C \uACC4\uC0B0\uB410\uC73C\uB2C8 \uAC74\uAC15\uBCF4\uD5D8 \uC720\uD615, \uCD94\uAC00\uC18C\uB4DD, \uBD80\uB3D9\uC0B0 \uC785\uB825\uC744 \uB2E4\uC2DC \uD655\uC778\uD574\uBCF4\uB294 \uD3B8\uC774 \uC88B\uC2B5\uB2C8\uB2E4.`
 }
 
-const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): DeficitAdviceItem[] => {
+const buildActionAdviceItems = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+  accessMode: AppAccessMode,
+): DeficitAdviceItem[] => {
   if (!isDeficitLike(result)) {
     return []
   }
@@ -908,7 +945,7 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): D
     findJeonseAdvice(formData, result),
   ].filter((candidate): candidate is AdviceCandidate => candidate !== null)
   const nonHousingCandidates = [
-    findLivingCostAdvice(formData, result),
+    findLivingCostAdvice(formData, result, accessMode),
     findDividendAdvice(formData, result),
     findLoanAdvice(formData, result),
     findCarCostAdvice(formData, result),
@@ -943,8 +980,13 @@ const buildActionAdviceItems = (formData: AlphaFormData, result: AlphaResult): D
   ]
 }
 
-export const buildDeficitAdviceItems = (formData: AlphaFormData, result: AlphaResult) => {
+export const buildDeficitAdviceItems = (
+  formData: AlphaFormData,
+  result: AlphaResult,
+  accessMode: AppAccessMode = 'pro',
+) => {
   const cacheKey = JSON.stringify([
+    accessMode,
     formData,
     result.monthlySurplusOrDeficit,
     result.cashBalanceAfterTenYears,
@@ -957,7 +999,7 @@ export const buildDeficitAdviceItems = (formData: AlphaFormData, result: AlphaRe
     return cachedItems
   }
 
-  const nextItems = buildActionAdviceItems(formData, result)
+  const nextItems = buildActionAdviceItems(formData, result, accessMode)
   setCachedDeficitAdviceItems(cacheKey, nextItems)
   return nextItems
 }

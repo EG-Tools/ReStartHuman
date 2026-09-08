@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { defaultFormData } from '../src/data/defaultFormData'
 import { calculateAlphaScenario } from '../src/engine/calculator'
+import { getAccessModeFormData } from '../src/utils/accessMode'
 import { buildResultRows } from '../src/components/result/resultScreen.editors'
 import {
   buildDeficitAdviceItems,
@@ -141,6 +142,44 @@ test('deficit advice is added when the scenario is deficit-like', () => {
   assert.ok(items.every((item) => typeof item.message === 'string' && item.message.length > 0))
   assert.ok(items.some((item) => Boolean(item.actionLabel)))
   assert.ok(items.some((item) => item.patch && Object.keys(item.patch).length > 0))
+})
+
+test('general-mode living cost advice updates the general override used by calculation', () => {
+  const sourceFormData = {
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 30,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    housingType: 'own' as const,
+    homeMarketValue: 0,
+    homeOfficialValue: 0,
+    livingCostInputMode: 'detailed' as const,
+    livingCostMonthlyTotal: 0,
+    generalLivingExpenseMonthly: 800_000,
+    foodMonthly: 500_000,
+    necessitiesMonthly: 200_000,
+    diningOutMonthly: 100_000,
+    healthInsuranceType: 'dependent' as const,
+  }
+  const generalFormData = getAccessModeFormData(sourceFormData, 'general')
+  const result = calculateAlphaScenario(generalFormData)
+  const advice = buildDeficitAdviceItems(generalFormData, result, 'general').find((item) =>
+    item.id.startsWith('living-cost-'),
+  )
+
+  assert.ok(advice)
+  assert.equal(advice.patch?.generalLivingExpenseMonthly, 0)
+  assert.equal('livingCostMonthlyTotal' in (advice.patch ?? {}), false)
+
+  const appliedFormData = getAccessModeFormData(
+    { ...sourceFormData, ...advice.patch },
+    'general',
+  )
+  const appliedResult = calculateAlphaScenario(appliedFormData)
+
+  assert.equal(appliedFormData.livingCostMonthlyTotal, 0)
+  assert.equal(appliedResult.livingExpenseMonthly, 0)
 })
 
 test('jeonse advice moves released housing cash into starting reserve', () => {

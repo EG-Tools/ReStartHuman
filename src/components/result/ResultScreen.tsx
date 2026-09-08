@@ -27,8 +27,16 @@ import {
 interface RecentAdviceState {
   id: string
   text: string
-  previousFormData: AlphaFormData
+  previousPatch: Partial<AlphaFormData>
 }
+
+const getPreviousPatchValues = (
+  formData: AlphaFormData,
+  patch: Partial<AlphaFormData>,
+) =>
+  Object.fromEntries(
+    Object.keys(patch).map((key) => [key, formData[key as keyof AlphaFormData]]),
+  ) as Partial<AlphaFormData>
 
 type ResultActionIconName = 'edit' | 'share'
 
@@ -239,7 +247,7 @@ export const ResultScreen = memo(function ResultScreen({
       setRecentAdvice({
         id: item.id,
         text: item.message,
-        previousFormData: formData,
+        previousPatch: getPreviousPatchValues(formData, item.patch),
       })
       onPatchFormData(item.patch)
     },
@@ -250,18 +258,18 @@ export const ResultScreen = memo(function ResultScreen({
       return
     }
 
-    onPatchFormData(recentAdvice.previousFormData)
+    onPatchFormData(recentAdvice.previousPatch)
     setRecentAdvice(null)
   }, [onPatchFormData, recentAdvice])
   const adviceItems = useMemo<ResultInterpretationItem[]>(
     () =>
-      buildDeficitAdviceItems(formData, result).map((item) => ({
+      buildDeficitAdviceItems(formData, result, accessMode).map((item) => ({
         id: item.id,
         text: item.message,
         actionLabel: item.actionLabel,
         onAction: item.patch ? () => handleApplyAdvice(item) : undefined,
       })),
-    [formData, handleApplyAdvice, result],
+    [accessMode, formData, handleApplyAdvice, result],
   )
   const householdSummary = `${formData.householdType === 'couple' ? '부부 합산' : '1인 가구'}, ${
     formData.housingType === 'own'

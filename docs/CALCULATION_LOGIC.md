@@ -106,6 +106,8 @@ An insurance payment duration of `0` means the payment has already ended, so it 
 - Detailed mode adds food, necessities, dining out, hobby, academy, and other living cost.
 - `academyMonthly` is included only when `hasChildren` is true.
 - General mode stores its total in `generalLivingExpenseMonthly`; `null` derives from the active pro-mode input, while an explicit `0` remains zero.
+- Living-cost advice updates that same general-mode field, so its preview and applied result use the same calculation path.
+- Stored data created before this field existed migrates a positive legacy `livingCostMonthlyTotal` into the general-mode override.
 
 ### Housing monthly cost
 - Only monthly rent adds direct monthly housing cost right now.
