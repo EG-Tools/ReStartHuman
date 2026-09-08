@@ -69,6 +69,52 @@ test('result rows hide academy cost when children do not exist', () => {
   assert.ok(!rows.some((row) => row.item === '학원비'))
 })
 
+test('부부 예금이자 50:50 가정은 결과표 금융종합소득세 도움말에만 표시한다', () => {
+  const coupleFormData = {
+    ...defaultFormData,
+    householdType: 'couple' as const,
+    startingCashReserve: 100_000_000,
+    cashInterestRatePercent: 3,
+  }
+  const coupleResult = calculateAlphaScenario(coupleFormData)
+  const coupleRows = buildResultRows({
+    dividendBasisLabel: '세전 입력',
+    fixedExpenseAnnualBase: coupleResult.fixedExpenseMonthly * 12,
+    fixedExpenseMonthlyBase: coupleResult.fixedExpenseMonthly,
+    formData: coupleFormData,
+    householdSummary: '부부',
+    housingRowLabel: '자가',
+    housingRowNote: '테스트',
+    onPatchFormData: () => {},
+    result: coupleResult,
+  })
+  const coupleTaxRow = coupleRows.find((row) => row.item === '금융종합소득세')
+
+  assert.ok(coupleTaxRow)
+  assert.doesNotMatch(String(coupleTaxRow.note), /50:50/)
+  assert.match(String(coupleTaxRow.noteDetail), /예금이자는 본인·배우자 50:50 가정/)
+
+  const singleResult = calculateAlphaScenario({
+    ...coupleFormData,
+    householdType: 'single',
+  })
+  const singleRows = buildResultRows({
+    dividendBasisLabel: '세전 입력',
+    fixedExpenseAnnualBase: singleResult.fixedExpenseMonthly * 12,
+    fixedExpenseMonthlyBase: singleResult.fixedExpenseMonthly,
+    formData: { ...coupleFormData, householdType: 'single' },
+    householdSummary: '본인',
+    housingRowLabel: '자가',
+    housingRowNote: '테스트',
+    onPatchFormData: () => {},
+    result: singleResult,
+  })
+  const singleTaxRow = singleRows.find((row) => row.item === '금융종합소득세')
+
+  assert.ok(singleTaxRow)
+  assert.doesNotMatch(String(singleTaxRow.noteDetail), /50:50/)
+})
+
 test('deficit advice is added when the scenario is deficit-like', () => {
   const formData = {
     ...defaultFormData,

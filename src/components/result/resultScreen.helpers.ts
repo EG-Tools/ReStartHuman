@@ -1142,19 +1142,24 @@ export const getComprehensiveTaxZeroReason = (result: AlphaResult) => {
 }
 export const getComprehensiveTaxNote = (result: AlphaResult) => {
   const allocationSummary = formatComprehensiveTaxAllocationSummary(result)
+  const cashInterestOwnershipNote =
+    result.cashInterestAnnual > 0 &&
+    result.comprehensiveTaxBreakdown.some((item) => item.personKey === 'spouse')
+      ? ' 예금이자는 본인·배우자 50:50 가정으로 배분했습니다.'
+      : ''
   const additionalSummary = result.comprehensiveTaxBreakdown
     .filter((item) => item.additionalTaxAnnual > 0)
     .map((item) => `${item.label} \uCD94\uAC00 ${formatCompactCurrency(item.additionalTaxAnnual)}`)
     .join(', ')
 
   if (!result.comprehensiveTaxIncluded) {
-    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 인별로 합산한 추가 납부 추정액입니다. ISA는 합산에서 제외하며, 금융소득 귀속은 ${allocationSummary}. 현재는 인별 금융소득이 2,000만원 이하라 원천징수로 종결되는 것으로 봅니다.`
+    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 인별로 합산한 추가 납부 추정액입니다. ISA는 합산에서 제외하며, 금융소득 귀속은 ${allocationSummary}.${cashInterestOwnershipNote} 현재는 인별 금융소득이 2,000만원 이하라 원천징수로 종결되는 것으로 봅니다.`
   }
 
   if (additionalSummary.length === 0) {
-    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}. ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다.`
+    return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}.${cashInterestOwnershipNote} ${getComprehensiveTaxZeroReason(result)} 추가 납부는 0원입니다.`
   }
 
-  return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 뒤, 기존 소득세와 금융소득 원천징수세액을 제외한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}. 소득세법 제62조 기준 추가 납부: ${additionalSummary}.`
+  return `결과표의 금융종합소득세는 일반계좌 배당과 예금이자를 다른 종합소득 과세표준과 합쳐 비교한 뒤, 기존 소득세와 금융소득 원천징수세액을 제외한 추가 납부 추정액입니다. ISA는 합산 제외, 금융소득 귀속은 ${allocationSummary}.${cashInterestOwnershipNote} 소득세법 제62조 기준 추가 납부: ${additionalSummary}.`
 }
 
