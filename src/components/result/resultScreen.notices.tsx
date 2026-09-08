@@ -59,7 +59,7 @@ export const ProjectionInlineControls = memo(function ProjectionInlineControls({
           <div className="projection-inline-field">
             <span className="projection-inline-field-label">물가</span>
             <InlineNumericField
-              value={Math.round(formData.inflationRateAnnual * 100)}
+              value={formData.inflationRateAnnual * 100}
               onChange={(value) =>
                 onPatchFormData({
                   inflationRateAnnual: Math.max(0, value) / 100,

@@ -14,7 +14,7 @@ The main entry is `calculateAlphaScenario()` in `src/engine/calculator.ts`.
 1. Sanitize raw form data.
 2. Convert dividend inputs into gross/net streams.
 3. Split taxable and ISA dividends by owner.
-4. Calculate ISA tax.
+4. Calculate the one-time ISA settlement estimate for the selected projection end.
 5. Calculate comprehensive tax for taxable-account dividends.
 6. Calculate expenses.
 7. Derive pension and other-income monthly inflow.
@@ -54,6 +54,11 @@ Behavior:
 - General type uses the lower tax-free limit.
 - Working-class type uses the higher tax-free limit.
 - If dividend input mode is net, ISA tax is effectively skipped because input is already treated as final net annual value.
+- The configured tax-free limits are 2 million KRW for general accounts and 4 million KRW for working-class accounts.
+- Gross-mode annual ISA dividend input is accumulated for the selected simulation period.
+- The tax-free limit is applied once per owner at the selected simulation end, and 9.9% is applied to the excess.
+- Any entered ISA asset balance is transferred into cash in the final projection year.
+- Actual ISA tax is settled after gains and losses are offset. The current form has no separate loss input, so this remains an explicitly labeled closure estimate rather than an authoritative tax amount.
 
 ### Comprehensive tax
 Owner:
@@ -106,6 +111,8 @@ Owner:
 
 Current model summary:
 - Employee-like types use salary plus possible extra burden from non-salary income above threshold.
+- Salary-based premiums use the employee 50% share, while premiums on non-salary income above the threshold use the employee's full share.
+- When a selected earned-income or corporate-executive stream reaches its configured end, its salary base also stops in the projection.
 - Dependent can stay at `0` if annual non-salary income is below threshold.
 - Regional-style cases combine income-side and property-side pressure.
 - Property-side pressure uses housing plus additional property base.
@@ -133,6 +140,9 @@ Current model summary:
 - Applies inflation only to the cost side when `inflationEnabled` is true.
 - Applies loan interest only for the configured number of years.
 - Generates `cashBalanceTimeline` from year 0 to final year.
+- Recalculates cash interest, financial comprehensive tax, and health-insurance income every projection year using that year's balance.
+- Tracks the first negative-balance year, minimum balance, and the cash shortfall needed to avoid interim depletion.
+- Keeps ISA dividend cash flow active through the selected period, then applies the one-time ISA settlement tax and asset transfer in the final year.
 
 ## 9) Result values that the UI depends on heavily
 When changing engine logic, check these result fields because the result screen uses them directly:

@@ -212,7 +212,7 @@ const CASHFLOW_TEXT = {
   yearsLater: '\uB144 \uD6C4',
   pensionStart: '\uC5F0\uAE08 \uC2DC\uC791',
   pensionShort: '\uC5F0\uAE08',
-  isaLiquidation: 'ISA \uD604\uAE08 \uC774\uC804',
+  isaSettlement: 'ISA 종료 정산',
   isaShort: 'ISA',
   healthInsuranceReflect: '\uAC74\uBCF4 \uBC18\uC601',
   healthInsuranceShort: '\uAC74\uBCF4',
@@ -300,7 +300,9 @@ export const CashFlowChart = memo(function CashFlowChart({
   const borderY = paddingTop - borderGapTop
   const borderWidth = chartWidth + borderGapLeft + borderGapRight
   const borderHeight = chartHeight + borderGapTop + borderGapBottom
-  const displayedInflationRate = Math.round((inflationEnabled ? inflationRateAnnual : 0) * 100)
+  const displayedInflationRate = Number(
+    ((inflationEnabled ? inflationRateAnnual : 0) * 100).toFixed(1),
+  )
   const palette =
     result.riskLevel === 'deficit'
       ? {
@@ -376,14 +378,14 @@ export const CashFlowChart = memo(function CashFlowChart({
           },
         ]
       : []),
-    ...(result.isaLiquidationYear !== null && result.isaLiquidationYear > 0 && result.isaLiquidationYear <= totalYears
+    ...(result.isaSettlementYear !== null && result.isaSettlementYear > 0 && result.isaSettlementYear <= totalYears
       ? [
           {
-            key: 'isa-liquidation',
-            label: CASHFLOW_TEXT.isaLiquidation,
+            key: 'isa-settlement',
+            label: CASHFLOW_TEXT.isaSettlement,
             shortLabel: CASHFLOW_TEXT.isaShort,
-            detail: formatCashFlowEventDetail(currentAge, result.isaLiquidationYear),
-            yearOffset: result.isaLiquidationYear,
+            detail: formatCashFlowEventDetail(currentAge, result.isaSettlementYear),
+            yearOffset: result.isaSettlementYear,
             tone: 'isa' as const,
           },
         ]
@@ -462,6 +464,12 @@ export const CashFlowChart = memo(function CashFlowChart({
           <p className="cashflow-hero-copy">
             {CASHFLOW_TEXT.heroCopyStart} {projectionYears}{CASHFLOW_TEXT.heroCopyEnd}
           </p>
+          {result.firstCashDepletionAge !== null ? (
+            <p className="cashflow-depletion-warning">
+              {result.firstCashDepletionAge}세에 현금이 처음 부족해지며, 기간 중 최소{' '}
+              {formatCompactCurrency(result.cashShortfallToAvoidDepletion)}의 보완자금이 필요합니다.
+            </p>
+          ) : null}
         </div>
         <div className="cashflow-hero-meta">
           <span className="cashflow-hero-meta-pill cashflow-hero-meta-start">

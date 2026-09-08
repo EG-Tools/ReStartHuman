@@ -192,6 +192,18 @@
   white-space: nowrap;
 }
 
+.save-slot-storage-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(184, 68, 76, 0.28);
+  border-radius: 12px;
+  background: rgba(184, 68, 76, 0.08);
+  color: var(--danger-ink, #913d44);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .slot-actions .slot-load-button.button-secondary {
   background: #d0d5da;
   border-color: rgba(92, 102, 114, 0.2);

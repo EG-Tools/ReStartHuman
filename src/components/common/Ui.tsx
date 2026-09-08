@@ -1,5 +1,12 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { formatCurrency } from '../../utils/format'
+import {
+  formatNumericDraftValue,
+  getNumericInputPrecision,
+  parseNumericDraftValue,
+  roundNumericInputValue,
+  sanitizeNumericDraftValue,
+} from '../../utils/numericInput'
 
 const MANWON = 10_000
 
@@ -9,31 +16,26 @@ type ZeroDisplayMode = 'blank' | 'zero'
 
 const formatDraftValue = (
   value: number,
+  precision: number,
   zeroDisplayMode: ZeroDisplayMode = 'blank',
-) =>
-  Number.isFinite(value) && (Math.round(value) !== 0 || zeroDisplayMode === 'zero')
-    ? String(Math.round(value))
-    : ''
+) => formatNumericDraftValue(value, precision, zeroDisplayMode === 'zero')
 
-const sanitizeDraftValue = (draftValue: string) => {
-  return draftValue.replace(/,/g, '').replace(/[^\d]/g, '')
-}
+const toDisplayValue = (value: number, display: NumericDisplayMode, precision: number) =>
+  display === 'currency'
+    ? Math.round(value / MANWON)
+    : roundNumericInputValue(value, precision)
 
-const parseDraftValue = (draftValue: string, minValue: number) => {
-  const normalizedValue = Math.round(Number(draftValue) || 0)
-  return Math.max(normalizedValue, minValue)
-}
-
-const toDisplayValue = (value: number, display: NumericDisplayMode) =>
-  display === 'currency' ? Math.round(value / MANWON) : Math.round(value)
-
-const toCommitValue = (value: number, display: NumericDisplayMode) =>
-  display === 'currency' ? Math.round(value) * MANWON : Math.round(value)
+const toCommitValue = (value: number, display: NumericDisplayMode, precision: number) =>
+  display === 'currency'
+    ? Math.round(value) * MANWON
+    : roundNumericInputValue(value, precision)
 
 interface UseNumericDraftControllerProps {
   value: number
   onChange: (value: number) => void
   min?: number
+  max?: number
+  step?: number
   display?: NumericDisplayMode
   commitMode?: NumericCommitMode
   idleZeroDisplay?: ZeroDisplayMode
@@ -43,16 +45,24 @@ function useNumericDraftController({
   value,
   onChange,
   min = 0,
+  max,
+  step = 1,
   display = 'currency',
   commitMode = 'blur',
   idleZeroDisplay = 'blank',
 }: UseNumericDraftControllerProps) {
-  const displayValue = Number.isFinite(value) ? toDisplayValue(value, display) : 0
+  const precision = display === 'currency' ? 0 : getNumericInputPrecision(step)
+  const displayValue = Number.isFinite(value) ? toDisplayValue(value, display, precision) : 0
   const [editBuffer, setEditBuffer] = useState<string | null>(null)
-  const draftValue = editBuffer ?? formatDraftValue(displayValue, idleZeroDisplay)
+  const draftValue = editBuffer ?? formatDraftValue(displayValue, precision, idleZeroDisplay)
   const commitRawValue = (rawValue: string) => {
-    const nextValue = parseDraftValue(rawValue, min)
-    onChange(toCommitValue(nextValue, display))
+    const nextValue = parseNumericDraftValue({
+      rawValue,
+      min,
+      max,
+      precision,
+    })
+    onChange(toCommitValue(nextValue, display, precision))
     return nextValue
   }
 
@@ -67,7 +77,7 @@ function useNumericDraftController({
     inputHandlers: {
       onFocus: () => {
         setEditBuffer((currentValue) =>
-          currentValue ?? formatDraftValue(displayValue, idleZeroDisplay),
+          currentValue ?? formatDraftValue(displayValue, precision, idleZeroDisplay),
         )
       },
       onBlur: () => {
@@ -94,7 +104,7 @@ function useNumericDraftController({
         }
       },
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-        const nextDraftValue = sanitizeDraftValue(event.target.value)
+        const nextDraftValue = sanitizeNumericDraftValue(event.target.value, precision)
         setEditBuffer(nextDraftValue)
 
         if (commitMode === 'change') {
@@ -283,6 +293,8 @@ export function InlineNumericField({
     value,
     onChange,
     min,
+    max,
+    step: resolvedStep,
     display,
     commitMode,
     idleZeroDisplay,
@@ -294,7 +306,7 @@ export function InlineNumericField({
         <input
           className={inputClassName}
           type="text"
-          inputMode="numeric"
+          inputMode={getNumericInputPrecision(resolvedStep) > 0 ? 'decimal' : 'numeric'}
           min={min}
           step={resolvedStep}
           max={max}

@@ -13,19 +13,20 @@ export const policyConfig = {
   },
   isa: {
     referenceDate: '2026-03-20',
-    generalTaxFreeLimit: 5_000_000,
-    workingClassTaxFreeLimit: 10_000_000,
+    generalTaxFreeLimit: 2_000_000,
+    workingClassTaxFreeLimit: 4_000_000,
     excessIncomeTaxRate: 0.09,
     excessLocalIncomeTaxRate: 0.009,
     excessTaxRate: 0.099,
     note:
-      '일반형 500만원, 서민형 1,000만원 비과세로 보고 초과분은 9.9% 분리과세 구조를 반영했습니다.',
+      '일반형 200만원, 서민형 400만원 비과세와 초과분 9.9% 분리과세를 기준으로 선택한 시뮬레이션 종료 시 한 번 정산합니다. 입력한 연 배당을 기간 이익으로 단순 누적하며, 별도 손실은 입력받지 않아 실제 해지 세액과 다를 수 있습니다.',
   },
   healthInsurance: {
     referenceDate: '2026-03-27',
     employeeContributionRate: 0.0719,
     regionalContributionPerPoint: 211.5,
     employeeIncomeShareRate: 0.5,
+    employeeAdditionalIncomeShareRate: 1,
     employeeAdditionalIncomeThresholdAnnual: 20_000_000,
     dependentIncomeThresholdAnnual: 20_000_000,
     dependentFreelanceProfitThresholdAnnual: 5_000_000,
@@ -36,7 +37,7 @@ export const policyConfig = {
     leaseValueRatio: 0.3,
     regionalPropertyValuePerPointApprox: 250_000,
     approximationNotice:
-      '직장가입자 7.19% 보험료율, 보수 외 소득 2,000만원 기준, 지역가입자 재산 기본공제 1억원, 피부양자 재산세 과표 5.4억원·9억원 구간을 참고한 단순 추정 모델입니다.',
+      '직장가입자 7.19% 보험료율, 보수월액 본인 50%와 보수 외 소득월액 본인 전액 부담, 보수 외 소득 2,000만원 기준, 지역가입자 재산 기본공제 1억원, 피부양자 재산세 과표 5.4억원·9억원 구간을 참고한 단순 추정 모델입니다.',
   },
   holdingTax: {
     referenceDate: '2026-03-20',

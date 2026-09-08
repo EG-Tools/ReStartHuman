@@ -4,6 +4,7 @@ import type {
   SaveSlotRecord,
 } from '../types/alpha'
 import { safeStorageGetItem, safeStorageRemoveItem, safeStorageSetItem } from './browserStorage'
+import { normalizeStoredFormData } from './formDataValidation'
 
 export const SAVE_SLOT_COUNT = 5
 export const SAVE_SLOT_STORAGE_VERSION = 1 as const
@@ -24,17 +25,23 @@ type ParsedSaveSlotRecord = PersistedSaveSlotRecord | LegacySaveSlotRecord
 const isRecordObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
+const isStoredResultShape = (value: unknown): value is AlphaResult =>
+  isRecordObject(value) && typeof value.policyBaseDate === 'string'
+
 const isSaveSlotRecordShape = (value: unknown): value is SaveSlotRecord => {
   if (!isRecordObject(value)) {
     return false
   }
 
   return (
-    typeof value.slotId === 'number' &&
+    Number.isInteger(value.slotId) &&
+    Number(value.slotId) >= 1 &&
+    Number(value.slotId) <= SAVE_SLOT_COUNT &&
     typeof value.name === 'string' &&
     typeof value.savedAt === 'string' &&
-    isRecordObject(value.formData) &&
-    isRecordObject(value.result)
+    Number.isFinite(Date.parse(value.savedAt)) &&
+    normalizeStoredFormData(value.formData) !== null &&
+    isStoredResultShape(value.result)
   )
 }
 
@@ -65,8 +72,12 @@ const migrateParsedSaveSlotRecord = (value: unknown): SaveSlotRecord | null => {
   }
 
   const parsedRecord = value as ParsedSaveSlotRecord
+  const normalizedFormData = normalizeStoredFormData(parsedRecord.formData)
 
-  if ('version' in parsedRecord && parsedRecord.version !== SAVE_SLOT_STORAGE_VERSION) {
+  if (
+    !normalizedFormData ||
+    ('version' in parsedRecord && parsedRecord.version !== SAVE_SLOT_STORAGE_VERSION)
+  ) {
     return null
   }
 
@@ -74,7 +85,7 @@ const migrateParsedSaveSlotRecord = (value: unknown): SaveSlotRecord | null => {
     slotId: parsedRecord.slotId,
     name: parsedRecord.name,
     savedAt: parsedRecord.savedAt,
-    formData: parsedRecord.formData as AlphaFormData,
+    formData: normalizedFormData,
     result: parsedRecord.result as AlphaResult,
   })
 }
@@ -124,16 +135,20 @@ export const createSaveSlotRecord = (
 
 export const writeSaveSlotRecord = (storage: Storage | undefined, record: SaveSlotRecord) => {
   if (!storage) {
-    return
+    return false
   }
 
-  safeStorageSetItem(storage, getSaveSlotStorageKey(record.slotId), JSON.stringify(serializeSaveSlotRecord(record)))
+  return safeStorageSetItem(
+    storage,
+    getSaveSlotStorageKey(record.slotId),
+    JSON.stringify(serializeSaveSlotRecord(record)),
+  )
 }
 
 export const removeSaveSlotRecord = (storage: Storage | undefined, slotId: number) => {
   if (!storage) {
-    return
+    return false
   }
 
-  safeStorageRemoveItem(storage, getSaveSlotStorageKey(slotId))
+  return safeStorageRemoveItem(storage, getSaveSlotStorageKey(slotId))
 }

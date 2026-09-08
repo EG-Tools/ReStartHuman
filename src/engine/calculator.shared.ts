@@ -15,7 +15,7 @@ export interface DividendStream {
 
 export interface IsaTaxCalculation {
   stream: DividendStream
-  taxAnnual: number
+  settlementTax: number
   taxFreeLimitApplied: number
   breakdown: IsaTaxBreakdown[]
 }
@@ -42,9 +42,13 @@ export interface CashProjection {
   cumulativeRentalIncomeTax: number
   cumulativeEstimatedComprehensiveIncomeTax: number
   cumulativeEstimatedLocalIncomeTax: number
+  cumulativeFinancialComprehensiveTax: number
   cumulativeIsaDividend: number
-  isaLiquidationYear: number | null
-  isaLiquidationTransferAmount: number
+  minimumBalance: number
+  firstDepletionYear: number | null
+  cashShortfallToAvoidDepletion: number
+  isaSettlementYear: number | null
+  isaSettlementTransferAmount: number
 }
 
 export interface HoldingTaxEstimate {

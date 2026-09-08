@@ -1,22 +1,31 @@
 import { policyConfig } from '../config/policyConfig'
-import type { HoldingTaxBreakdownItem, AlphaFormData, AdditionalHome, ReviewLevel } from '../types/alpha'
+import type {
+  AccountOwnershipBreakdown,
+  HoldingTaxBreakdownItem,
+  AlphaFormData,
+  AdditionalHome,
+  ReviewLevel,
+} from '../types/alpha'
 import {
   calculateAgeQualifiedPrivatePensionTaxAnnual,
+  calculateComprehensiveTax,
   calculateEstimatedComprehensiveIncomeTax,
   calculateRentalIncomeTax,
   getEstimatedComprehensiveTaxBaseAnnual,
 } from './calculator.income'
 import {
-  getAgeQualifiedEarnedIncomeMonthly,
   getAgeQualifiedIncomeCategoryMonthly,
   getAgeQualifiedNonSalaryIncomeMonthly,
   getAgeQualifiedOtherIncomeMonthly as getStructuredAgeQualifiedOtherIncomeMonthly,
   getAgeQualifiedRentalIncomeMonthly,
+  getIncomeCategoryDurationYears,
+  getSelectedIncomeCategories,
 } from '../utils/incomeStreams'
 import { formatCompactCurrency } from '../utils/format'
 import {
   type CashProjection,
   type HoldingTaxEstimate,
+  getOwnershipAllocations,
   getMineAttributedPropertyValue,
   getOwnerAllocatedValues,
   roundCurrency,
@@ -392,9 +401,19 @@ export const estimateHealthInsurance = (
   const usesEmployeeHealthInsurance =
     formData.healthInsuranceType === 'employee' ||
     formData.healthInsuranceType === 'employeeWithDependentSpouse'
-  const earnedIncomeMonthly = usesEmployeeHealthInsurance
-    ? getAgeQualifiedEarnedIncomeMonthly(formData, age)
+  const selectedIncomeCategories = getSelectedIncomeCategories(formData)
+  const employeeIncomeCategory = selectedIncomeCategories.find(
+    (category) => category === 'earned' || category === 'corporateExecutive',
+  )
+  const earnedIncomeMonthly = usesEmployeeHealthInsurance && employeeIncomeCategory
+    ? getAgeQualifiedIncomeCategoryMonthly(formData, employeeIncomeCategory, age)
     : 0
+  const employeeIncomeDurationYears = employeeIncomeCategory
+    ? getIncomeCategoryDurationYears(formData, employeeIncomeCategory)
+    : null
+  const isEmployeeIncomeActive =
+    employeeIncomeDurationYears === null ||
+    age < formData.currentAge + employeeIncomeDurationYears
   const businessIncomeMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'business', age)
   const nonSalaryOtherIncomeMonthly = usesEmployeeHealthInsurance
     ? getAgeQualifiedNonSalaryIncomeMonthly(formData, age)
@@ -404,7 +423,11 @@ export const estimateHealthInsurance = (
     age,
     includeDeclaredBusinessIncome,
   )
-  const effectiveSalaryMonthly = Math.max(formData.salaryMonthly, earnedIncomeMonthly)
+  const effectiveSalaryMonthly = employeeIncomeCategory
+    ? isEmployeeIncomeActive
+      ? Math.max(formData.salaryMonthly, earnedIncomeMonthly)
+      : 0
+    : formData.salaryMonthly
   const annualNonSalaryIncome =
     totalDividendAnnualGross +
     pensionMonthly * 12 +
@@ -423,7 +446,7 @@ export const estimateHealthInsurance = (
     ) /
       12) *
     policyConfig.healthInsurance.employeeContributionRate *
-    policyConfig.healthInsurance.employeeIncomeShareRate
+    policyConfig.healthInsurance.employeeAdditionalIncomeShareRate
 
   const regionalIncomePremium =
     (annualNonSalaryIncome / 12) * policyConfig.healthInsurance.employeeContributionRate
@@ -666,7 +689,9 @@ export const estimateHoldingTax = (formData: AlphaFormData): HoldingTaxEstimate 
 type CashProjectionDividendInputs = {
   taxableDividendAnnualGross: number
   taxableDividendAnnualNet: number
+  taxableDividendOwnershipBreakdown: AccountOwnershipBreakdown[]
   isaDividendAnnualNet: number
+  isaSettlementTax: number
   pensionDividendAnnualNet: number
 }
 
@@ -675,7 +700,6 @@ export const calculateCashProjection = (
   dividendInputs: CashProjectionDividendInputs,
   totalExpenseMonthly: number,
   holdingTaxMonthly: number,
-  financialComprehensiveTaxImpactAnnual: number,
   projectionYears = 30,
 ): CashProjection => {
   let cumulativeNetChange = 0
@@ -689,12 +713,15 @@ export const calculateCashProjection = (
   let cumulativeRentalIncomeTax = 0
   let cumulativeEstimatedComprehensiveIncomeTax = 0
   let cumulativeEstimatedLocalIncomeTax = 0
+  let cumulativeFinancialComprehensiveTax = 0
   let cumulativeIsaDividend = 0
   let balance = formData.startingCashReserve
-  let isaLiquidationYear: number | null = null
-  const usesIsaRecoveryModel = formData.isaAssets > 0 && dividendInputs.isaDividendAnnualNet > 0
-  const isaLiquidationTransferAmount = usesIsaRecoveryModel ? roundCurrency(formData.isaAssets) : 0
-  let remainingIsaRecoverableBase = usesIsaRecoveryModel ? roundCurrency(formData.isaAssets) : 0
+  const hasIsaSettlement =
+    formData.isaAssets > 0 ||
+    dividendInputs.isaDividendAnnualNet > 0 ||
+    dividendInputs.isaSettlementTax > 0
+  const isaSettlementYear = hasIsaSettlement ? projectionYears : null
+  const isaSettlementTransferAmount = hasIsaSettlement ? roundCurrency(formData.isaAssets) : 0
   const timeline = [
     {
       year: 0,
@@ -713,14 +740,6 @@ export const calculateCashProjection = (
     const projectedAge = formData.currentAge + yearIndex
     const projectedOtherIncomeMonthly = getAgeQualifiedOtherIncomeMonthly(formData, projectedAge)
     const projectedPensionMonthly = getAgeQualifiedPensionMonthly(formData, projectedAge)
-    const projectedHealthInsuranceMonthly =
-      formData.healthInsuranceOverrideMonthly ??
-      estimateHealthInsurance(
-        formData,
-        dividendInputs.taxableDividendAnnualGross,
-        projectedAge,
-        projectedPensionMonthly,
-      )
     const projectedRentalIncomeTaxAnnual =
       getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) > 0
         ? calculateRentalIncomeTax(getAgeQualifiedRentalIncomeMonthly(formData, projectedAge) * 12).annualTax
@@ -736,33 +755,40 @@ export const calculateCashProjection = (
       formData,
       projectedAge,
     ).totalTaxAnnual
+    const projectedCashInterestAnnualGross = calculateGrossCashInterestAnnual(
+      balance,
+      formData.cashInterestRatePercent,
+    )
     const projectedCashInterestAnnual = calculateNetCashInterestAnnual(
       balance,
       formData.cashInterestRatePercent,
     )
-    let projectedIsaDividendAnnual = 0
-    let projectedIsaTransferAmount = 0
-
-    if (dividendInputs.isaDividendAnnualNet > 0) {
-      if (usesIsaRecoveryModel) {
-        if (remainingIsaRecoverableBase > 0) {
-          projectedIsaDividendAnnual = Math.min(
-            dividendInputs.isaDividendAnnualNet,
-            remainingIsaRecoverableBase,
-          )
-          remainingIsaRecoverableBase = roundCurrency(
-            Math.max(remainingIsaRecoverableBase - projectedIsaDividendAnnual, 0),
-          )
-
-          if (remainingIsaRecoverableBase === 0 && isaLiquidationYear === null) {
-            isaLiquidationYear = yearIndex + 1
-            projectedIsaTransferAmount = isaLiquidationTransferAmount
-          }
-        }
-      } else {
-        projectedIsaDividendAnnual = dividendInputs.isaDividendAnnualNet
-      }
-    }
+    const projectedCashInterestOwnershipBreakdown = getOwnershipAllocations({
+      householdType: formData.householdType,
+      ownershipType: formData.householdType === 'couple' ? 'split' : 'mineOnly',
+      totalAnnualInput: projectedCashInterestAnnualGross,
+      totalAnnualAllocated: projectedCashInterestAnnualGross,
+      myAttributedAnnualInput:
+        formData.householdType === 'couple'
+          ? roundCurrency(projectedCashInterestAnnualGross / 2)
+          : projectedCashInterestAnnualGross,
+    })
+    const projectedFinancialComprehensiveTax = calculateComprehensiveTax(
+      dividendInputs.taxableDividendOwnershipBreakdown,
+      projectedCashInterestOwnershipBreakdown,
+    )
+    const projectedHealthInsuranceMonthly =
+      formData.healthInsuranceOverrideMonthly ??
+      estimateHealthInsurance(
+        formData,
+        dividendInputs.taxableDividendAnnualGross + projectedCashInterestAnnualGross,
+        projectedAge,
+        projectedPensionMonthly,
+      )
+    const projectedIsaDividendAnnual = dividendInputs.isaDividendAnnualNet
+    const isIsaSettlementYear = isaSettlementYear === yearIndex + 1
+    const projectedIsaTransferAmount = isIsaSettlementYear ? isaSettlementTransferAmount : 0
+    const projectedIsaSettlementTax = isIsaSettlementYear ? dividendInputs.isaSettlementTax : 0
 
     const projectedTotalIncomeAnnual = roundCurrency(
       dividendInputs.taxableDividendAnnualNet +
@@ -779,8 +805,9 @@ export const calculateCashProjection = (
         projectedEstimatedComprehensiveTax.incomeTaxAnnual -
         projectedEstimatedComprehensiveTax.localIncomeTaxAnnual -
         projectedPrivatePensionTaxAnnual -
-        financialComprehensiveTaxImpactAnnual -
-        projectedRentalIncomeTaxAnnual,
+        projectedFinancialComprehensiveTax.impactAnnual -
+        projectedRentalIncomeTaxAnnual -
+        projectedIsaSettlementTax,
     )
     const inflationMultiplier = formData.inflationEnabled
       ? (1 + formData.inflationRateAnnual) ** yearIndex
@@ -810,7 +837,8 @@ export const calculateCashProjection = (
     cumulativeRentalIncomeTax += projectedRentalIncomeTaxAnnual
     cumulativeEstimatedComprehensiveIncomeTax += projectedEstimatedComprehensiveTax.incomeTaxAnnual
     cumulativeEstimatedLocalIncomeTax += projectedEstimatedComprehensiveTax.localIncomeTaxAnnual
-    cumulativeIsaDividend += projectedIsaDividendAnnual
+    cumulativeFinancialComprehensiveTax += projectedFinancialComprehensiveTax.impactAnnual
+    cumulativeIsaDividend += projectedIsaDividendAnnual - projectedIsaSettlementTax
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -818,6 +846,9 @@ export const calculateCashProjection = (
       balance: roundCurrency(balance),
     })
   }
+
+  const minimumBalance = Math.min(...timeline.map((point) => point.balance))
+  const firstDepletionYear = timeline.find((point) => point.balance < 0)?.year ?? null
 
   return {
     cumulativeNetChange: roundCurrency(cumulativeNetChange),
@@ -833,9 +864,13 @@ export const calculateCashProjection = (
     cumulativeRentalIncomeTax: roundCurrency(cumulativeRentalIncomeTax),
     cumulativeEstimatedComprehensiveIncomeTax: roundCurrency(cumulativeEstimatedComprehensiveIncomeTax),
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
+    cumulativeFinancialComprehensiveTax: roundCurrency(cumulativeFinancialComprehensiveTax),
     cumulativeIsaDividend: roundCurrency(cumulativeIsaDividend),
-    isaLiquidationYear,
-    isaLiquidationTransferAmount,
+    minimumBalance: roundCurrency(minimumBalance),
+    firstDepletionYear,
+    cashShortfallToAvoidDepletion: roundCurrency(Math.max(-minimumBalance, 0)),
+    isaSettlementYear,
+    isaSettlementTransferAmount,
   }
 }
 

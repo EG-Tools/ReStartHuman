@@ -14,6 +14,7 @@ const readSlots = (): SaveSlotRecord[] => readSaveSlotRecords(getBrowserStorage(
 
 export const useSaveSlots = () => {
   const [slots, setSlots] = useState<SaveSlotRecord[]>(() => readSlots())
+  const [storageError, setStorageError] = useState<string | null>(null)
 
   const slotsById = useMemo(() => {
     const slotMap = new Map<number, SaveSlotRecord>()
@@ -44,12 +45,19 @@ export const useSaveSlots = () => {
       const storage = getBrowserStorage()
 
       if (!storage) {
-        return
+        setStorageError('이 브라우저에서는 결과를 저장할 수 없습니다.')
+        return false
       }
 
       const record = createSaveSlotRecord(slotId, formData, result, slotName)
-      writeSaveSlotRecord(storage, record)
+      if (!writeSaveSlotRecord(storage, record)) {
+        setStorageError('결과를 저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.')
+        return false
+      }
+
       replaceSlot(record)
+      setStorageError(null)
+      return true
     },
     [replaceSlot],
   )
@@ -58,17 +66,25 @@ export const useSaveSlots = () => {
     const storage = getBrowserStorage()
 
     if (!storage) {
-      return
+      setStorageError('이 브라우저에서는 저장 결과를 삭제할 수 없습니다.')
+      return false
     }
 
-    removeSaveSlotRecord(storage, slotId)
+    if (!removeSaveSlotRecord(storage, slotId)) {
+      setStorageError('저장 결과를 삭제하지 못했습니다. 브라우저 저장 공간을 확인해주세요.')
+      return false
+    }
+
     setSlots((currentSlots) => currentSlots.filter((slot) => slot.slotId !== slotId))
+    setStorageError(null)
+    return true
   }, [])
 
   return {
     slotCount: SAVE_SLOT_COUNT,
     slots,
     slotsById,
+    storageError,
     saveSlot,
     deleteSlot,
   }

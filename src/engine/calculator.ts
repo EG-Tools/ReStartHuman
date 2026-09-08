@@ -51,7 +51,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
     formData.corporateExecutiveSalaryMonthly,
   )
   const normalizedCashInterestRatePercent = Number.isFinite(formData.cashInterestRatePercent)
-    ? Math.min(Math.max(Math.round(formData.cashInterestRatePercent), 0), 100)
+    ? Math.min(Math.max(Math.round(formData.cashInterestRatePercent * 100) / 100, 0), 100)
     : policyConfig.cashInterest.defaultAnnualRatePercent
   const nextHealthInsuranceType = hasCorporateExecutiveIncome
     ? 'employee'
@@ -241,21 +241,21 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
   )
   const currentEstimatedHealthInsurance = estimateHealthInsurance(
     formData,
-    taxableDividend.annualGross,
+    taxableDividend.annualGross + currentCashInterestAnnualGross,
     formData.currentAge,
     pensionMonthlyApplied,
     { includeDeclaredBusinessIncome: false },
   )
   const nextReflectedEstimatedHealthInsurance = estimateHealthInsurance(
     formData,
-    taxableDividend.annualGross,
+    taxableDividend.annualGross + currentCashInterestAnnualGross,
     formData.currentAge,
     pensionMonthlyApplied,
     { includeDeclaredBusinessIncome: true },
   )
   const dependentHealthInsuranceAssessment = getDependentHealthInsuranceAssessment({
     formData,
-    totalDividendAnnualGross: totalDividend.annualGross,
+    totalDividendAnnualGross: taxableDividend.annualGross + currentCashInterestAnnualGross,
     age: formData.currentAge,
     pensionMonthly: pensionMonthlyApplied,
   })
@@ -297,12 +297,13 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     {
       taxableDividendAnnualGross: taxableDividend.annualGross,
       taxableDividendAnnualNet: taxableDividend.annualNet,
+      taxableDividendOwnershipBreakdown,
       isaDividendAnnualNet: isaResult.stream.annualNet,
+      isaSettlementTax: isaResult.settlementTax,
       pensionDividendAnnualNet: pensionDividend.annualNet,
     },
     expenses.totalExpenseMonthly,
     holdingTax.monthly,
-    comprehensiveTax.impactAnnual,
     formData.simulationYears,
   )
   const tenYearSurplusOrDeficit = cashProjection.cumulativeNetChange
@@ -324,18 +325,18 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     isaDividendAnnualNet: isaResult.stream.annualNet,
     isaDividendMonthlyGross: isaResult.stream.monthlyGross,
     isaDividendMonthlyNet: isaResult.stream.monthlyNet,
-    isaTaxAnnual: isaResult.taxAnnual,
+    isaSettlementTax: isaResult.settlementTax,
     isaTaxFreeLimitApplied: isaResult.taxFreeLimitApplied,
     isaExcessTaxRate: policyConfig.isa.excessTaxRate,
     isaDividendOwnershipBreakdown,
     isaTaxBreakdown: isaResult.breakdown,
     projectionIsaDividendTotal: cashProjection.cumulativeIsaDividend,
-    isaLiquidationYear: cashProjection.isaLiquidationYear,
-    isaLiquidationAge:
-      cashProjection.isaLiquidationYear === null
+    isaSettlementYear: cashProjection.isaSettlementYear,
+    isaSettlementAge:
+      cashProjection.isaSettlementYear === null
         ? null
-        : formData.currentAge + cashProjection.isaLiquidationYear,
-    isaLiquidationTransferAmount: cashProjection.isaLiquidationTransferAmount,
+        : formData.currentAge + cashProjection.isaSettlementYear,
+    isaSettlementTransferAmount: cashProjection.isaSettlementTransferAmount,
     pensionDividendAnnualGross: pensionDividend.annualGross,
     pensionDividendAnnualNet: pensionDividend.annualNet,
     pensionDividendMonthlyGross: pensionDividend.monthlyGross,
@@ -374,6 +375,8 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     projectionEstimatedComprehensiveIncomeTaxTotal:
       cashProjection.cumulativeEstimatedComprehensiveIncomeTax,
     projectionEstimatedLocalIncomeTaxTotal: cashProjection.cumulativeEstimatedLocalIncomeTax,
+    projectionFinancialComprehensiveTaxTotal:
+      cashProjection.cumulativeFinancialComprehensiveTax,
     estimatedComprehensiveTaxReviewLevel: estimatedComprehensiveTaxReview.level,
     estimatedComprehensiveTaxReviewReasons: estimatedComprehensiveTaxReview.reasons,
     rentalSeparateTaxationOption: estimatedComprehensiveTaxReview.rentalSeparateTaxationOption,
@@ -395,8 +398,17 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     startingCashReserve: formData.startingCashReserve,
     cashBalanceAfterTenYears: cashProjection.endingBalance,
     cashBalanceTimeline: cashProjection.timeline,
+    minimumCashBalance: cashProjection.minimumBalance,
+    firstCashDepletionYear: cashProjection.firstDepletionYear,
+    firstCashDepletionAge:
+      cashProjection.firstDepletionYear === null
+        ? null
+        : formData.currentAge + cashProjection.firstDepletionYear,
+    cashShortfallToAvoidDepletion: cashProjection.cashShortfallToAvoidDepletion,
     riskLevel:
-      monthlySurplusOrDeficit > 0
+      cashProjection.minimumBalance < 0
+        ? 'deficit'
+        : monthlySurplusOrDeficit > 0
         ? 'surplus'
         : monthlySurplusOrDeficit < 0
           ? 'deficit'

@@ -53,7 +53,7 @@ test('cash interest row appears before taxable dividend row', () => {
   assert.ok(cashInterestIndex < taxableDividendIndex)
   assert.equal(cashInterestRow?.monthly, formatCompactCurrency(70_500))
 })
-test('ISA row uses projected dividend total after liquidation', () => {
+test('ISA row uses the full projected dividend total through settlement', () => {
   const formData: typeof defaultFormData = {
     ...defaultFormData,
     simulationYears: 30,
@@ -88,7 +88,7 @@ test('ISA row uses projected dividend total after liquidation', () => {
 
   const isaRow = rows.find((row) => row.item === 'ISA 배당')
 
-  assert.equal(result.projectionIsaDividendTotal, 100_000_000)
+  assert.equal(result.projectionIsaDividendTotal, 135_348_000)
   assert.equal(isaRow?.tenYear, formatCompactCurrency(result.projectionIsaDividendTotal))
 })
 

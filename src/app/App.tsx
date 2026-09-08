@@ -9,18 +9,19 @@ import {
 } from 'react'
 import { AppOptionsButton, AppOptionsModal } from '../components/common/AppOptions'
 import { AppHomeButton } from '../components/common/AppHomeButton'
-import { policyConfig } from '../config/policyConfig'
 import { StartScreen } from '../components/start/StartScreen'
 import { defaultFormData } from '../data/defaultFormData'
 import { calculateAlphaScenario } from '../engine/calculator'
 import { useAdSupport } from '../hooks/useAdSupport'
 import { useThemeMode } from '../hooks/useThemeMode'
 import { getAccessModeFormData } from '../utils/accessMode'
+import { getBrowserStorage } from '../utils/browserStorage'
+import { readFormDraft, removeFormDraft, writeFormDraft } from '../utils/draftStorage'
 import { useAlphaFlow } from '../hooks/useAlphaFlow'
 import { useAppHistoryNavigation, type SaveSlotMode } from '../hooks/useAppHistoryNavigation'
 import { useSaveSlots } from '../hooks/useSaveSlots'
 import { useViewportCssVars } from '../hooks/useViewportCssVars'
-import type { AlphaFormData, AlphaResult, SaveSlotRecord } from '../types/alpha'
+import type { AlphaFormData, SaveSlotRecord } from '../types/alpha'
 import { appRoutes } from './routes'
 
 const QuestionScreen = lazy(async () => {
@@ -57,9 +58,9 @@ const hasPatchChanges = (
   )
 
 export default function App() {
-  const [formData, setFormData] = useState<AlphaFormData>(defaultFormData)
-  const [loadedSlotResult, setLoadedSlotResult] = useState<AlphaResult | null>(null)
-  const [needsLoadedSlotRefresh, setNeedsLoadedSlotRefresh] = useState(false)
+  const [formData, setFormData] = useState<AlphaFormData>(
+    () => readFormDraft(getBrowserStorage()) ?? defaultFormData,
+  )
   const [saveSlotMode, setSaveSlotMode] = useState<SaveSlotMode | null>(null)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
@@ -77,15 +78,10 @@ export default function App() {
   )
   const shouldRenderResult =
     flow.route === appRoutes.result || saveSlotMode === 'manage' || saveSlotMode === 'save'
-  const reusableLoadedSlotResult = adSupport.accessMode === 'pro' ? loadedSlotResult : null
-  const liveResult = useMemo(
-    () =>
-      shouldRenderResult && reusableLoadedSlotResult === null
-        ? calculateAlphaScenario(calculationInput)
-        : null,
-    [calculationInput, reusableLoadedSlotResult, shouldRenderResult],
+  const result = useMemo(
+    () => (shouldRenderResult ? calculateAlphaScenario(calculationInput) : null),
+    [calculationInput, shouldRenderResult],
   )
-  const result = reusableLoadedSlotResult ?? liveResult
   const headerActions = useMemo(
     () => (
       <div className="app-header-actions">
@@ -107,6 +103,16 @@ export default function App() {
     void import('../components/ad/ResultAdScreen')
   }, [])
 
+  useEffect(() => {
+    const draftTimer = window.setTimeout(() => {
+      writeFormDraft(getBrowserStorage(), formData)
+    }, 300)
+
+    return () => {
+      window.clearTimeout(draftTimer)
+    }
+  }, [formData])
+
   useAppHistoryNavigation({
     route: flowRoute,
     questionIndex: flow.questionIndex,
@@ -125,28 +131,7 @@ export default function App() {
     openResult()
   }, [adSupport.isAdFreeEnabled, flowRoute, openResult])
 
-  useEffect(() => {
-    if (!needsLoadedSlotRefresh) {
-      return
-    }
-
-    const refreshTimer = window.setTimeout(() => {
-      const refreshedResult = calculateAlphaScenario(calculationInput)
-
-      startTransition(() => {
-        setLoadedSlotResult(refreshedResult)
-        setNeedsLoadedSlotRefresh(false)
-      })
-    }, 0)
-
-    return () => {
-      window.clearTimeout(refreshTimer)
-    }
-  }, [calculationInput, needsLoadedSlotRefresh])
-
   const patchFormData = useCallback((patch: Partial<AlphaFormData>) => {
-    setLoadedSlotResult(null)
-    setNeedsLoadedSlotRefresh(false)
     setFormData((currentValue) => {
       if (!hasPatchChanges(currentValue, patch)) {
         return currentValue
@@ -161,9 +146,6 @@ export default function App() {
 
   const startFresh = useCallback(() => {
     startTransition(() => {
-      setLoadedSlotResult(null)
-      setNeedsLoadedSlotRefresh(false)
-      setFormData(defaultFormData)
       flow.goToQuestion(0)
     })
   }, [flow])
@@ -171,21 +153,17 @@ export default function App() {
   const handleLoadSlot = useCallback(
     (slot: SaveSlotRecord) => {
       const nextFormData = { ...defaultFormData, ...slot.formData }
-      const canReuseStoredResult =
-        adSupport.accessMode === 'pro' && slot.result.policyBaseDate === policyConfig.policyBaseDate
 
-      setLoadedSlotResult(canReuseStoredResult ? slot.result : null)
-      setNeedsLoadedSlotRefresh(true)
       setFormData(nextFormData)
       setSaveSlotMode(null)
       flow.openAd()
     },
-    [adSupport.accessMode, flow],
+    [flow],
   )
 
   const handleSaveSlot = useCallback(
     (slotId: number, slotName: string) => {
-      saveSlots.saveSlot(
+      return saveSlots.saveSlot(
         slotId,
         formData,
         result ?? calculateAlphaScenario(calculationInput),
@@ -197,15 +175,14 @@ export default function App() {
 
   const handleDeleteSlot = useCallback(
     (slotId: number) => {
-      saveSlots.deleteSlot(slotId)
+      return saveSlots.deleteSlot(slotId)
     },
     [saveSlots],
   )
 
   const startOver = useCallback(() => {
+    removeFormDraft(getBrowserStorage())
     startTransition(() => {
-      setLoadedSlotResult(null)
-      setNeedsLoadedSlotRefresh(false)
       setFormData(defaultFormData)
       setSaveSlotMode(null)
       flow.reset()
@@ -277,6 +254,7 @@ export default function App() {
             slotCount={saveSlots.slotCount}
             slotsById={saveSlots.slotsById}
             canSave={flow.route === appRoutes.result && result !== null}
+            storageError={saveSlots.storageError}
             onClose={() => setSaveSlotMode(null)}
             onModeChange={(nextMode: 'load' | 'save') => setSaveSlotMode(nextMode)}
             onLoad={handleLoadSlot}

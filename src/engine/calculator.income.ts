@@ -19,7 +19,7 @@ import {
 const normalizeIsaType = (isaType: IsaType | undefined): 'general' | 'workingClass' =>
   isaType === 'workingClass' ? 'workingClass' : 'general'
 
-const getIsaTaxFreeLimitAnnual = (isaType: 'general' | 'workingClass') =>
+const getIsaTaxFreeLimit = (isaType: 'general' | 'workingClass') =>
   isaType === 'workingClass'
     ? policyConfig.isa.workingClassTaxFreeLimit
     : policyConfig.isa.generalTaxFreeLimit
@@ -314,8 +314,9 @@ export const calculateIsaTax = ({
 }): IsaTaxCalculation => {
   const breakdown = ownershipBreakdown.map<IsaTaxBreakdown>((allocation) => {
     const attributedAnnual = roundCurrency(allocation.attributedAnnual)
+    const projectedGross = roundCurrency(attributedAnnual * formData.simulationYears)
     const isaType = getIsaTypeForPerson(formData, allocation.personKey)
-    const taxFreeLimitAnnual = getIsaTaxFreeLimitAnnual(isaType)
+    const taxFreeLimit = getIsaTaxFreeLimit(isaType)
 
     if (formData.dividendInputMode === 'net') {
       return {
@@ -323,39 +324,41 @@ export const calculateIsaTax = ({
         label: allocation.label,
         isaType,
         attributedAnnual,
-        taxFreeLimitAnnual,
-        taxFreeLimitAppliedAnnual: 0,
-        taxableExcessAnnual: 0,
-        taxAnnual: 0,
-        netAnnual: attributedAnnual,
+        projectedGross,
+        taxFreeLimit,
+        taxFreeLimitApplied: 0,
+        taxableExcess: 0,
+        settlementTax: 0,
+        projectedNetAfterSettlement: projectedGross,
       }
     }
 
-    const taxFreeLimitAppliedAnnual = Math.min(attributedAnnual, taxFreeLimitAnnual)
-    const taxableExcessAnnual = Math.max(attributedAnnual - taxFreeLimitAnnual, 0)
-    const taxAnnual = roundCurrency(taxableExcessAnnual * policyConfig.isa.excessTaxRate)
+    const taxFreeLimitApplied = Math.min(projectedGross, taxFreeLimit)
+    const taxableExcess = Math.max(projectedGross - taxFreeLimit, 0)
+    const settlementTax = roundCurrency(taxableExcess * policyConfig.isa.excessTaxRate)
 
     return {
       personKey: allocation.personKey,
       label: allocation.label,
       isaType,
       attributedAnnual,
-      taxFreeLimitAnnual,
-      taxFreeLimitAppliedAnnual,
-      taxableExcessAnnual,
-      taxAnnual,
-      netAnnual: roundCurrency(attributedAnnual - taxAnnual),
+      projectedGross,
+      taxFreeLimit,
+      taxFreeLimitApplied,
+      taxableExcess,
+      settlementTax,
+      projectedNetAfterSettlement: roundCurrency(projectedGross - settlementTax),
     }
   })
 
   const annualGross = roundCurrency(breakdown.reduce((sum, item) => sum + item.attributedAnnual, 0))
-  const annualNet = roundCurrency(breakdown.reduce((sum, item) => sum + item.netAnnual, 0))
 
   return {
-    stream: createDividendStream(annualGross, annualNet),
-    taxAnnual: roundCurrency(breakdown.reduce((sum, item) => sum + item.taxAnnual, 0)),
+    // ISA tax is deferred to the selected simulation end instead of being withheld every year.
+    stream: createDividendStream(annualGross, annualGross),
+    settlementTax: roundCurrency(breakdown.reduce((sum, item) => sum + item.settlementTax, 0)),
     taxFreeLimitApplied: roundCurrency(
-      breakdown.reduce((sum, item) => sum + item.taxFreeLimitAppliedAnnual, 0),
+      breakdown.reduce((sum, item) => sum + item.taxFreeLimitApplied, 0),
     ),
     breakdown,
   }

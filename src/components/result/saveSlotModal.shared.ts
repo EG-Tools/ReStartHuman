@@ -10,11 +10,12 @@ export interface SaveSlotModalProps {
   slotCount: number
   slotsById: Map<number, SaveSlotRecord>
   canSave?: boolean
+  storageError?: string | null
   onClose: () => void
   onModeChange?: (mode: SwitchableSaveSlotMode) => void
   onLoad: (slot: SaveSlotRecord) => void
-  onSave: (slotId: number, slotName: string) => void
-  onDelete: (slotId: number) => void
+  onSave: (slotId: number, slotName: string) => boolean
+  onDelete: (slotId: number) => boolean
 }
 
 export const createSaveSlotDraftNames = (

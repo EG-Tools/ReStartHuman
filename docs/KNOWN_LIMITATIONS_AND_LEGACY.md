@@ -12,17 +12,13 @@ Interpretation:
 - The current project state is effectively a static step list.
 - Do not assume there is already meaningful conditional step filtering.
 
-## 2) Fields that still need end-to-end verification
-These fields remain important, but their behavior is only safe to edit after checking the full path from question flow to calculation to result output.
+## 2) Fields with important cross-screen behavior
+These fields are covered by the current calculation and result tests, but changes still need to follow the full path from question flow to calculation to result output.
 
 Examples:
-- `isaType`
-- `myIsaType`
-- `spouseIsaType`
+- `isaType`, `myIsaType`, `spouseIsaType`
 - `pensionStartAge`
-
-Interpretation:
-- Check actual render, calculation, and result usage before reusing them.
+- income duration fields
 
 ## 3) Save-slot caution
 The save-slot record stores both `formData` and `result`.
@@ -47,6 +43,10 @@ The cash projection stops applying that burden after the configured years.
 ## 6) Tax and policy caution
 The project uses public-policy-inspired simplified rules from `src/config/policyConfig.ts`.
 It is not a substitute for a fully authoritative legal or professional tax calculation.
+
+The ISA input is an annual dividend estimate, not an account-closure gain/loss statement. The app accumulates that estimate through the selected simulation period and applies the tax-free limit once at the end. There is no separate loss input, so the displayed settlement tax cannot reproduce actual gain/loss offsetting.
+
+Asset-rank and household-spending comparisons are dated internal reference bands, not live official-statistics integrations. The result text must keep that limitation visible.
 
 If a task asks for legal accuracy changes, inspect:
 - `src/config/policyConfig.ts`

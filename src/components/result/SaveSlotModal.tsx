@@ -118,6 +118,7 @@ export function SaveSlotModal({
   slotCount,
   slotsById,
   canSave,
+  storageError,
   onClose,
   onModeChange,
   onLoad,
@@ -144,13 +145,15 @@ export function SaveSlotModal({
 
   const handleSave = (slotId: number) => {
     const normalizedName = normalizeSaveSlotName(draftNames[slotId])
-    updateDraftName(slotId, normalizedName)
-    onSave(slotId, normalizedName)
+    if (onSave(slotId, normalizedName)) {
+      updateDraftName(slotId, normalizedName)
+    }
   }
 
   const handleDelete = (slotId: number) => {
-    updateDraftName(slotId, '')
-    onDelete(slotId)
+    if (onDelete(slotId)) {
+      updateDraftName(slotId, '')
+    }
   }
 
   return (
@@ -176,6 +179,12 @@ export function SaveSlotModal({
             <span className="css-close-icon" aria-hidden="true" />
           </button>
         </div>
+
+        {storageError ? (
+          <p className="save-slot-storage-error" role="alert">
+            {storageError}
+          </p>
+        ) : null}
 
         <div className="slot-list">
           {slotIds.map((slotId) => {

@@ -6,6 +6,8 @@ This file describes save-slot persistence, loading behavior, and image sharing o
 ### Save/load
 - Hook: `src/hooks/useSaveSlots.ts`
 - Storage helpers: `src/utils/saveSlots.ts`
+- Draft storage: `src/utils/draftStorage.ts`
+- Shared form validation: `src/utils/formDataValidation.ts`
 - Modal UI: `src/components/result/SaveSlotModal.tsx`
 - Shared modal helpers: `src/components/result/saveSlotModal.shared.ts`
 
@@ -62,8 +64,9 @@ Defined in `readSaveSlotRecords()` and `migrateParsedSaveSlotRecord()`.
 Current behavior:
 - non-JSON data is ignored
 - records with an unknown `version` are ignored
-- malformed shape is ignored
+- malformed records and invalid core field types are ignored
 - slots are sorted by slot number before use
+- stored results are not trusted for rendering; valid form data is merged with defaults and recalculated with the current engine
 
 If storage structure changes, update the migration path and tests in the same task.
 
@@ -73,10 +76,17 @@ If storage structure changes, update the migration path and tests in the same ta
 - If you change `AlphaFormData`, check whether old save data needs migration help.
 - If you change slot-name rules, update modal behavior and tests together.
 
-## 7) Share image notes
+## 7) Automatic draft recovery
+- Form edits are saved to `restarthuman-alpha-form-draft` after a short debounce.
+- A valid draft initializes the next local session, so starting the simulation resumes the latest inputs.
+- `처음으로` from the result screen clears the draft and restores defaults.
+- Drafts and save slots share the same runtime form-data validation rules.
+
+## 8) Share image notes
 - Sharing is built around the captured result-screen content.
 - `ResultScreen.tsx` owns the capture ref and passes it to the share hook.
 - UI marked with `data-capture-exclude="true"` is intentionally excluded from the exported image.
+- If file sharing is unavailable, the generated result image is downloaded instead of falling back to URL-only sharing.
 
 If the screenshot/exported image is wrong, start in:
 - `src/components/result/ResultScreen.tsx`

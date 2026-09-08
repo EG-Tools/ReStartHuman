@@ -109,6 +109,17 @@ test('저장 슬롯은 알 수 없는 버전이나 깨진 데이터는 무시한
       ...makeRecord(3, '버전 오류'),
     }),
   )
+  storage.setItem(
+    getSaveSlotStorageKey(4),
+    JSON.stringify({
+      version: 1,
+      ...makeRecord(4, '필드 오류'),
+      formData: {
+        ...defaultFormData,
+        currentAge: '오십',
+      },
+    }),
+  )
 
   const records = readSaveSlotRecords(storage)
 
@@ -141,7 +152,7 @@ test('writeSaveSlotRecord and removeSaveSlotRecord tolerate storage access failu
   const record = makeRecord(1, 'safe write')
 
   assert.doesNotThrow(() => {
-    writeSaveSlotRecord(storage, record)
-    removeSaveSlotRecord(storage, 1)
+    assert.equal(writeSaveSlotRecord(storage, record), false)
+    assert.equal(removeSaveSlotRecord(storage, 1), false)
   })
 })

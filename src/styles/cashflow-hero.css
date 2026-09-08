@@ -37,13 +37,15 @@
 
 .cashflow-hero-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
 .cashflow-hero-header > :first-child {
-  flex: 0 0 auto;
+  flex: 1 1 42rem;
+  min-width: 0;
 }
 
 .cashflow-hero-header h2 {
@@ -69,17 +71,28 @@
   white-space: nowrap;
 }
 
+.cashflow-depletion-warning {
+  margin: 8px 0 0;
+  max-width: 48rem;
+  color: var(--danger-ink, #913d44);
+  font-size: clamp(0.78rem, 1.8vw, 0.92rem);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
 .cashflow-hero-meta {
   --cashflow-meta-side-padding-x: 14px;
   --cashflow-meta-center-padding-x: 16px;
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  grid-template-columns: repeat(3, max-content);
   align-items: center;
   column-gap: 10px;
   row-gap: 8px;
-  flex: 1 1 auto;
+  flex: 1 1 34rem;
   width: auto;
+  max-width: 44rem;
   min-width: 0;
+  justify-content: end;
 }
 
 .cashflow-hero-meta-pill {
@@ -214,6 +227,7 @@
     --cashflow-meta-side-padding-x: 12px;
     --cashflow-meta-center-padding-x: 14px;
     width: 100%;
+    max-width: none;
     grid-template-columns: max-content minmax(0, 1fr) max-content;
     column-gap: 8px;
     justify-items: stretch;

@@ -93,18 +93,8 @@ export function useResultShare({ captureRef }: UseResultShareOptions) {
         return
       }
 
-      if (navigator.share) {
-        await navigator.share({
-          title: 'ReStart Human 결과',
-          text: '결과 화면 이미지를 저장하거나 전송할 수 있습니다.',
-          url: window.location.href,
-        })
-        setExportMessage('공유를 마쳤습니다.')
-        return
-      }
-
       downloadResultImage(blob)
-      setExportMessage('공유 기능이 없어 이미지를 다운로드했습니다.')
+      setExportMessage('이미지 공유를 지원하지 않아 결과 이미지를 다운로드했습니다.')
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         setExportMessage('공유가 취소되었습니다.')

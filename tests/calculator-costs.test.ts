@@ -44,11 +44,12 @@ test('현금흐름은 대출이자 반영 기간이 끝나면 그 이후 해부�
     {
       taxableDividendAnnualGross: 0,
       taxableDividendAnnualNet: 12_000_000,
+      taxableDividendOwnershipBreakdown: [],
       isaDividendAnnualNet: 0,
+      isaSettlementTax: 0,
       pensionDividendAnnualNet: 0,
     },
     700_000,
-    0,
     0,
     3,
   )
@@ -77,11 +78,12 @@ test('물가상승이 켜지면 같은 조건에서도 마지막 해 잔액이 �
     {
       taxableDividendAnnualGross: 0,
       taxableDividendAnnualNet: 24_000_000,
+      taxableDividendOwnershipBreakdown: [],
       isaDividendAnnualNet: 0,
+      isaSettlementTax: 0,
       pensionDividendAnnualNet: 0,
     },
     1_500_000,
-    0,
     0,
     3,
   )
@@ -95,11 +97,12 @@ test('물가상승이 켜지면 같은 조건에서도 마지막 해 잔액이 �
     {
       taxableDividendAnnualGross: 0,
       taxableDividendAnnualNet: 24_000_000,
+      taxableDividendOwnershipBreakdown: [],
       isaDividendAnnualNet: 0,
+      isaSettlementTax: 0,
       pensionDividendAnnualNet: 0,
     },
     1_500_000,
-    0,
     0,
     3,
   )
@@ -138,6 +141,22 @@ test('피부양자는 추가 소득이 기준을 넘으면 지역가입자 방�
   )
 
   assert.ok(premium > 0)
+})
+
+test('직장가입자의 보수 외 소득월액보험료는 가입자 전액 부담으로 계산한다', () => {
+  const premium = estimateHealthInsurance(
+    {
+      ...defaultFormData,
+      healthInsuranceType: 'employee',
+      salaryMonthly: 0,
+      startingCashReserve: 0,
+    },
+    policyConfig.healthInsurance.employeeAdditionalIncomeThresholdAnnual + 12_000_000,
+    50,
+    0,
+  )
+
+  assert.equal(premium, 71_900)
 })
 
 test('근로소득 입력은 월 추가소득과 급여 중 큰 값을 사용한다', () => {
@@ -179,11 +198,12 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
     {
       taxableDividendAnnualGross: 0,
       taxableDividendAnnualNet: 9_600_000,
+      taxableDividendOwnershipBreakdown: [],
       isaDividendAnnualNet: 0,
+      isaSettlementTax: 0,
       pensionDividendAnnualNet: 0,
     },
     100_000,
-    0,
     0,
     3,
   )
@@ -193,6 +213,24 @@ test('보험료는 납입기간이 끝나면 이후 연차부터 지출에서 �
     [0, 8_400_000, 16_800_000, 26_400_000],
   )
   assert.equal(projection.endingBalance, 26_400_000)
+})
+
+test('기간형 근로소득이 끝나면 급여 기준 직장보험료도 더 이상 유지하지 않는다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    currentAge: 50,
+    simulationYears: 2,
+    selectedIncomeCategories: ['earned'],
+    earnedIncomeMonthly: 3_000_000,
+    earnedIncomeDurationYears: 1,
+    salaryMonthly: 3_000_000,
+    healthInsuranceType: 'employee',
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    inflationEnabled: false,
+  })
+
+  assert.equal(result.projectionHealthInsuranceTotal, result.healthInsuranceMonthly * 12)
 })
 test('피부양자 사업소득은 건강보험 재확인 high로 본다', () => {
   const formData = {

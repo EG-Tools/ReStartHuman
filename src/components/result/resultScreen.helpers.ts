@@ -26,6 +26,8 @@ const ageAssetBenchmarks = [
   { min: 60, max: Number.POSITIVE_INFINITY, label: '60세 이상', averageAsset: 600_950_000 },
 ] as const
 
+const INTERNAL_BENCHMARK_LABEL = '2026년 3월 앱 내부 참고 구간'
+
 export const getLivingCostSnapshot = (formData: AlphaFormData) => {
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
 
@@ -115,22 +117,22 @@ export const getHouseholdAssetEstimate = (formData: AlphaFormData) => {
 
 const getAssetTierMessage = (totalAssets: number) => {
   if (totalAssets >= 10_000_000_000) {
-    return '대한민국 자산 상위 0.1% 안팎의 초상위권으로 볼 수 있는 규모입니다.'
+    return '앱 내부 자산 비교 구간상 최상위권에 해당합니다.'
   }
 
   if (totalAssets >= 3_000_000_000) {
-    return '대한민국 자산 상위 1% 안팎으로 볼 수 있는 규모입니다.'
+    return '앱 내부 자산 비교 구간상 상위권에 해당합니다.'
   }
 
   if (totalAssets >= 1_000_000_000) {
-    return '대한민국 자산 상위 10% 안팎으로 볼 수 있는 규모입니다.'
+    return '앱 내부 자산 비교 구간상 중상위권에 해당합니다.'
   }
 
   if (totalAssets >= 300_000_000) {
-    return '대한민국 자산 중위권 이상으로 볼 수 있는 규모입니다.'
+    return '앱 내부 자산 비교 구간상 중위권 이상에 해당합니다.'
   }
 
-  return '대한민국 자산 하위권 또는 자산 형성 초기 구간으로 볼 수 있는 규모입니다.'
+  return '앱 내부 자산 비교 구간상 자산 형성 초기 구간에 해당합니다.'
 }
 
 export const getAssetInterpretationMessage = ({
@@ -151,10 +153,10 @@ export const getAssetInterpretationMessage = ({
   const hasAssetIncomeMismatch = dividendAnnual > 0 && dividendToAssetRatio >= 0.15
 
   if (hasAssetIncomeMismatch) {
-    return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. 다만 연 배당금 ${formatCompactCurrency(dividendAnnual)}이 입력 자산 대비 매우 큰 사례라 자산 서열 문구는 보수적으로 해석하는 편이 좋습니다.`
+    return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. 다만 연 배당금 ${formatCompactCurrency(dividendAnnual)}이 입력 자산 대비 매우 큰 사례라 자산 비교 문구는 보수적으로 해석하는 편이 좋습니다. ${INTERNAL_BENCHMARK_LABEL}이며 공식 통계 직접 연동값은 아닙니다.`
   }
 
-  return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. ${benchmarkLabel} 평균 자산 ${formatCompactCurrency(benchmarkAverageAsset)} 대비 약 ${roundedAssetMultiple}배이며, ${getAssetTierMessage(totalAssets)}`
+  return `${benchmarkLabel} 나이 기준 추정자산 ${formatCompactCurrency(totalAssets)}입니다. ${benchmarkLabel} 참고 자산 ${formatCompactCurrency(benchmarkAverageAsset)} 대비 약 ${roundedAssetMultiple}배이며, ${getAssetTierMessage(totalAssets)} ${INTERNAL_BENCHMARK_LABEL}이며 공식 통계 직접 연동값은 아닙니다.`
 }
 
 export const getHealthInsuranceTypeSummary = (
@@ -284,7 +286,9 @@ const MAX_ADVICE_CACHE_SIZE = 24
 const deficitAdviceCache = new Map<string, DeficitAdviceItem[]>()
 
 const isDeficitLike = (result: AlphaResult) =>
-  result.monthlySurplusOrDeficit < 0 || result.cashBalanceAfterTenYears < 0
+  result.monthlySurplusOrDeficit < 0 ||
+  result.cashBalanceAfterTenYears < 0 ||
+  result.cashShortfallToAvoidDepletion > 0
 
 const getScenarioImprovement = (before: AlphaResult, after: AlphaResult) => ({
   monthlyImprovement: after.monthlySurplusOrDeficit - before.monthlySurplusOrDeficit,
@@ -298,7 +302,9 @@ const improvesEnough = (before: AlphaResult, after: AlphaResult) => {
 }
 
 const resolvesDeficit = (result: AlphaResult) =>
-  result.monthlySurplusOrDeficit >= 0 && result.cashBalanceAfterTenYears >= 0
+  result.monthlySurplusOrDeficit >= 0 &&
+  result.cashBalanceAfterTenYears >= 0 &&
+  result.cashShortfallToAvoidDepletion === 0
 
 const rankAdviceCandidate = (candidate: AdviceCandidate) =>
   (candidate.resolvesDeficit ? 10_000_000_000 : 0) +
@@ -674,7 +680,7 @@ const findLivingCostAdvice = (
       const nextLivingCost = getLivingCostSnapshot(nextFormData)
       const statsNote =
         currentLivingCost > benchmark.averageMonthlyConsumption * 1.05
-          ? ` \uD1B5\uACC4\uCCAD \uAC00\uAD6C\uB3D9\uD5A5\uC870\uC0AC \uCC38\uACE0\uCE58\uB85C\uB294 ${benchmark.label} \uC6D4\uD3C9\uADE0 \uC18C\uBE44\uC9C0\uCD9C ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} \uC548\uD30E\uC785\uB2C8\uB2E4.`
+          ? ` ${INTERNAL_BENCHMARK_LABEL}으로는 ${benchmark.label} 월 소비지출 ${formatCompactCurrency(benchmark.averageMonthlyConsumption)} 안팎입니다. 공식 통계 직접 연동값은 아닙니다.`
           : ''
       const message = resolvesDeficit(nextResult)
         ? `\uC6D4 \uC0DD\uD65C\uBE44\uB97C ${formatCompactCurrency(currentLivingCost)}\uC5D0\uC11C ${formatCompactCurrency(nextLivingCost)}\uB85C \uB0AE\uCD94\uBA74 ${formData.simulationYears}\uB144 \uD6C4 \uD604\uAE08\uC794\uC561\uC774 \uB9C8\uC774\uB108\uC2A4\uB85C \uB0B4\uB824\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.${statsNote}`
@@ -1024,7 +1030,7 @@ const formatIsaLimitSummary = (breakdown: AlphaResult['isaTaxBreakdown']) => {
   return activeBreakdown
     .map(
       (item) =>
-        `${item.label} ${getIsaTypeLabel(item.isaType)} 한도 ${formatCompactCurrency(item.taxFreeLimitAnnual)}`,
+        `${item.label} ${getIsaTypeLabel(item.isaType)} 한도 ${formatCompactCurrency(item.taxFreeLimit)}`,
     )
     .join(', ')
 }
@@ -1088,16 +1094,20 @@ export const getIsaDividendNote = (result: AlphaResult) => {
   const ownershipSummary = formatIsaOwnershipSummary(result.isaTaxBreakdown)
   const limitSummary = formatIsaLimitSummary(result.isaTaxBreakdown)
   const baseNote = `${policyConfig.isa.note} 반영`
-  const liquidationNote =
-    result.isaLiquidationYear !== null && result.isaLiquidationTransferAmount > 0
-      ? `, \uB204\uC801 ISA \uC21C\uBC30\uB2F9\uC774 \uC6D0\uAE08\uC5D0 \uB3C4\uB2EC\uD558\uB294 ${result.isaLiquidationYear}\uB144\uCC28(\uB9CC ${result.isaLiquidationAge}\uC138)\uC5D0 \uD604\uC7AC ISA \uC790\uC0B0 ${formatCompactCurrency(result.isaLiquidationTransferAmount)}\uB97C \uD604\uAE08\uC73C\uB85C \uC62E\uAE30\uACE0 \uC774\uD6C4 \uBC30\uB2F9\uC740 0\uC6D0\uC73C\uB85C \uBD05\uB2C8\uB2E4. \uC62E\uAE34 \uD604\uAE08\uC740 \uB2E4\uC74C \uD574\uBD80\uD130 ${policyConfig.cashInterest.note}`
+  const settlementNote =
+    result.isaSettlementYear !== null
+      ? `, 선택한 ${result.isaSettlementYear}년차(만 ${result.isaSettlementAge}세)에 정산하는 것으로 가정합니다${result.isaSettlementTransferAmount > 0 ? `. 현재 ISA 자산 ${formatCompactCurrency(result.isaSettlementTransferAmount)}도 이때 현금으로 옮깁니다` : ''}`
       : ''
 
-  if (result.isaTaxAnnual === 0) {
-    return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 안에서는 세금이 없습니다${liquidationNote}`
+  if (result.dividendInputMode === 'net') {
+    return `${baseNote}, 귀속: ${ownershipSummary}, 세후 입력값은 이미 정산된 금액으로 보고 별도 세액을 역산하지 않습니다${settlementNote}`
   }
 
-  return `${baseNote}, 귀속: ${ownershipSummary}, ${limitSummary} 초과분에 연 ${formatCompactCurrency(result.isaTaxAnnual)} 부과${liquidationNote}`
+  if (result.isaSettlementTax === 0) {
+    return `${baseNote}, 귀속: ${ownershipSummary}, 선택 기간 누적 이익이 ${limitSummary} 안이라 종료 정산세액은 없습니다${settlementNote}`
+  }
+
+  return `${baseNote}, 귀속: ${ownershipSummary}, 입력한 연 배당을 선택 기간의 이익으로 누적하고 ${limitSummary}를 한 번 적용한 종료 정산세액은 ${formatCompactCurrency(result.isaSettlementTax)}입니다. 실제 손실은 입력받지 않아 손익통산에는 포함하지 않습니다${settlementNote}`
 }
 
 export const getComprehensiveTaxInput = (result: AlphaResult) => {

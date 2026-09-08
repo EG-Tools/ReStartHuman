@@ -1307,6 +1307,7 @@ export function renderQuestionContent({
                   label: '기타 계좌 자산',
                   value: formData.otherAssets,
                   onChange: (value) => update('otherAssets', value),
+                  helperText: '적금 및 저축성보험 환급예상금액',
                 },
               ]}
             />
@@ -1993,7 +1994,7 @@ export function renderQuestionContent({
                       display: 'number' as const,
                       suffix: '%',
                       min: 0,
-                      step: 1,
+                      step: 0.1,
                     },
                   ],
                   helperText:
@@ -2025,5 +2026,3 @@ export function renderQuestionContent({
 
   return renderContent()
 }
-
-

@@ -164,11 +164,12 @@ export interface IsaTaxBreakdown {
   label: string
   isaType: 'general' | 'workingClass'
   attributedAnnual: number
-  taxFreeLimitAnnual: number
-  taxFreeLimitAppliedAnnual: number
-  taxableExcessAnnual: number
-  taxAnnual: number
-  netAnnual: number
+  projectedGross: number
+  taxFreeLimit: number
+  taxFreeLimitApplied: number
+  taxableExcess: number
+  settlementTax: number
+  projectedNetAfterSettlement: number
 }
 
 export interface ComprehensiveTaxPersonBreakdown {
@@ -223,15 +224,15 @@ export interface AlphaResult {
   isaDividendAnnualNet: number
   isaDividendMonthlyGross: number
   isaDividendMonthlyNet: number
-  isaTaxAnnual: number
+  isaSettlementTax: number
   isaTaxFreeLimitApplied: number
   isaExcessTaxRate: number
   isaDividendOwnershipBreakdown: AccountOwnershipBreakdown[]
   isaTaxBreakdown: IsaTaxBreakdown[]
   projectionIsaDividendTotal: number
-  isaLiquidationYear: number | null
-  isaLiquidationAge: number | null
-  isaLiquidationTransferAmount: number
+  isaSettlementYear: number | null
+  isaSettlementAge: number | null
+  isaSettlementTransferAmount: number
   pensionDividendAnnualGross: number
   pensionDividendAnnualNet: number
   pensionDividendMonthlyGross: number
@@ -274,6 +275,7 @@ export interface AlphaResult {
   projectionRentalIncomeTaxTotal: number
   projectionEstimatedComprehensiveIncomeTaxTotal: number
   projectionEstimatedLocalIncomeTaxTotal: number
+  projectionFinancialComprehensiveTaxTotal: number
   estimatedComprehensiveTaxReviewLevel: ReviewLevel
   estimatedComprehensiveTaxReviewReasons: string[]
   rentalSeparateTaxationOption: boolean
@@ -298,6 +300,10 @@ export interface AlphaResult {
   startingCashReserve: number
   cashBalanceAfterTenYears: number
   cashBalanceTimeline: CashBalancePoint[]
+  minimumCashBalance: number
+  firstCashDepletionYear: number | null
+  firstCashDepletionAge: number | null
+  cashShortfallToAvoidDepletion: number
 
   riskLevel: 'surplus' | 'deficit' | 'neutral'
 
