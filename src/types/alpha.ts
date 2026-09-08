@@ -233,6 +233,9 @@ export interface AlphaResult {
   isaSettlementYear: number | null
   isaSettlementAge: number | null
   isaSettlementTransferAmount: number
+  isaWithdrawalPrincipalBasis: number
+  projectionIsaPrincipalWithdrawalTotal: number
+  isaRemainingPrincipalWithdrawalAllowance: number
   pensionDividendAnnualGross: number
   pensionDividendAnnualNet: number
   pensionDividendMonthlyGross: number

@@ -300,6 +300,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
       taxableDividendOwnershipBreakdown,
       isaDividendAnnualNet: isaResult.stream.annualNet,
       isaSettlementTax: isaResult.settlementTax,
+      isaSettlementYear: isaResult.settlementYear,
       pensionDividendAnnualNet: pensionDividend.annualNet,
     },
     expenses.totalExpenseMonthly,
@@ -337,6 +338,10 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
         ? null
         : formData.currentAge + cashProjection.isaSettlementYear,
     isaSettlementTransferAmount: cashProjection.isaSettlementTransferAmount,
+    isaWithdrawalPrincipalBasis: formData.isaAssets,
+    projectionIsaPrincipalWithdrawalTotal: cashProjection.cumulativeIsaPrincipalWithdrawal,
+    isaRemainingPrincipalWithdrawalAllowance:
+      cashProjection.isaRemainingPrincipalWithdrawalAllowance,
     pensionDividendAnnualGross: pensionDividend.annualGross,
     pensionDividendAnnualNet: pensionDividend.annualNet,
     pensionDividendMonthlyGross: pensionDividend.monthlyGross,

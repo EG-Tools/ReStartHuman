@@ -14,7 +14,7 @@ The main entry is `calculateAlphaScenario()` in `src/engine/calculator.ts`.
 1. Sanitize raw form data.
 2. Convert dividend inputs into gross/net streams.
 3. Split taxable and ISA dividends by owner.
-4. Calculate the one-time ISA settlement estimate for the selected projection end.
+4. Calculate the ISA principal-withdrawal exhaustion year and one-time settlement estimate.
 5. Calculate comprehensive tax for taxable-account dividends.
 6. Calculate expenses.
 7. Derive pension and other-income monthly inflow.
@@ -55,9 +55,13 @@ Behavior:
 - Working-class type uses the higher tax-free limit.
 - If dividend input mode is net, ISA tax is effectively skipped because input is already treated as final net annual value.
 - The configured tax-free limits are 2 million KRW for general accounts and 4 million KRW for working-class accounts.
-- Gross-mode annual ISA dividend input is accumulated for the selected simulation period.
-- The tax-free limit is applied once per owner at the selected simulation end, and 9.9% is applied to the excess.
-- Any entered ISA asset balance is transferred into cash in the final projection year.
+- The entered ISA asset balance is used as a proxy for cumulative contributed principal.
+- Annual ISA dividend withdrawals reduce that principal-withdrawal allowance.
+- Settlement year is `ceil(ISA assets / annual ISA dividend)`.
+- Gross-mode annual ISA dividend input is accumulated through the settlement year.
+- The tax-free limit is applied once per owner at settlement, and 9.9% is applied to the excess.
+- The entered ISA asset balance is transferred into cash in the settlement year, and ISA dividend cash flow stops afterward.
+- If no ISA asset balance is entered, the selected simulation end is used as a fallback settlement point.
 - Actual ISA tax is settled after gains and losses are offset. The current form has no separate loss input, so this remains an explicitly labeled closure estimate rather than an authoritative tax amount.
 
 ### Comprehensive tax
@@ -142,7 +146,7 @@ Current model summary:
 - Generates `cashBalanceTimeline` from year 0 to final year.
 - Recalculates cash interest, financial comprehensive tax, and health-insurance income every projection year using that year's balance.
 - Tracks the first negative-balance year, minimum balance, and the cash shortfall needed to avoid interim depletion.
-- Keeps ISA dividend cash flow active through the selected period, then applies the one-time ISA settlement tax and asset transfer in the final year.
+- Keeps ISA dividend cash flow active until the principal-withdrawal allowance is exhausted, then applies the one-time ISA settlement tax and asset transfer.
 
 ## 9) Result values that the UI depends on heavily
 When changing engine logic, check these result fields because the result screen uses them directly:

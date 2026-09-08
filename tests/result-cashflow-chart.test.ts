@@ -31,7 +31,7 @@ test('cashflow chart shows the start and end age labels only once after long pro
   assert.equal(startMatches.length, 1)
   assert.equal(endMatches.length, 1)
 })
-test('cashflow chart shows an ISA marker when ISA dividends convert to cash', () => {
+test('cashflow chart shows an ISA marker when the principal allowance is exhausted', () => {
   const formData = {
     ...defaultFormData,
     currentAge: 50,

@@ -1094,20 +1094,27 @@ export const getIsaDividendNote = (result: AlphaResult) => {
   const ownershipSummary = formatIsaOwnershipSummary(result.isaTaxBreakdown)
   const limitSummary = formatIsaLimitSummary(result.isaTaxBreakdown)
   const baseNote = `${policyConfig.isa.note} 반영`
+  const projectionYears = result.cashBalanceTimeline.at(-1)?.year ?? 0
+  const withdrawalNote =
+    result.isaWithdrawalPrincipalBasis > 0
+      ? ` ISA 자산 입력액 ${formatCompactCurrency(result.isaWithdrawalPrincipalBasis)}을 납입원금 대용치로 보고, 선택 기간 중 ${formatCompactCurrency(result.projectionIsaPrincipalWithdrawalTotal)}을 인출해 남은 원금 인출 한도는 ${formatCompactCurrency(result.isaRemainingPrincipalWithdrawalAllowance)}입니다.`
+      : ''
   const settlementNote =
     result.isaSettlementYear !== null
-      ? `, 선택한 ${result.isaSettlementYear}년차(만 ${result.isaSettlementAge}세)에 정산하는 것으로 가정합니다${result.isaSettlementTransferAmount > 0 ? `. 현재 ISA 자산 ${formatCompactCurrency(result.isaSettlementTransferAmount)}도 이때 현금으로 옮깁니다` : ''}`
+      ? result.isaSettlementYear <= projectionYears
+        ? ` 연 인출액이 납입원금 한도를 모두 소진하는 ${result.isaSettlementYear}년차(만 ${result.isaSettlementAge}세)에 정산하고${result.isaSettlementTransferAmount > 0 ? `, 남은 ISA 자산 ${formatCompactCurrency(result.isaSettlementTransferAmount)}을 현금으로 옮깁니다` : ''}. 이후 ISA 배당은 0원으로 봅니다.`
+        : ` 예상 정산 시점은 ${result.isaSettlementYear}년차(만 ${result.isaSettlementAge}세)로 선택한 ${projectionYears}년 이후이므로, 이번 그래프에는 정산세액과 자산 이전을 넣지 않았습니다.`
       : ''
 
   if (result.dividendInputMode === 'net') {
-    return `${baseNote}, 귀속: ${ownershipSummary}, 세후 입력값은 이미 정산된 금액으로 보고 별도 세액을 역산하지 않습니다${settlementNote}`
+    return `${baseNote}, 귀속: ${ownershipSummary}, 세후 입력값은 이미 정산된 금액으로 보고 별도 세액을 역산하지 않습니다.${withdrawalNote}${settlementNote}`
   }
 
   if (result.isaSettlementTax === 0) {
-    return `${baseNote}, 귀속: ${ownershipSummary}, 선택 기간 누적 이익이 ${limitSummary} 안이라 종료 정산세액은 없습니다${settlementNote}`
+    return `${baseNote}, 귀속: ${ownershipSummary}, 정산 시점 누적 이익이 ${limitSummary} 안이라 예상 정산세액은 없습니다.${withdrawalNote}${settlementNote}`
   }
 
-  return `${baseNote}, 귀속: ${ownershipSummary}, 입력한 연 배당을 선택 기간의 이익으로 누적하고 ${limitSummary}를 한 번 적용한 종료 정산세액은 ${formatCompactCurrency(result.isaSettlementTax)}입니다. 실제 손실은 입력받지 않아 손익통산에는 포함하지 않습니다${settlementNote}`
+  return `${baseNote}, 귀속: ${ownershipSummary}, 입력한 연 배당을 정산 시점까지의 이익으로 누적하고 ${limitSummary}를 한 번 적용한 예상 정산세액은 ${formatCompactCurrency(result.isaSettlementTax)}입니다. 실제 손실은 입력받지 않아 손익통산에는 포함하지 않습니다.${withdrawalNote}${settlementNote}`
 }
 
 export const getComprehensiveTaxInput = (result: AlphaResult) => {

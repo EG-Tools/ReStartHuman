@@ -312,9 +312,19 @@ export const calculateIsaTax = ({
   formData: AlphaFormData
   ownershipBreakdown: AccountOwnershipBreakdown[]
 }): IsaTaxCalculation => {
+  const annualGross = roundCurrency(
+    ownershipBreakdown.reduce((sum, item) => sum + item.attributedAnnual, 0),
+  )
+  const settlementYear =
+    annualGross > 0
+      ? formData.isaAssets > 0
+        ? Math.max(Math.ceil(formData.isaAssets / annualGross), 1)
+        : formData.simulationYears
+      : null
+  const settlementDurationYears = settlementYear ?? 0
   const breakdown = ownershipBreakdown.map<IsaTaxBreakdown>((allocation) => {
     const attributedAnnual = roundCurrency(allocation.attributedAnnual)
-    const projectedGross = roundCurrency(attributedAnnual * formData.simulationYears)
+    const projectedGross = roundCurrency(attributedAnnual * settlementDurationYears)
     const isaType = getIsaTypeForPerson(formData, allocation.personKey)
     const taxFreeLimit = getIsaTaxFreeLimit(isaType)
 
@@ -351,12 +361,11 @@ export const calculateIsaTax = ({
     }
   })
 
-  const annualGross = roundCurrency(breakdown.reduce((sum, item) => sum + item.attributedAnnual, 0))
-
   return {
-    // ISA tax is deferred to the selected simulation end instead of being withheld every year.
+    // Withdrawals consume the principal allowance; tax is deferred until that allowance is exhausted.
     stream: createDividendStream(annualGross, annualGross),
     settlementTax: roundCurrency(breakdown.reduce((sum, item) => sum + item.settlementTax, 0)),
+    settlementYear,
     taxFreeLimitApplied: roundCurrency(
       breakdown.reduce((sum, item) => sum + item.taxFreeLimitApplied, 0),
     ),

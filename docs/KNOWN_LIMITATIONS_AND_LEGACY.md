@@ -44,7 +44,7 @@ The cash projection stops applying that burden after the configured years.
 The project uses public-policy-inspired simplified rules from `src/config/policyConfig.ts`.
 It is not a substitute for a fully authoritative legal or professional tax calculation.
 
-The ISA input is an annual dividend estimate, not an account-closure gain/loss statement. The app accumulates that estimate through the selected simulation period and applies the tax-free limit once at the end. There is no separate loss input, so the displayed settlement tax cannot reproduce actual gain/loss offsetting.
+The ISA input is an annual dividend estimate, not an account-closure gain/loss statement. The app uses the entered ISA asset balance as a proxy for cumulative contributed principal, reduces the principal-withdrawal allowance by annual withdrawals, and settles when that allowance is exhausted. Market-value changes, additional contributions, fees, and separate losses are not entered, so the displayed settlement cannot reproduce an actual account statement.
 
 Asset-rank and household-spending comparisons are dated internal reference bands, not live official-statistics integrations. The result text must keep that limitation visible.
 

@@ -692,6 +692,7 @@ type CashProjectionDividendInputs = {
   taxableDividendOwnershipBreakdown: AccountOwnershipBreakdown[]
   isaDividendAnnualNet: number
   isaSettlementTax: number
+  isaSettlementYear: number | null
   pensionDividendAnnualNet: number
 }
 
@@ -715,13 +716,12 @@ export const calculateCashProjection = (
   let cumulativeEstimatedLocalIncomeTax = 0
   let cumulativeFinancialComprehensiveTax = 0
   let cumulativeIsaDividend = 0
+  let cumulativeIsaPrincipalWithdrawal = 0
   let balance = formData.startingCashReserve
-  const hasIsaSettlement =
-    formData.isaAssets > 0 ||
-    dividendInputs.isaDividendAnnualNet > 0 ||
-    dividendInputs.isaSettlementTax > 0
-  const isaSettlementYear = hasIsaSettlement ? projectionYears : null
-  const isaSettlementTransferAmount = hasIsaSettlement ? roundCurrency(formData.isaAssets) : 0
+  let isaRemainingPrincipalWithdrawalAllowance = roundCurrency(formData.isaAssets)
+  const isaSettlementYear = dividendInputs.isaSettlementYear
+  const isaSettlementTransferAmount =
+    isaSettlementYear === null ? 0 : roundCurrency(formData.isaAssets)
   const timeline = [
     {
       year: 0,
@@ -785,7 +785,18 @@ export const calculateCashProjection = (
         projectedAge,
         projectedPensionMonthly,
       )
-    const projectedIsaDividendAnnual = dividendInputs.isaDividendAnnualNet
+    const hasIsaSettled = isaSettlementYear !== null && yearIndex + 1 > isaSettlementYear
+    const projectedIsaDividendAnnual = hasIsaSettled ? 0 : dividendInputs.isaDividendAnnualNet
+    const projectedIsaPrincipalWithdrawal = Math.min(
+      projectedIsaDividendAnnual,
+      isaRemainingPrincipalWithdrawalAllowance,
+    )
+    isaRemainingPrincipalWithdrawalAllowance = roundCurrency(
+      Math.max(
+        isaRemainingPrincipalWithdrawalAllowance - projectedIsaPrincipalWithdrawal,
+        0,
+      ),
+    )
     const isIsaSettlementYear = isaSettlementYear === yearIndex + 1
     const projectedIsaTransferAmount = isIsaSettlementYear ? isaSettlementTransferAmount : 0
     const projectedIsaSettlementTax = isIsaSettlementYear ? dividendInputs.isaSettlementTax : 0
@@ -839,6 +850,7 @@ export const calculateCashProjection = (
     cumulativeEstimatedLocalIncomeTax += projectedEstimatedComprehensiveTax.localIncomeTaxAnnual
     cumulativeFinancialComprehensiveTax += projectedFinancialComprehensiveTax.impactAnnual
     cumulativeIsaDividend += projectedIsaDividendAnnual - projectedIsaSettlementTax
+    cumulativeIsaPrincipalWithdrawal += projectedIsaPrincipalWithdrawal
     cumulativeNetChange += annualNetChange
     balance += annualNetChange
     timeline.push({
@@ -866,6 +878,10 @@ export const calculateCashProjection = (
     cumulativeEstimatedLocalIncomeTax: roundCurrency(cumulativeEstimatedLocalIncomeTax),
     cumulativeFinancialComprehensiveTax: roundCurrency(cumulativeFinancialComprehensiveTax),
     cumulativeIsaDividend: roundCurrency(cumulativeIsaDividend),
+    cumulativeIsaPrincipalWithdrawal: roundCurrency(cumulativeIsaPrincipalWithdrawal),
+    isaRemainingPrincipalWithdrawalAllowance: roundCurrency(
+      isaRemainingPrincipalWithdrawalAllowance,
+    ),
     minimumBalance: roundCurrency(minimumBalance),
     firstDepletionYear,
     cashShortfallToAvoidDepletion: roundCurrency(Math.max(-minimumBalance, 0)),

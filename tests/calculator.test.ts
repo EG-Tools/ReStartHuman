@@ -150,7 +150,7 @@ test('other pension uses age-based private pension tax rates', () => {
   assert.equal(youngerResult.estimatedComprehensiveIncomeTaxAnnual, 0)
   assert.equal(olderResult.estimatedComprehensiveIncomeTaxAnnual, 0)
 })
-test('ISA is settled once at the simulation end and transfers account assets to cash', () => {
+test('ISA settles when annual withdrawals exhaust the principal allowance', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,
     currentAge: 50,
@@ -175,15 +175,45 @@ test('ISA is settled once at the simulation end and transfers account assets to 
     otherFixedMonthly: 0,
   })
 
-  assert.equal(result.projectionIsaDividendTotal, 150_000_000)
+  assert.equal(result.projectionIsaDividendTotal, 100_000_000)
   assert.equal(result.isaSettlementTax, 0)
-  assert.equal(result.isaSettlementYear, 30)
-  assert.equal(result.isaSettlementAge, 80)
+  assert.equal(result.isaSettlementYear, 20)
+  assert.equal(result.isaSettlementAge, 70)
   assert.equal(result.isaSettlementTransferAmount, 100_000_000)
-  assert.ok(result.projectionTotalIncomeTotal > 150_000_000)
+  assert.equal(result.projectionIsaPrincipalWithdrawalTotal, 100_000_000)
+  assert.equal(result.isaRemainingPrincipalWithdrawalAllowance, 0)
+  assert.ok(result.projectionTotalIncomeTotal > 100_000_000)
   assert.ok(result.projectionCashInterestTotal > 0)
-  assert.ok((result.cashBalanceTimeline[29]?.balance ?? 0) > 145_000_000)
-  assert.ok((result.cashBalanceTimeline[30]?.balance ?? 0) > 250_000_000)
+  assert.ok((result.cashBalanceTimeline[19]?.balance ?? 0) > 95_000_000)
+  assert.ok((result.cashBalanceTimeline[20]?.balance ?? 0) > 200_000_000)
+  assert.ok((result.cashBalanceTimeline[21]?.balance ?? 0) > (result.cashBalanceTimeline[20]?.balance ?? 0))
+  assert.ok((result.cashBalanceTimeline[30]?.balance ?? 0) > (result.cashBalanceTimeline[21]?.balance ?? 0))
+})
+
+test('1억원 ISA에서 연 1천만원을 인출하면 10년차에 정산한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    simulationYears: 30,
+    inflationEnabled: false,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+    isaAssets: 100_000_000,
+    isaDividendAnnual: 10_000_000,
+    dividendInputMode: 'net',
+    taxableAccountDividendAnnual: 0,
+    pensionDividendAnnual: 0,
+    pensionMonthlyAmount: 0,
+    healthInsuranceType: 'dependent',
+    livingCostInputMode: 'total',
+    livingCostMonthlyTotal: 0,
+  })
+
+  assert.equal(result.isaSettlementYear, 10)
+  assert.equal(result.projectionIsaDividendTotal, 100_000_000)
+  assert.equal(result.projectionIsaPrincipalWithdrawalTotal, 100_000_000)
+  assert.equal(result.isaRemainingPrincipalWithdrawalAllowance, 0)
+  assert.equal(result.cashBalanceTimeline[10]?.balance, 200_000_000)
+  assert.equal(result.cashBalanceTimeline[11]?.balance, 200_000_000)
 })
 
 test('cash reserve adds net deposit interest to current and projected income', () => {
