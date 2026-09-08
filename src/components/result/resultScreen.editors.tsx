@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
+import { getInsuranceMonthlyAtYear } from '../../engine/calculator.costs'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
 import { formatCompactCurrency, formatCurrency, formatSignedCompactCurrency } from '../../utils/format'
 import { InlineNumericField } from '../common/Ui'
@@ -209,7 +210,7 @@ function FixedExpenseEditor({
   onPatchFormData: (patch: Partial<AlphaFormData>) => void
 }) {
   const lockedBase =
-    formData.insuranceMonthly + formData.maintenanceMonthly + formData.telecomMonthly
+    getInsuranceMonthlyAtYear(formData) + formData.maintenanceMonthly + formData.telecomMonthly
   const totalValue = lockedBase + formData.otherFixedMonthly
 
   return (

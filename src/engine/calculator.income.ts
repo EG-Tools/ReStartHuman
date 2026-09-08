@@ -1,6 +1,7 @@
 import { policyConfig } from '../config/policyConfig'
 import type {
   AccountOwnershipBreakdown,
+  ComprehensiveTaxPersonBreakdown,
   IsaTaxBreakdown,
   IsaType,
   AlphaFormData,
@@ -479,12 +480,12 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
   formData,
   age,
   nationalPensionMonthly,
-  totalFinancialIncomeAnnual,
+  comprehensiveTaxBreakdown,
 }: {
   formData: AlphaFormData
   age: number
   nationalPensionMonthly: number
-  totalFinancialIncomeAnnual: number
+  comprehensiveTaxBreakdown: ComprehensiveTaxPersonBreakdown[]
 }): EstimatedComprehensiveTaxReview => {
   const breakdown = getEstimatedComprehensiveTaxBaseBreakdown({
     formData,
@@ -495,7 +496,9 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
   const freelanceMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'freelance', age)
   const miscMonthly = getAgeQualifiedIncomeCategoryMonthly(formData, 'misc', age)
   const rentalAnnual = getAgeQualifiedIncomeCategoryMonthly(formData, 'rental', age) * 12
-  const financialThresholdAnnual = policyConfig.comprehensiveIncomeTax.financialIncomeThresholdAnnual
+  const financialIncomeAboveThreshold = comprehensiveTaxBreakdown.filter(
+    (item) => item.exceedsThreshold,
+  )
   const rentalSeparateTaxationOption =
     rentalAnnual > 0 &&
     formData.dependentRentalIncomeType === 'housing' &&
@@ -537,14 +540,17 @@ export const evaluateEstimatedComprehensiveTaxReview = ({
     )
   }
 
-  if (totalFinancialIncomeAnnual > financialThresholdAnnual) {
+  if (financialIncomeAboveThreshold.length > 0) {
+    const financialIncomeSummary = financialIncomeAboveThreshold
+      .map((item) => `${item.label} ${formatCompactCurrency(item.attributedDividendAnnual)}`)
+      .join(', ')
     reasons.push(
-      `금융소득이 연 ${formatCompactCurrency(totalFinancialIncomeAnnual)}로 2,000만원 기준을 넘어 다른 종합소득과 합산한 비교세액을 반영했습니다.`,
+      `금융소득은 인별로 판정하며, ${financialIncomeSummary}이 2,000만원 기준을 넘어 다른 종합소득과 합산한 비교세액을 반영했습니다.`,
     )
   }
 
   const level: ReviewLevel =
-    totalFinancialIncomeAnnual > financialThresholdAnnual || businessMonthly > 0
+    financialIncomeAboveThreshold.length > 0 || businessMonthly > 0
       ? 'high'
       : reasons.length > 0
         ? 'review'

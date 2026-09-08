@@ -49,13 +49,17 @@ export const getAdditionalHomeOfficialValueTotal = (formData: AlphaFormData) =>
     getActiveAdditionalHomes(formData).reduce((sum, home) => sum + Math.max(home.officialValue, 0), 0),
   )
 
+export const getInsuranceMonthlyAtYear = (formData: AlphaFormData, yearIndex = 0) =>
+  yearIndex < formData.insurancePaymentYears ? formData.insuranceMonthly : 0
+
 export const calculateExpenses = (formData: AlphaFormData) => {
   const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
   const loanInterestMonthly = formData.loanInterestMonthly
   const fixedMaintenanceMonthly = formData.maintenanceMonthly
+  const insuranceMonthly = getInsuranceMonthlyAtYear(formData)
 
   const fixedExpenseMonthly =
-    formData.insuranceMonthly +
+    insuranceMonthly +
     fixedMaintenanceMonthly +
     formData.telecomMonthly +
     formData.otherFixedMonthly +
@@ -142,7 +146,10 @@ export const calculateNetCashInterestAnnual = (balance: number, annualRatePercen
   return roundCurrency(grossAnnualInterest * (1 - policyConfig.cashInterest.withholdingRate))
 }
 
-const getAdditionalPropertyBase = (formData: AlphaFormData) => {
+const getAdditionalPropertyBase = (
+  formData: AlphaFormData,
+  healthInsuranceType: AlphaFormData['healthInsuranceType'],
+) => {
   const landTotal = formData.hasLandOrOtherProperty ? formData.landValue : 0
   const otherPropertyTotal = formData.hasLandOrOtherProperty
     ? formData.otherPropertyOfficialValue
@@ -153,9 +160,9 @@ const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   }
 
   if (
-    formData.healthInsuranceType === 'regional' ||
-    formData.healthInsuranceType === 'bothRegional' ||
-    formData.healthInsuranceType === 'other'
+    healthInsuranceType === 'regional' ||
+    healthInsuranceType === 'bothRegional' ||
+    healthInsuranceType === 'other'
   ) {
     return landTotal + otherPropertyTotal
   }
@@ -176,7 +183,10 @@ const getAdditionalPropertyBase = (formData: AlphaFormData) => {
   )
 }
 
-const getRegionalPropertyBase = (formData: AlphaFormData) => {
+const getRegionalPropertyBase = (
+  formData: AlphaFormData,
+  healthInsuranceType: AlphaFormData['healthInsuranceType'],
+) => {
   const housingBase =
     formData.housingType === 'own'
       ? formData.homeOfficialValue
@@ -184,7 +194,11 @@ const getRegionalPropertyBase = (formData: AlphaFormData) => {
         ? formData.jeonseDeposit * policyConfig.healthInsurance.leaseValueRatio
         : formData.monthlyRentDeposit * policyConfig.healthInsurance.leaseValueRatio
 
-  return housingBase + getAdditionalHomeOfficialValueTotal(formData) + getAdditionalPropertyBase(formData)
+  return (
+    housingBase +
+    getAdditionalHomeOfficialValueTotal(formData) +
+    getAdditionalPropertyBase(formData, healthInsuranceType)
+  )
 }
 
 const getDependentCurrentHomeOfficialValue = (formData: AlphaFormData) => {
@@ -481,7 +495,8 @@ export const estimateHealthInsurance = (
     (annualNonSalaryIncome / 12) * policyConfig.healthInsurance.employeeContributionRate
 
   const regionalPropertyBase = Math.max(
-    getRegionalPropertyBase(formData) - policyConfig.healthInsurance.regionalPropertyDeduction,
+    getRegionalPropertyBase(formData, effectiveHealthInsuranceType) -
+      policyConfig.healthInsurance.regionalPropertyDeduction,
     0,
   )
 
@@ -765,7 +780,7 @@ export const calculateCashProjection = (
   ]
 
   const fixedLoanInterestMonthly = formData.loanInterestMonthly
-  const fixedInsuranceMonthly = formData.insuranceMonthly
+  const fixedInsuranceMonthly = getInsuranceMonthlyAtYear(formData)
   const carExpenseMonthly = roundCurrency(formData.carYearlyCost / 12)
   const housingExpenseMonthly = formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
   const fixedExpenseMonthlyWithoutInsuranceAndCar =
@@ -880,9 +895,7 @@ export const calculateCashProjection = (
     const projectedAcademyExpense = academyExpenseMonthly * inflationMultiplier
     const projectedCarExpense = carExpenseMonthly * inflationMultiplier
     const projectedInsuranceExpense =
-      yearIndex < formData.insurancePaymentYears
-        ? fixedInsuranceMonthly * inflationMultiplier
-        : 0
+      getInsuranceMonthlyAtYear(formData, yearIndex) * inflationMultiplier
     const projectedLoanInterest =
       yearIndex < formData.loanInterestYears ? fixedLoanInterestMonthly : 0
 

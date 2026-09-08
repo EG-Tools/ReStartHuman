@@ -458,6 +458,33 @@ test('ISA 배당만으로는 금융소득 종합과세 검토를 띄우지 않�
   assert.deepEqual(result.estimatedComprehensiveTaxReviewReasons, [])
 })
 
+test('부부 금융소득은 가구 합계가 아니라 인별 2천만원 기준으로 안내한다', () => {
+  const result = calculateAlphaScenario({
+    ...defaultFormData,
+    householdType: 'couple',
+    dividendInputMode: 'gross',
+    taxableAccountDividendAnnual: 30_000_000,
+    dividendOwnershipType: 'split',
+    myAnnualDividendAttributed: 15_000_000,
+    spouseAnnualDividendAttributed: 15_000_000,
+    selectedIncomeCategories: ['business'],
+    businessIncomeMonthly: 1_000_000,
+    startingCashReserve: 0,
+    cashInterestRatePercent: 0,
+  })
+
+  assert.equal(result.comprehensiveTaxIncluded, false)
+  assert.equal(result.estimatedComprehensiveTaxReviewLevel, 'high')
+  assert.ok(
+    result.estimatedComprehensiveTaxReviewReasons.some((reason) => reason.includes('개인사업자')),
+  )
+  assert.ok(
+    result.estimatedComprehensiveTaxReviewReasons.every(
+      (reason) => !reason.includes('2,000만원 기준을 넘어'),
+    ),
+  )
+})
+
 test('국민연금은 연금소득공제를 거친 뒤 종합소득세 과세표준에 반영한다', () => {
   const result = calculateAlphaScenario({
     ...defaultFormData,

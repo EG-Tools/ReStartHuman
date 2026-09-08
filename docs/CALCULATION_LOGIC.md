@@ -73,6 +73,7 @@ Behavior:
 - Taxable-account dividends and projected deposit interest are combined per person.
 - When a person's financial income exceeds 20 million KRW, the excess is combined with the modeled other comprehensive-income taxable base before the comparison-tax calculation.
 - Other modeled taxable income is attributed to the primary user because the current form has no spouse-specific non-financial income fields.
+- Result guidance and review levels reuse this per-person threshold result instead of comparing the household financial-income total again.
 - The result keeps the base tax on other income in the income-tax row and reports only the incremental comparison-tax amount in the financial comprehensive-tax row, preventing double subtraction.
 - Rental-income tax and private-pension tax remain separate simplified models.
 
@@ -97,6 +98,8 @@ Includes:
 - `telecomMonthly`
 - `otherFixedMonthly`
 - monthly-converted car cost (`carYearlyCost / 12`)
+
+An insurance payment duration of `0` means the payment has already ended, so it is excluded from the current monthly/annual expense, risk level, and projection.
 
 ### Living expense bucket
 - Total mode uses `livingCostMonthlyTotal`.
@@ -124,6 +127,7 @@ Current model summary:
 - Dependent can stay at `0` if annual non-salary income is below threshold.
 - Regional-style cases combine income-side and property-side pressure.
 - Property-side pressure uses housing plus additional property base.
+- After an automatic retirement transition, the effective regional coverage type is also used for property ownership, so spouse-only property is included when a couple changes to `bothRegional`.
 - Manual override from `healthInsuranceOverrideMonthly` replaces the estimated value entirely.
 
 ## 7) Holding tax logic

@@ -233,6 +233,11 @@ test('보험료 납입기간 0년은 기본 10년으로 바꾸지 않고 즉시 
 
   assert.equal(result.projectionFixedExpenseTotal, 0)
   assert.equal(result.cashBalanceAfterTenYears, 0)
+  assert.equal(result.fixedExpenseMonthly, 0)
+  assert.equal(result.totalExpenseMonthly, 0)
+  assert.equal(result.monthlySurplusOrDeficit, 0)
+  assert.equal(result.yearlySurplusOrDeficit, 0)
+  assert.equal(result.riskLevel, 'neutral')
 })
 
 test('결과표용 누적 생활비는 그래프와 같은 물가상승률을 적용한다', () => {
@@ -306,6 +311,34 @@ test('부부 직장가입자는 근로기간 종료 후 부부 모두 지역가�
     result.healthInsuranceMonthly * 12 + regionalPremiumAfterRetirement * 12,
   )
   assert.ok(regionalPremiumAfterRetirement > 0)
+})
+
+test('퇴직 후 부부 지역가입자 전환은 배우자 단독 재산도 보험료에 반영한다', () => {
+  const formData = {
+    ...defaultFormData,
+    householdType: 'couple' as const,
+    currentAge: 50,
+    selectedIncomeCategories: ['earned'] as Array<'earned'>,
+    earnedIncomeMonthly: 3_000_000,
+    earnedIncomeDurationYears: 1,
+    salaryMonthly: 3_000_000,
+    healthInsuranceType: 'employeeWithDependentSpouse' as const,
+    hasLandOrOtherProperty: true,
+    landValue: 600_000_000,
+    landOwnershipType: 'spouseOnly' as const,
+    myLandShare: 0,
+    spouseLandShare: 100,
+  }
+  const automaticPremiumAfterRetirement = estimateHealthInsurance(formData, 0, 51, 0)
+  const explicitBothRegionalPremium = estimateHealthInsurance(
+    { ...formData, healthInsuranceType: 'bothRegional' },
+    0,
+    51,
+    0,
+  )
+
+  assert.equal(automaticPremiumAfterRetirement, explicitBothRegionalPremium)
+  assert.ok(automaticPremiumAfterRetirement > 0)
 })
 test('피부양자 사업소득은 건강보험 재확인 high로 본다', () => {
   const formData = {

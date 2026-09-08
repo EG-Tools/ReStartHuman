@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo, useRef, useState, type ReactNode, type RefO
 import { ClockIcon, HomeIcon } from '../common/AppIcons'
 import { PrimaryButton } from '../common/Ui'
 import type { AlphaFormData, AlphaResult } from '../../types/alpha'
+import { getInsuranceMonthlyAtYear } from '../../engine/calculator.costs'
 import {
   CashFlowChart,
   ResultInterpretation,
@@ -155,7 +156,7 @@ export const ResultScreen = memo(function ResultScreen({
 
   const fixedMaintenanceMonthlyBase = formData.maintenanceMonthly
   const fixedExpenseMonthlyBase =
-    formData.insuranceMonthly +
+    getInsuranceMonthlyAtYear(formData) +
     fixedMaintenanceMonthlyBase +
     formData.telecomMonthly +
     formData.otherFixedMonthly

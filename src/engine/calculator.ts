@@ -277,7 +277,7 @@ export const calculateAlphaScenario = (rawFormData: AlphaFormData): AlphaResult 
     formData,
     age: formData.currentAge,
     nationalPensionMonthly: pensionMonthlyApplied,
-    totalFinancialIncomeAnnual: taxableDividend.annualGross + currentCashInterestAnnualGross,
+    comprehensiveTaxBreakdown: comprehensiveTax.breakdown,
   })
   const totalIncomeMonthly =
     totalDividend.monthlyNet +
