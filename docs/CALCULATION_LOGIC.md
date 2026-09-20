@@ -101,6 +101,12 @@ Includes:
 
 An insurance payment duration of `0` means the payment has already ended, so it is excluded from the current monthly/annual expense, risk level, and projection.
 
+### Car holding period
+- `carHoldingYears` is the number of years the car will be held from now. Its default `null` derives `max(80 - currentAge, 0)`: age 50 gives 30 years, age 60 gives 20 years. A manually entered number stays fixed when age changes.
+- Car maintenance costs are included only while `yearIndex` is less than the effective holding years, with inflation applied during those years when enabled.
+- A duration of `0` excludes car costs from current monthly/annual expenses and the projection.
+- The cumulative car expense, cash timeline, and ending cash balance use the same period cutoff. Current vehicle value remains a separate asset input; no future sale proceeds are assumed.
+
 ### Living expense bucket
 - Total mode uses `livingCostMonthlyTotal`.
 - Detailed mode adds food, necessities, dining out, hobby, academy, and other living cost.

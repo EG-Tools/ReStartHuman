@@ -146,12 +146,14 @@ Main fields:
 - `hasCar`
 - `currentCarMarketValue`
 - `carYearlyCost`
+- `carHoldingYears`
 
 Behavior notes:
 - Total mode uses one monthly number.
 - Detailed mode adds the component fields.
 - `academyMonthly` only appears when the household has children.
-- Turning car ownership off resets both current car value and annual car cost to `0`.
+- Car annual cost and future holding years are entered together. The default period automatically follows `max(80 - currentAge, 0)` unless the user enters a number; `0` years means no car cost is charged.
+- Turning car ownership off resets current car value and annual car cost to `0`, and restores automatic holding years (`null`).
 
 ### `cashReserve`
 Main fields:

@@ -133,6 +133,7 @@ export interface AlphaFormData {
   hasCar: boolean
   currentCarMarketValue: number
   carYearlyCost: number
+  carHoldingYears: number | null
   loanInterestMonthly: number
   loanInterestYears: number
   otherFixedMonthly: number

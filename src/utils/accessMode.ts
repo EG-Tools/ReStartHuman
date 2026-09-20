@@ -1,6 +1,7 @@
 import { defaultFormData } from '../data/defaultFormData'
 import type { AlphaFormData, AppAccessMode } from '../types/alpha'
 import {
+  getCarMonthlyAtYear,
   getInsuranceMonthlyAtYear,
   getLoanInterestMonthlyAtYear,
 } from './expensePeriods'
@@ -31,7 +32,7 @@ const deriveGeneralLivingCostTotal = (formData: AlphaFormData) => {
     toSafeMoney(formData.hobbyMonthly) +
     toSafeMoney(formData.otherLivingMonthly) +
     toSafeMoney(formData.hasChildren ? formData.academyMonthly : 0) +
-    Math.round(toSafeMoney(formData.carYearlyCost) / 12)
+    toSafeMoney(getCarMonthlyAtYear(formData))
   )
 }
 
@@ -132,6 +133,7 @@ export const getAccessModeFormData = (
     hasCar: false,
     currentCarMarketValue: 0,
     carYearlyCost: 0,
+    carHoldingYears: 0,
     hasLoan: false,
     loanInterestMonthly: 0,
     loanInterestYears: 0,

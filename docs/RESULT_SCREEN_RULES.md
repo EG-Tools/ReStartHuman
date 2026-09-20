@@ -81,6 +81,7 @@ Treat housing-row styling and structure as a local exception, not as the baselin
 ## 7) Vehicle rules
 - `차량 시세` belongs to asset interpretation.
 - `차량유지비` belongs to expense flow.
+- Car costs apply only for the effective `carHoldingYears` (`null` uses the years remaining until age 80); the note clips the applied period to `simulationYears`, and zero years displays zero monthly, annual, and cumulative cost.
 - Current design intentionally separates “car as property” from “car as ongoing cost”.
 
 ## 8) Loan rules

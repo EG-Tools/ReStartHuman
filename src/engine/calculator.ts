@@ -152,6 +152,7 @@ const sanitizeInput = (formData: AlphaFormData): AlphaFormData => {
     telecomMonthly: sanitizeMoney(formData.telecomMonthly),
     currentCarMarketValue: sanitizeMoney(formData.currentCarMarketValue),
     carYearlyCost: sanitizeMoney(formData.carYearlyCost),
+    carHoldingYears: sanitizeOptionalMoney(formData.carHoldingYears),
     loanInterestMonthly: sanitizeMoney(formData.loanInterestMonthly),
     loanInterestYears: sanitizeMoney(formData.loanInterestYears),
     otherFixedMonthly: sanitizeMoney(formData.otherFixedMonthly),

@@ -23,6 +23,7 @@ import {
 } from '../utils/incomeStreams'
 import { formatCompactCurrency } from '../utils/format'
 import {
+  getCarMonthlyAtYear,
   getInsuranceMonthlyAtYear,
   getLoanInterestMonthlyAtYear,
 } from '../utils/expensePeriods'
@@ -54,7 +55,7 @@ export const getAdditionalHomeOfficialValueTotal = (formData: AlphaFormData) =>
   )
 
 export const calculateExpenses = (formData: AlphaFormData) => {
-  const carMonthlyConverted = roundCurrency(formData.carYearlyCost / 12)
+  const carMonthlyConverted = getCarMonthlyAtYear(formData)
   const loanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const fixedMaintenanceMonthly = formData.maintenanceMonthly
   const insuranceMonthly = getInsuranceMonthlyAtYear(formData)
@@ -782,7 +783,7 @@ export const calculateCashProjection = (
 
   const fixedLoanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const fixedInsuranceMonthly = getInsuranceMonthlyAtYear(formData)
-  const carExpenseMonthly = roundCurrency(formData.carYearlyCost / 12)
+  const carExpenseMonthly = getCarMonthlyAtYear(formData)
   const housingExpenseMonthly = formData.housingType === 'monthlyRent' ? formData.monthlyRentAmount : 0
   const fixedExpenseMonthlyWithoutInsuranceAndCar =
     formData.maintenanceMonthly + formData.telecomMonthly + formData.otherFixedMonthly
@@ -894,7 +895,7 @@ export const calculateCashProjection = (
       fixedExpenseMonthlyWithoutInsuranceAndCar * inflationMultiplier
     const projectedLivingExpense = livingExpenseMonthly * inflationMultiplier
     const projectedAcademyExpense = academyExpenseMonthly * inflationMultiplier
-    const projectedCarExpense = carExpenseMonthly * inflationMultiplier
+    const projectedCarExpense = getCarMonthlyAtYear(formData, yearIndex) * inflationMultiplier
     const projectedInsuranceExpense =
       getInsuranceMonthlyAtYear(formData, yearIndex) * inflationMultiplier
     const projectedLoanInterest = getLoanInterestMonthlyAtYear(formData, yearIndex)

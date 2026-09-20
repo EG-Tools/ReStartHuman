@@ -67,6 +67,7 @@ Current behavior:
 - malformed records and invalid core field types are ignored
 - slots are sorted by slot number before use
 - stored results are not trusted for rendering; valid form data is merged with defaults and recalculated with the current engine
+- drafts and slots without `carHoldingYears` use the automatic default (`null`, years remaining until age 80); automatic mode and explicitly entered periods, including zero, are retained on save/load
 
 If storage structure changes, update the migration path and tests in the same task.
 

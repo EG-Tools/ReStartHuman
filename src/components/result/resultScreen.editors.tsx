@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import { policyConfig } from '../../config/policyConfig'
 import {
+  getCarHoldingYears,
   getInsuranceMonthlyAtYear,
   getLoanInterestMonthlyAtYear,
 } from '../../utils/expensePeriods'
@@ -386,6 +387,7 @@ export function buildResultRows({
     : ''
   const healthInsuranceReviewSummary = result.healthInsuranceReviewReasons.join(' ')
   const shouldShowCarCostRow = formData.hasCar || formData.carYearlyCost > 0
+  const carHoldingYears = getCarHoldingYears(formData)
   const shouldShowLoanInterestRow = formData.hasLoan || formData.loanInterestMonthly > 0
   const activeLoanInterestMonthly = getLoanInterestMonthlyAtYear(formData)
   const academyMonthly = formData.hasChildren ? formData.academyMonthly ?? 0 : 0
@@ -975,10 +977,12 @@ export function buildResultRows({
         />
       ),
       monthly: formatCompactCurrency(result.carMonthlyConverted),
-      annual: formatCompactCurrency(formData.carYearlyCost),
+      annual: formatCompactCurrency(carHoldingYears > 0 ? formData.carYearlyCost : 0),
       tenYear: formatCompactCurrency(result.projectionCarExpenseTotal),
-      note: `연간 비용 ÷ 12${formData.inflationEnabled ? ' · 물가 반영' : ''}`,
-      noteDetail: `월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
+      note: formData.carYearlyCost > 0 && carHoldingYears > 0
+        ? `${Math.min(carHoldingYears, formData.simulationYears)}년치 반영${formData.inflationEnabled ? ' · 물가 반영' : ''}`
+        : '미반영',
+      noteDetail: `앞으로의 보유기간 ${carHoldingYears}년 동안만 차감합니다. 월 환산 ${formatCompactCurrency(result.carMonthlyConverted)} (${formatCurrency(result.carMonthlyConverted)})`,
     })
   }
 

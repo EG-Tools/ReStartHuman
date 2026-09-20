@@ -90,6 +90,7 @@ export const defaultFormData: AlphaFormData = {
   hasCar: false,
   currentCarMarketValue: 0,
   carYearlyCost: 0,
+  carHoldingYears: null,
   loanInterestMonthly: 0,
   loanInterestYears: 0,
   otherFixedMonthly: 0,

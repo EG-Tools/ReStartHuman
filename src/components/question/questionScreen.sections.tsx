@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { ChoiceQuestion, NumberFields, PrimaryButton } from '../common/Ui'
 import type { QuestionStep, AlphaFormData, AppAccessMode, IncomeCategory } from '../../types/alpha'
 import { formatCompactCurrency } from '../../utils/format'
+import { getCarHoldingYears } from '../../utils/expensePeriods'
 import { QuestionNumberFieldPairs, QuestionNumberFields, type QuestionNumberFieldPairConfig } from './questionScreen.shared'
 import {
   additionalHomeHousingOptions,
@@ -1949,27 +1950,48 @@ export function renderQuestionContent({
                 hasCar: value,
                 currentCarMarketValue: value ? formData.currentCarMarketValue : 0,
                 carYearlyCost: value ? formData.carYearlyCost : 0,
-              }), '예 선택 시 차량 시세와 1년 유지비를 입력합니다.') }
+                carHoldingYears: value ? formData.carHoldingYears : null,
+              }), '예 선택 시 차량 시세와 1년 유지비, 앞으로의 보유기간을 입력합니다.') }
             {formData.hasCar ? (
-              <QuestionNumberFields
-                columns={2}
-                fields={[
-                  {
-                    key: 'currentCarMarketValue',
-                    label: '현재 차량 시세',
-                    value: formData.currentCarMarketValue,
-                    onChange: (value) => update('currentCarMarketValue', value),
-                    helperText: '입력한 경우에만 결과표에 표시되며 자산 해석에 재산으로 반영됩니다.',
-                  },
-                  {
-                    key: 'carYearlyCost',
-                    label: '1년 차량 유지비',
-                    value: formData.carYearlyCost,
-                    onChange: (value) => update('carYearlyCost', value),
-                    helperText: '자동차세·보험료·유류비를 합친 예상 비용이며 12개월로 나눠서 계산됩니다.',
-                  },
-                ]}
-              />
+              <>
+                <QuestionNumberFields
+                  fields={[
+                    {
+                      key: 'currentCarMarketValue',
+                      label: '현재 차량 시세',
+                      value: formData.currentCarMarketValue,
+                      onChange: (value) => update('currentCarMarketValue', value),
+                      helperText: '입력한 경우에만 결과표에 표시되며 자산 해석에 재산으로 반영됩니다.',
+                    },
+                  ]}
+                />
+                <QuestionNumberFieldPairs
+                  pairs={[
+                    {
+                      key: 'car-holding-pair',
+                      helperText: '보유기간은 80세까지 남은 연수로 자동 설정되며 직접 수정할 수 있습니다. 자동차세·보험료·유류비는 보유기간 동안만 차감하며, 0년이면 반영하지 않습니다.',
+                      fields: [
+                        {
+                          key: 'carYearlyCost',
+                          label: '1년 차량 유지비',
+                          value: formData.carYearlyCost,
+                          onChange: (value) => update('carYearlyCost', value),
+                        },
+                        {
+                          key: 'carHoldingYears',
+                          label: '자동차 보유기간',
+                          value: getCarHoldingYears(formData),
+                          onChange: (value) => update('carHoldingYears', Math.max(value, 0)),
+                          display: 'number' as const,
+                          suffix: '년',
+                          min: 0,
+                          step: 1,
+                        },
+                      ],
+                    },
+                  ]}
+                />
+              </>
             ) : null}
           </div>
         )
