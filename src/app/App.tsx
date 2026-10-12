@@ -145,7 +145,10 @@ export default function App() {
   }, [])
 
   const startFresh = useCallback(() => {
+    removeFormDraft(getBrowserStorage())
     startTransition(() => {
+      setFormData(defaultFormData)
+      setSaveSlotMode(null)
       flow.goToQuestion(0)
     })
   }, [flow])

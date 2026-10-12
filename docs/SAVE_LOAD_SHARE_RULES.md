@@ -79,7 +79,8 @@ If storage structure changes, update the migration path and tests in the same ta
 
 ## 7) Automatic draft recovery
 - Form edits are saved to `restarthuman-alpha-form-draft` after a short debounce.
-- A valid draft initializes the next local session, so starting the simulation resumes the latest inputs.
+- A valid draft can initialize in-memory state, but `시뮬레이션 시작` always clears the previous draft, restores all form defaults, and opens the first question.
+- Starting a new simulation preserves saved slots. Previously saved scenarios are restored only through `저장 불러오기`; editing answers within a scenario keeps current inputs.
 - `처음으로` from the result screen clears the draft and restores defaults.
 - Drafts and save slots share the same runtime form-data validation rules.
 
